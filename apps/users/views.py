@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 class UserProfileView(generics.RetrieveAPIView):
 
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
         """
@@ -15,7 +15,7 @@ class UserProfileView(generics.RetrieveAPIView):
         """
 
         return Response(
-            data={'Name': 'Nilesh'},
+            data={'Name': 'Fyle Admin Settings'},
             status=status.HTTP_200_OK
         )
 
