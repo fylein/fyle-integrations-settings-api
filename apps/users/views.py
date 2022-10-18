@@ -18,5 +18,3 @@ class UserProfileView(generics.RetrieveAPIView):
             data={'Name': 'Fyle Admin Settings'},
             status=status.HTTP_200_OK
         )
-
-
