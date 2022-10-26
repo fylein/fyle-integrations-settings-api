@@ -3,7 +3,6 @@ Workato Connector For Managed User
 """
 from .api_base import ApiBase
 
-
 class ManagedUser(ApiBase):
     """Class for Managed Users xAPIs."""
 

@@ -1,5 +1,5 @@
 """
-Quickbooks online Python SDK
+Workato Connector Module
 """
 import os
 import jwt
@@ -46,6 +46,3 @@ class WorkatoSDK:
             algorithm='RS256'
         )
         return encoded_token
-
-
-    
