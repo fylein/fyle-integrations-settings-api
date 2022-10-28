@@ -1,7 +1,7 @@
-from .workatosdk import WorkatoSDK
+from .workato import Workato
 
 __all__ = [
-    WorkatoSDK
+    Workato
 ]
 
-name = "WorkatoSdk"
+name = "Workato"

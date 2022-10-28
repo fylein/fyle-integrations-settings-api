@@ -10,7 +10,7 @@ import uuid
 from .apis import *
 
 
-class WorkatoSDK:
+class Workato:
     """
     Workato Connector
     """
