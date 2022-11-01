@@ -39,6 +39,7 @@ class ApiBase:
         if action:
             response = requests.put('{}{}/{}'.format(API_URL, url, action), headers=API_HEADERS)
         else:
+            print('data', data)
             response = requests.put('{}{}'.format(API_URL, url), json=data, headers=API_HEADERS)
 
         return json.loads(response.text)
