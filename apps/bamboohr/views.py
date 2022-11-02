@@ -7,25 +7,6 @@ from rest_framework import viewsets
 from workato_connector.workato import Workato
 
 
-class ReadyView(viewsets.ViewSet):
-    """
-    Ready call
-    """
-    authentication_classes = []
-    permission_classes = []
-
-    def get(self, request, *args, **kwargs):
-        """
-        Ready call
-        """
-        return Response(
-            data={
-                'message': 'Ready'
-            },
-            status=status.HTTP_200_OK
-        )
-
-
 class FyleConnection(viewsets.ViewSet):
     """
     Api Call to make Fyle Connection in workato
@@ -37,7 +18,7 @@ class FyleConnection(viewsets.ViewSet):
     def post(self, request, *args, **kwargs):
 
         connector = Workato()
-        managed_user_id='708174'
+        managed_user_id=request.data['managed_user_id']
         connections = connector.connections.get(managed_user_id=managed_user_id)
         connection_id = connections['result'][0]['id']
 
@@ -73,7 +54,7 @@ class RecipeView(viewsets.ViewSet):
 
     def get(self, request, *args, **kwargs):
         connector = Workato()
-        managed_user_id='708174'
+        managed_user_id=request.data['managed_user_id']
         recipes = connector.recipes.get(managed_user_id=managed_user_id)
 
         return Response(
@@ -84,7 +65,7 @@ class RecipeView(viewsets.ViewSet):
     def get_by_id(self, request, *args, **kwargs):
         
         connector = Workato()
-        managed_user_id='708174'
+        managed_user_id=request.data['managed_user_id']
         recipe_id=kwargs['recipe_id']
         recipe_details = connector.recipes.get_by_id(managed_user_id, recipe_id)
 
