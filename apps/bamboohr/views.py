@@ -7,6 +7,34 @@ from rest_framework import viewsets
 from workato_connector.workato import Workato
 
 
+class BambooHrConnection(viewsets.ViewSet):
+    """
+    API Call to make Bamboo HR Connection in workato
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request, *args, **kwargs):
+        connector = Workato()
+        managed_user_id = request.data['managed_user_id']
+        connection_id = request.data['connection_id']
+
+        try:
+            connection = connector.connections.put(
+                managed_user_id=managed_user_id,
+                connection_id=connection_id,
+                data=request.data
+            )
+
+        except Exception:
+            return Response(
+                data={
+                    'message': 'Error in Creating Bamboo HR Connection in Recipe'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
 class FyleConnection(viewsets.ViewSet):
     """
     Api Call to make Fyle Connection in workato
