@@ -1,0 +1,41 @@
+version: '3.7'
+
+services:
+  api:
+    build: 
+      context: ./
+      args: 
+        CI: ENABLED
+    entrypoint: bash run.sh
+    restart: unless-stopped
+    volumes:
+    - ./:/fyle-admin-settings-api
+    ports:
+    - 8007:8007
+    depends_on:
+    - db
+    environment: 
+      SECRET_KEY: thisisthedjangosecretkey
+      ALLOWED_HOSTS: "*"
+      DEBUG: "False"
+      API_URL: http://localhost:8007/api
+      DATABASE_URL: postgres://postgres:postgres@db:5432/admin_settings_db
+      DB_HOST: db
+      FYLE_BASE_URL: https://lolo.fyle.tech
+      FYLE_CLIENT_ID: dummy
+      FYLE_CLIENT_SECRET: dummy
+      FYLE_REFRESH_TOKEN: dummy
+      FYLE_TOKEN_URI: https://lolo.fyle.tech
+  db:
+    image: "postgres:latest"
+    environment: 
+      POSTGRES_DB: dummy
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - data:/var/lib/postgresql/data/
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  api:
+  data:
