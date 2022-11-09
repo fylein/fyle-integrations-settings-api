@@ -17,7 +17,7 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-          IMAGE_NAME: fyle_admin_settings-api
+          IMAGE_NAME: fyle_integrations-settings-api
       - name: Deploy to Production
         uses: fylein/aws-eks-deploy-action@master
         env:
@@ -37,7 +37,7 @@ jobs:
         env:
           SLACK_COLOR: ${{ job.status }}
           SLACK_MESSAGE: Production Deploy Status - ${{ job.status }}
-          SLACK_TITLE: Deploy Partner Dashboard API to Production
+          SLACK_TITLE: Deploy Integrations Settings API to Production
           SLACK_ICON_EMOJI: ":pepeok:"
           SLACK_USERNAME: QBO_API
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
