@@ -5,7 +5,7 @@ from rest_framework.views import status
 from rest_framework import viewsets
 from rest_framework import generics
 
-from workato_connector.workato import Workato
+from workato.workato import Workato
 
 
 class BambooHrConnection(generics.CreateAPIView):

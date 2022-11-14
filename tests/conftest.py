@@ -6,6 +6,7 @@ from fyle_rest_auth.models import User, AuthToken
 from rest_framework.test import APIClient
 
 from tests.fixture import fixture
+from apps.orgs.models import Org
 
 
 def pytest_configure():
@@ -31,12 +32,26 @@ def default_session_fixture(request):
     )
     patched_2.__enter__()
 
+    patched_3 = mock.patch(
+        'apps.users.helpers.post_request',
+        return_value={
+            'access_token': 'abcd.efgh.jklm',
+            'cluster_domain': 'https://lolo.fyle.tech'
+        }
+    )
+    patched_3.__enter__()
 
     patched_4 = mock.patch(
         'fyle.platform.apis.v1beta.spender.MyProfile.get',
         return_value=fixture['my_profile']
     )
     patched_4.__enter__()
+
+    patched_5 = mock.patch(
+        'apps.users.helpers.get_cluster_domain',
+        return_value='https://lolo.fyle.tech'
+    )
+    patched_5.__enter__()
 
     patched_6 = mock.patch(
         'fyle_rest_auth.helpers.get_fyle_admin',
@@ -47,7 +62,9 @@ def default_session_fixture(request):
     def unpatch():
         patched_1.__exit__(None, None, None)
         patched_2.__exit__(None, None, None)
+        patched_3.__exit__(None, None, None)
         patched_4.__exit__(None, None, None)
+        patched_5.__exit__(None, None, None)
         patched_6.__exit__(None, None, None)
 
     request.addfinalizer(unpatch)
@@ -62,6 +79,12 @@ def access_token():
 def create_user_and_tokens():
     user = create_user('ashwin.t@fyle.in', 'Joanna', 'usqywo0f3nBY')
     create_auth_token(user)
+
+
+    org = Org.objects.create(
+        name='Anagha Org', fyle_org_id='orHVw3ikkCxJ', cluster_domain='https://lolo.fyle.tech'
+    )
+    org.user.add(user)
 
     user = create_user('ashwin.t+1@fyle.in', 'Joannaa', 'usqywo0f3nBZ')
     create_auth_token(user)

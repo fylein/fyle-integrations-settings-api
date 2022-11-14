@@ -37,3 +37,4 @@ class FyleCredential(models.Model):
 
     class Meta:
         db_table = 'fyle_credentials'
+

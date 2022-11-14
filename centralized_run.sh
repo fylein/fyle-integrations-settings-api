@@ -7,4 +7,4 @@ python manage.py migrate
 python manage.py createcachetable --database cache_db
 
 # Running development server
-python manage.py runserver 0.0.0.0:8005
+python manage.py runserver 0.0.0.0:8006
