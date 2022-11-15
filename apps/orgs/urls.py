@@ -13,4 +13,4 @@ integration_paths = [
     path('<int:org_id>/bamboohr/', include('apps.bamboohr.urls'))
 ]
 
-urlpatterns = [*org_app_path, *other_app_path]
+urlpatterns = [*org_app_path, *integration_paths]
