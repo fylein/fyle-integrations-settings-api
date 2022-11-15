@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 import os
 from pathlib import Path
+import sys
 
 import dj_database_url
 
@@ -43,12 +44,14 @@ INSTALLED_APPS = [
 
     # User Created Apps
     'apps.users',
+    'apps.bamboohr',
     'apps.orgs'
 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'admin_settings.logging_middleware.ErrorHandlerMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -58,6 +61,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'admin_settings.urls'
+APPEND_SLASH = False
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -89,6 +93,57 @@ REST_FRAMEWORK = {
         'fyle_rest_auth.authentication.FyleJWTAuthentication',
     ),
 }
+
+
+SERVICE_NAME = os.environ.get('SERVICE_NAME')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} %s {asctime} {module} {message} ' % SERVICE_NAME,
+            'style': '{',
+        },
+        'requests': {
+            'format': 'request {levelname} %s {asctime} {message}' % SERVICE_NAME,
+            'style': '{'
+        }
+    },
+    'handlers': {
+        'debug_logs': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'verbose'
+        },
+        'request_logs': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'requests'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['request_logs'],
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['request_logs'],
+            'propagate': False
+        },
+        'admin_settings': {
+            'handlers': ['debug_logs'],
+            'level': 'ERROR',
+            'propagate': False
+        },
+        'apps': {
+            'handlers': ['debug_logs'],
+            'level': 'ERROR',
+            'propagate': False
+        }
+    }
+}
+
 
 WSGI_APPLICATION = 'admin_settings.wsgi.application'
 

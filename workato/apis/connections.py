@@ -18,8 +18,8 @@ class Connections(ApiBase):
         return self._get_request(Connections.GET_CONNECTIONS.format(managed_user_id))
     
 
-    def put(self, managed_user_id, connection_id):
+    def put(self, managed_user_id, connection_id, data):
         """
         Create A Connection
         """
-        return self._put_request(Connections.POST_CONNECTION.format(managed_user_id, connection_id))
+        return self._put_request(Connections.POST_CONNECTION.format(managed_user_id, connection_id), data)
