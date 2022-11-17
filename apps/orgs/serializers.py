@@ -1,7 +1,11 @@
 """
 Orgs Serializers
 """
+import traceback
+import logging
 from rest_framework import serializers
+from rest_framework.views import status
+from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 
 from apps.orgs.models import FyleCredential, Org
@@ -10,9 +14,12 @@ from fyle_rest_auth.models import AuthToken
 from fyle_rest_auth.helpers import get_fyle_admin
 from apps.users.helpers import get_cluster_domain
 from apps.orgs.models import FyleCredential, Org, User
+from apps.orgs.helpers import create_workato_workspace
 
 User = get_user_model()
 
+logger = logging.getLogger(__name__)
+logger.level = logging.INFO
 
 class FyleCredentialSerializer(serializers.ModelSerializer):
     """
@@ -33,7 +40,6 @@ class OrgSerializer(serializers.ModelSerializer):
             'name', 'fyle_org_id', 'cluster_domain', 'user'
         ]
 
-
     def update(self, instance, validated):
         
         auth = self.context['request'].META.get('HTTP_AUTHORIZATION')
@@ -43,7 +49,6 @@ class OrgSerializer(serializers.ModelSerializer):
 
         org_name = fyle_user['data']['org']['name']
         org_id = fyle_user['data']['org']['id']
-
         org = Org.objects.filter(fyle_org_id=org_id).first()
 
         if org:
@@ -56,7 +61,9 @@ class OrgSerializer(serializers.ModelSerializer):
 
             FyleCredential.objects.update_or_create(
                 refresh_token=auth_tokens.refresh_token,
-                org_id=org.id,
+                org_id=org.id
             )
+
+            create_workato_workspace(org)
 
         return org

@@ -1,19 +1,12 @@
-
-import os
 import logging
-from django.core.cache import cache
-import traceback
+
 
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
 
-from fyle_rest_auth.models import AuthToken
-from fyle_rest_auth.helpers import get_fyle_admin
-from apps.users.helpers import get_cluster_domain
-
 from apps.orgs.serializers import OrgSerializer
-from apps.orgs.models import FyleCredential, Org, User
+from apps.orgs.models import Org, User
 from workato.workato import Workato
 
 
@@ -63,52 +56,6 @@ class OrgsView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.get(self)
-
-class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
-    """
-    Create and Get Managed User In Workato
-    """
-
-    def update(self, request, *args, **kwargs):
-        connector = Workato()
-
-        try:
-            managed_user = connector.managed_users.post(request.data)
-            fyle_credentials = FyleCredential.objects.get(org_id=kwargs['org_id'])
-            if managed_user['id']:
-                org = Org.objects.get(id=kwargs['org_id'])
-                org.managed_user_id = managed_user['id']
-                org.save()
-
-                properties_payload = {
-                    "properties": {
-                        "FYLE_CLIENT_ID": os.environ.get('FYLE_CLIENT_ID'),
-                        "FYLE_CLIENT_SECRET": os.environ.get('FYLE_CLIENT_SECRET'),
-                        "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL'),
-                        "REFRESH_TOKEN": fyle_credentials.refresh_token
-                    }
-                }
-
-                properties = connector.properties.post(managed_user['id'], properties_payload)
-
-                created_folder = connector.folders.post(managed_user['id'], 'Bamboo HR')
-                connector.packages.post(managed_user['id'], created_folder['id'], 'assets/package.zip')
-
-                return Response(
-                    properties,
-                    status=status.HTTP_200_OK
-                )
-
-        except Exception:
-            error = traceback.format_exc()
-
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Creating Workato Workspace'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
 class FyleConnection(generics.CreateAPIView):
     """
