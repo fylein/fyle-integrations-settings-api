@@ -74,6 +74,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
 
         try:
             managed_user = connector.managed_users.post(request.data)
+            fyle_credentials = FyleCredential.objects.get(org_id=kwargs['org_id'])
             if managed_user['id']:
                 org = Org.objects.get(id=kwargs['org_id'])
                 org.managed_user_id = managed_user['id']
@@ -83,13 +84,13 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                     "properties": {
                         "FYLE_CLIENT_ID": os.environ.get('FYLE_CLIENT_ID'),
                         "FYLE_CLIENT_SECRET": os.environ.get('FYLE_CLIENT_SECRET'),
-                        "REFRESH_TOKEN": os.environ.get('FYLE_REFRESH_TOKEN'),
-                        "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL')
+                        "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL'),
+                        "REFRESH_TOKEN": fyle_credentials.refresh_token
                     }
                 }
 
                 properties = connector.properties.post(managed_user['id'], properties_payload)
-        
+
                 created_folder = connector.folders.post(managed_user['id'], 'Bamboo HR')
                 connector.packages.post(managed_user['id'], created_folder['id'], 'assets/package.zip')
 
