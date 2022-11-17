@@ -7,8 +7,8 @@ from .api_base import ApiBase
 class Properties(ApiBase):
     """Class for Properties xAPIs."""
 
-    POST_PROPERTIES = '/api/managed_users/{0}/properties'
-    GET_PROPERTIES = '/api/managed_users/{0}/properties'
+    POST_PROPERTIES = '/managed_users/{0}/properties'
+    GET_PROPERTIES = '/managed_users/{0}/properties'
 
 
     def get(self, managed_user_id):

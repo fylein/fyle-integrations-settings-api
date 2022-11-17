@@ -1,4 +1,5 @@
 from django.db import models
+<<<<<<< HEAD
 from apps.orgs.models import Org
 
 # Create your models here.
@@ -18,3 +19,7 @@ class BambooHr(models.Model):
         db_table = 'orgs'
 
 
+=======
+
+# Create your models here.
+>>>>>>> 0082f3715dc041c8c98a6af68c737e20ac632dc1

@@ -25,6 +25,7 @@ class Workato:
         self.managed_users = ManagedUser()
         self.properties = Properties()
         self.folders = Folders()
+        self.packages = Packages()
 
     def _get_signed_api_key(self, managed_user_id: str) -> str:
         """
