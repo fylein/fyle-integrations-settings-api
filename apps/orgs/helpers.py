@@ -1,4 +1,3 @@
-import os
 import logging
 from django.conf import settings
 
@@ -10,8 +9,6 @@ logger.level = logging.INFO
 
 def create_workato_workspace(org):
     connector = Workato()
-    org_id = org.id
-    
     workspace_data = {
         "name": org.name,
         "external_id": org.fyle_org_id,
@@ -19,9 +16,9 @@ def create_workato_workspace(org):
     }
 
     managed_user = connector.managed_users.post(workspace_data)
-    fyle_credentials = FyleCredential.objects.get(org_id=org_id)
+    fyle_credentials = FyleCredential.objects.get(org_id=org.id)
     if managed_user:
-        org = Org.objects.get(id=org_id)
+        org = Org.objects.get(id=org.id)
         org.managed_user_id = managed_user['id']
         org.save()
 
@@ -34,9 +31,8 @@ def create_workato_workspace(org):
             }
         }
 
-        properties = connector.properties.post(managed_user['id'], properties_payload)
+        connector.properties.post(managed_user['id'], properties_payload)
         created_folder = connector.folders.post(managed_user['id'], 'Bamboo HR')
-        package = connector.packages.post(managed_user['id'], created_folder['id'], 'assets/package.zip')
-
+        connector.packages.post(managed_user['id'], created_folder['id'], 'assets/package.zip')
 
         return managed_user
