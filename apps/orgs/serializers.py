@@ -11,7 +11,6 @@ from fyle_rest_auth.models import AuthToken
 from fyle_rest_auth.helpers import get_fyle_admin
 from apps.users.helpers import get_cluster_domain
 from apps.orgs.models import FyleCredential, Org, User
-from apps.orgs.helpers import create_workato_workspace
 
 User = get_user_model()
 
@@ -60,7 +59,5 @@ class OrgSerializer(serializers.ModelSerializer):
                 refresh_token=auth_tokens.refresh_token,
                 org_id=org.id
             )
-
-            create_workato_workspace(org)
 
         return org

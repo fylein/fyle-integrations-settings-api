@@ -1,11 +1,12 @@
 from django.urls import path, include
 
-from .views import  OrgsView, ReadyView, FyleConnection 
+from .views import  OrgsView, ReadyView, CreateWorkatoWorkspace, FyleConnection
 
 org_app_path = [
     path('', OrgsView.as_view(), name='orgs'),
+    path('<int:org_id>/workato_workspace/', CreateWorkatoWorkspace.as_view(), name='workato-workspace'),
     path('ready/', ReadyView.as_view(), name='ready'),
-    path('<int:managed_user_id>/connect_fyle/', FyleConnection.as_view(), name='fyle-connection'),
+    path('<int:org_id>/connect_fyle/', FyleConnection.as_view(), name='fyle-connection'),
 ]
 
 integration_paths = [
