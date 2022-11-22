@@ -1,19 +1,14 @@
 
 import os
 import logging
-from django.core.cache import cache
 import traceback
 
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
 
-from fyle_rest_auth.models import AuthToken
-from fyle_rest_auth.helpers import get_fyle_admin
-from apps.users.helpers import get_cluster_domain
-
 from apps.orgs.serializers import OrgSerializer
-from apps.orgs.models import FyleCredential, Org, User
+from apps.orgs.models import Org, User
 from workato.workato import Workato
 
 

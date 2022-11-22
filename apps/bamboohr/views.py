@@ -1,12 +1,10 @@
 from requests import Response
 import polling
-import json
 import traceback
 import logging
 
 from rest_framework.response import Response
 from rest_framework.views import status
-from rest_framework import viewsets
 from rest_framework import generics
 
 from workato.workato import Workato
@@ -24,7 +22,7 @@ class PostFolder(generics.CreateAPIView):
     """
     serializer_class = BambooHrSerializer
 
-    def post(self,request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
 

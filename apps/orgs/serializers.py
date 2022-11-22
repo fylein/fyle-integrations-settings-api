@@ -1,7 +1,6 @@
 """
 Orgs Serializers
 """
-import logging
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
@@ -13,9 +12,6 @@ from apps.users.helpers import get_cluster_domain
 from apps.orgs.models import FyleCredential, Org, User
 
 User = get_user_model()
-
-logger = logging.getLogger(__name__)
-logger.level = logging.INFO
 
 class FyleCredentialSerializer(serializers.ModelSerializer):
     """
