@@ -33,4 +33,3 @@ class NotFoundItemError(WorkatoError):
 
 class InternalServerError(WorkatoError):
     """Internal server error, 500 error"""
-   
