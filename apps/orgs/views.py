@@ -117,7 +117,7 @@ class FyleConnection(generics.CreateAPIView):
         org = Org.objects.get(id=kwargs['org_id'])
 
         connections = connector.connections.get(managed_user_id=org.managed_user_id)
-        fyle_connection_id = connections['result'][1]['id']
+        fyle_connection_id = connections['result'][2]['id']
 
         try:
             connection = connector.connections.put(
@@ -130,6 +130,50 @@ class FyleConnection(generics.CreateAPIView):
                 org.is_bamboo_connector = True
                 org.save()
 
+                return Response(
+                    data={
+                        'message': 'Connection Successfull'
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+
+            return Response(
+               connection,
+               status=status.HTTP_200_OK
+            )
+
+        except Exception:
+            return Response(
+                data={
+                    'message': 'Error in Creating Fyle Connection in Recipe'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+class SendgridConnection(generics.CreateAPIView):
+    """
+    API Call To Make Sendgrid Connection
+    """
+    def post(self, request, *args, **kwargs):
+
+        connector = Workato()
+        org = Org.objects.get(id=kwargs['org_id'])
+
+        connections = connector.connections.get(managed_user_id=org.managed_user_id)
+        sendgrid_connection_id = connections['result'][0]['id']
+
+        try:
+            connection = connector.connections.put(
+                managed_user_id=org.managed_user_id,
+                connection_id=sendgrid_connection_id,
+                data={
+                    "input": {
+                        "api_key": os.environ.get('SENDGRID_API_KEY')
+                    }
+                }
+            )
+
+            if connection['authorization_status'] == 'success':
                 return Response(
                     data={
                         'message': 'Connection Successfull'

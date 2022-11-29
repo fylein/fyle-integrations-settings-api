@@ -34,7 +34,6 @@ class ApiBase:
         """
         Post the data to the API.
         """
-
         if action:
             response = requests.put('{}{}/{}'.format(API_URL, url, action), headers=API_HEADERS)
         else:
