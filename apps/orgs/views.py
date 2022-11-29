@@ -1,19 +1,14 @@
 
 import os
 import logging
-from django.core.cache import cache
 import traceback
 
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
 
-from fyle_rest_auth.models import AuthToken
-from fyle_rest_auth.helpers import get_fyle_admin
-from apps.users.helpers import get_cluster_domain
-
 from apps.orgs.serializers import OrgSerializer
-from apps.orgs.models import FyleCredential, Org, User
+from apps.orgs.models import Org, User
 from workato.workato import Workato
 
 
@@ -49,10 +44,10 @@ class OrgsView(generics.RetrieveUpdateAPIView):
         try:
             user = User.objects.get(user_id=self.request.user)
             org_id = self.request.query_params.get('org_id')
-            parnter_org = Org.objects.get(user__in=[user], fyle_org_id=org_id)
+            org = Org.objects.get(user__in=[user], fyle_org_id=org_id)
 
             return Response(
-                data=OrgSerializer(parnter_org).data,
+                data=OrgSerializer(org).data,
                 status=status.HTTP_200_OK
             )
         except Org.DoesNotExist:
@@ -71,11 +66,17 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         connector = Workato()
+        org = Org.objects.get(id=kwargs['org_id'])
 
         try:
-            managed_user = connector.managed_users.post(request.data)
+            workspace_data = {
+                'name': org.name,
+                'external_id': org.fyle_org_id,
+                'notification_email': org.user.first().email
+            }
+            managed_user = connector.managed_users.post(workspace_data)
+
             if managed_user['id']:
-                org = Org.objects.get(id=kwargs['org_id'])
                 org.managed_user_id = managed_user['id']
                 org.save()
 
@@ -89,9 +90,6 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 }
 
                 properties = connector.properties.post(managed_user['id'], properties_payload)
-        
-                created_folder = connector.folders.post(managed_user['id'], 'Bamboo HR')
-                connector.packages.post(managed_user['id'], created_folder['id'], 'assets/package.zip')
 
                 return Response(
                     properties,
@@ -100,7 +98,6 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
 
         except Exception:
             error = traceback.format_exc()
-
             logger.error(error)
             return Response(
                 data={
@@ -117,16 +114,32 @@ class FyleConnection(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
 
         connector = Workato()
-        managed_user_id = kwargs['managed_user_id']
+        org = Org.objects.get(id=kwargs['org_id'])
 
-        connections  = connector.connections.get(managed_user_id=managed_user_id)
-        fyle_connection_id = connections['result'][1]['id']
+        connections = connector.connections.get(managed_user_id=org.managed_user_id)
+        fyle_connection_id = connections['result'][2]['id']
 
         try:
             connection = connector.connections.put(
-                managed_user_id=managed_user_id, 
+                managed_user_id=org.managed_user_id, 
                 connection_id=fyle_connection_id,
                 data=request.data
+            )
+
+            if connection['authorization_status'] == 'success':
+                org.is_bamboo_connector = True
+                org.save()
+
+                return Response(
+                    data={
+                        'message': 'Connection Successfull'
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+
+            return Response(
+               connection,
+               status=status.HTTP_200_OK
             )
 
         except Exception:
@@ -135,9 +148,48 @@ class FyleConnection(generics.CreateAPIView):
                     'message': 'Error in Creating Fyle Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
-            )    
+            )
 
-        return Response(
-           connection,
-           status=status.HTTP_200_OK
-        )
+class SendgridConnection(generics.CreateAPIView):
+    """
+    API Call To Make Sendgrid Connection
+    """
+    def post(self, request, *args, **kwargs):
+
+        connector = Workato()
+        org = Org.objects.get(id=kwargs['org_id'])
+
+        connections = connector.connections.get(managed_user_id=org.managed_user_id)
+        sendgrid_connection_id = connections['result'][0]['id']
+
+        try:
+            connection = connector.connections.put(
+                managed_user_id=org.managed_user_id,
+                connection_id=sendgrid_connection_id,
+                data={
+                    "input": {
+                        "api_key": os.environ.get('SENDGRID_API_KEY')
+                    }
+                }
+            )
+
+            if connection['authorization_status'] == 'success':
+                return Response(
+                    data={
+                        'message': 'Connection Successfull'
+                    },
+                    status=status.HTTP_201_CREATED
+                )
+
+            return Response(
+               connection,
+               status=status.HTTP_200_OK
+            )
+
+        except Exception:
+            return Response(
+                data={
+                    'message': 'Error in Creating Fyle Connection in Recipe'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
