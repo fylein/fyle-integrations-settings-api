@@ -44,10 +44,10 @@ class OrgsView(generics.RetrieveUpdateAPIView):
         try:
             user = User.objects.get(user_id=self.request.user)
             org_id = self.request.query_params.get('org_id')
-            parnter_org = Org.objects.get(user__in=[user], fyle_org_id=org_id)
+            org = Org.objects.get(user__in=[user], fyle_org_id=org_id)
 
             return Response(
-                data=OrgSerializer(parnter_org).data,
+                data=OrgSerializer(org).data,
                 status=status.HTTP_200_OK
             )
         except Org.DoesNotExist:
@@ -70,14 +70,13 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
 
         try:
             workspace_data = {
-                "name": org.name,
-                "external_id": org.fyle_org_id,
-                "notification_email": org.user.first().email
+                'name': org.name,
+                'external_id': org.fyle_org_id,
+                'notification_email': org.user.first().email
             }
             managed_user = connector.managed_users.post(workspace_data)
 
             if managed_user['id']:
-                org = Org.objects.get(id=kwargs['org_id'])
                 org.managed_user_id = managed_user['id']
                 org.save()
 

@@ -16,32 +16,38 @@ from apps.bamboohr.serializers import BambooHrSerializer
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
-class PostFolder(generics.CreateAPIView):
+class PostFolder(generics.ListCreateAPIView):
     """
     API Call to Create Folder in Workato
     """
     serializer_class = BambooHrSerializer
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            bamboohr = BambooHr.objects.get(org__id=kwargs['org_id'])
+            return Response(
+                data=BambooHrSerializer(bamboohr).data,
+                status=status.HTTP_200_OK
+            )
+
+        except BambooHr.DoesNotExist:
+            return Response(
+                data={'message': 'Bamboo HR Not Found'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
     def post(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
         try:
-            bamboohr = BambooHr.objects.filter(org__id=org.id).first()
-            if bamboohr and bamboohr.folder_id:
-                return Response(
-                    data=BambooHrSerializer(bamboohr).data,
-                    status=status.HTTP_200_OK
-                )
-            else:
-                folder = connector.folders.post(org.managed_user_id, 'Bamboo HR')
-                bamboohr = BambooHr.objects.create(folder_id=folder['id'])
-                bamboohr.org.add(org)
+            folder = connector.folders.post(org.managed_user_id, 'Bamboo HR')
+            bamboohr = BambooHr.objects.create(folder_id=folder['id'], org=org)
 
-                return Response(
-                    data=folder,
-                    status=status.HTTP_201_CREATED
-                )
+            return Response(
+                data=folder,
+                status=status.HTTP_201_CREATED
+            )
 
         except Exception:
             error = traceback.format_exc()
@@ -59,6 +65,20 @@ class PostPackage(generics.CreateAPIView):
     """
     serializer_class = BambooHrSerializer
 
+    def get(self, request, *args, **kwargs):
+        try:
+            bamboohr = BambooHr.objects.get(org__id=kwargs['org_id'])
+            return Response(
+                data=BambooHrSerializer(bamboohr).data,
+                status=status.HTTP_200_OK
+            )
+
+        except BambooHr.DoesNotExist:
+            return Response(
+                data={'message': 'Bamboo HR Not Found'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
     def post(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
@@ -71,7 +91,7 @@ class PostPackage(generics.CreateAPIView):
                 polling.poll(
                     lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
                     step=5,
-                    poll_forever=True
+                    timeout=50
                 )
                 bamboohr.package_id = package['id']
                 bamboohr.save()
@@ -98,9 +118,24 @@ class BambooHrConnection(generics.CreateAPIView):
     API Call to make Bamboo HR Connection in Workato
     """
 
+    def get(self, request, *args, **kwargs):
+        try:
+            bamboohr = BambooHr.objects.get(org__id=kwargs['org_id'])
+            return Response(
+                data=BambooHrSerializer(bamboohr).data,
+                status=status.HTTP_200_OK
+            )
+
+        except BambooHr.DoesNotExist:
+            return Response(
+                data={'message': 'Bamboo HR Not Found'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
     def post(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
+        bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
         
         connections = connector.connections.get(managed_user_id=org.managed_user_id)
         bamboo_connections = connections['result'][0]     
@@ -117,15 +152,19 @@ class BambooHrConnection(generics.CreateAPIView):
                     connection_id=bamboo_connections['id'],
                     data=request.data
                 )
-                
+
                 org.is_bamboo_connector = True
+                bamboohr.api_token = request.data['input']['api_token']
+                bamboohr.sub_domain = request.data['input']['subdomain']
+
+                bamboohr.save()
                 org.save()
 
                 return Response(
                     data=connection,
                     status=status.HTTP_200_OK
                 )
-    
+
             except Exception:
                 return Response(
                     data={
@@ -139,10 +178,11 @@ class RecipeView(generics.ListAPIView):
     API Call to Get Fyle Recipe
     """
 
-    def get_queryset(self, *args, **kwargs):
+
+    def get(self, request, *args, **kwargs):
         connector = Workato()
-        managed_user_id = kwargs['managed_user_id']
-        recipes = connector.recipes.get(managed_user_id=managed_user_id)
+        org = Org.objects.get(id=kwargs['org_id'])
+        recipes = connector.recipes.get(managed_user_id=org.managed_user_id)
 
         return Response(
            recipes,
