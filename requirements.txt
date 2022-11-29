@@ -37,5 +37,7 @@ pytest-cov==3.0.0
 pytest-django==4.5.2
 pytest-mock==3.8.2
 
+polling==0.3.2
+
 # Requests
 requests==2.25.0
