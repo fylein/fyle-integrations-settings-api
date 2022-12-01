@@ -9,8 +9,8 @@ from rest_framework import generics
 
 from workato.workato import Workato
 from apps.orgs.models import Org
-from apps.bamboohr.models import BambooHr
-from apps.bamboohr.serializers import BambooHrSerializer
+from apps.bamboohr.models import BambooHr, Configuration
+from apps.bamboohr.serializers import BambooHrSerializer, ConfigurationSerializer
 
 
 logger = logging.getLogger(__name__)
@@ -115,10 +115,10 @@ class BambooHrConnection(generics.CreateAPIView):
         connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
         bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
-        
+
         connections = connector.connections.get(managed_user_id=org.managed_user_id)
         bamboo_connections = connections['result'][1]   
-        
+
         if org.is_bamboo_connector:
             return Response(
                 data={'account already connected'},
@@ -152,17 +152,24 @@ class BambooHrConnection(generics.CreateAPIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-class RecipeView(generics.ListAPIView):
-    """
-    API Call to Get Fyle Recipe
-    """
+class ConfigurationView(generics.RetrieveUpdateAPIView):
+
+    serializer_class = ConfigurationSerializer
 
     def get(self, request, *args, **kwargs):
-        connector = Workato()
-        org = Org.objects.get(id=kwargs['org_id'])
-        recipes = connector.recipes.get(managed_user_id=org.managed_user_id)
+        try:
+            configuration = Configuration.objects.get(org__id=kwargs['org_id'])
 
-        return Response(
-           recipes,
-           status=status.HTTP_200_OK
-        )
+            return Response(
+                data=ConfigurationSerializer(configuration).data,
+                status=status.HTTP_200_OK
+            )
+
+        except Configuration.DoesNotExist:
+            return Response(
+                data={'message': 'Configuration Not Found For This Workspace'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def get_object(self):
+        return self.get(self)

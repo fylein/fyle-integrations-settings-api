@@ -8,7 +8,7 @@ from rest_framework.views import status
 from rest_framework import generics
 
 from apps.orgs.serializers import OrgSerializer
-from apps.orgs.models import Org, User
+from apps.orgs.models import Org, User, FyleCredential
 from workato.workato import Workato
 
 
@@ -75,6 +75,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 'notification_email': org.user.first().email
             }
             managed_user = connector.managed_users.post(workspace_data)
+            fyle_crendentials = FyleCredential.objects.get(org__id=org.id)
 
             if managed_user['id']:
                 org.managed_user_id = managed_user['id']
@@ -84,8 +85,8 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                     "properties": {
                         "FYLE_CLIENT_ID": os.environ.get('FYLE_CLIENT_ID'),
                         "FYLE_CLIENT_SECRET": os.environ.get('FYLE_CLIENT_SECRET'),
-                        "REFRESH_TOKEN": os.environ.get('FYLE_REFRESH_TOKEN'),
-                        "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL')
+                        "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL'),
+                        "REFRESH_TOKEN": fyle_crendentials.refresh_token,
                     }
                 }
 
