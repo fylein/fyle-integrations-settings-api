@@ -127,9 +127,6 @@ class FyleConnection(generics.CreateAPIView):
             )
 
             if connection['authorization_status'] == 'success':
-                org.is_bamboo_connector = True
-                org.save()
-
                 return Response(
                     data={
                         'message': 'Connection Successfull'

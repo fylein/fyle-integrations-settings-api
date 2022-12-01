@@ -1,9 +1,9 @@
 from django.urls import path
 
-from .views import RecipeView, PostFolder, PostPackage, BambooHrConnection, BambooHr
+from .views import RecipeView, PostFolder, PostPackage, BambooHrConnection, BambooHR
 
 urlpatterns = [
-    path('', BambooHr.as_view(), name='bamboohr'),
+    path('', BambooHR.as_view(), name='bamboohr'),
     path('recipes/', RecipeView.as_view(), name='recipes'),
     path('packages/', PostPackage.as_view(), name='package'),
     path('folder/', PostFolder.as_view(), name='folder'),

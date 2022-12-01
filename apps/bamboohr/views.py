@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
 
-class BambooHr(generics.ListAPIView):
+class BambooHR(generics.ListAPIView):
     serializer_class = BambooHrSerializer
 
     def get(self, request, *args, **kwargs):
@@ -117,6 +117,7 @@ class BambooHrConnection(generics.CreateAPIView):
         bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
         
         connections = connector.connections.get(managed_user_id=org.managed_user_id)
+        print('connections', connections)
         bamboo_connections = connections['result'][1]   
         
         if org.is_bamboo_connector:
