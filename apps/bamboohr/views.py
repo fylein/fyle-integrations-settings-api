@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
 
-class BambooHR(generics.ListAPIView):
+class BambooHr(generics.ListAPIView):
     serializer_class = BambooHrSerializer
 
     def get(self, request, *args, **kwargs):
@@ -28,7 +28,7 @@ class BambooHR(generics.ListAPIView):
                 data=BambooHrSerializer(bamboohr).data,
                 status=status.HTTP_200_OK
             )
-        except BambooHR.DoesNotExist:
+        except BambooHr.DoesNotExist:
             return Response(
                 data={'message': 'Bamboo HR Details Not Found'},
                 status=status.HTTP_400_BAD_REQUEST
