@@ -5,7 +5,7 @@ import requests
 
 from ..exceptions import *
 
-API_URL = '{}/api/'.format(os.environ.get('VUE_APP_WK_ORIGIN'))
+API_URL = '{}/api/'.format(os.environ.get('APP_WK_ORIGIN'))
 
 API_HEADERS: dict = {
     'X-USER-TOKEN': os.environ.get('WK_API_PLATFORM_KEY'),
@@ -72,8 +72,7 @@ class ApiBase:
         """
         Post the data to the API.
         """
-        
-        
+
         if action:
             response = requests.put('{}{}/{}'.format(API_URL, url, action), headers=API_HEADERS)
         else:

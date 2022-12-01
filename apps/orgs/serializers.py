@@ -13,7 +13,6 @@ from apps.orgs.models import FyleCredential, Org, User
 
 User = get_user_model()
 
-
 class FyleCredentialSerializer(serializers.ModelSerializer):
     """
     Fyle credential serializer
@@ -33,7 +32,6 @@ class OrgSerializer(serializers.ModelSerializer):
             'name', 'fyle_org_id', 'cluster_domain', 'user'
         ]
 
-
     def update(self, instance, validated):
         
         auth = self.context['request'].META.get('HTTP_AUTHORIZATION')
@@ -43,7 +41,6 @@ class OrgSerializer(serializers.ModelSerializer):
 
         org_name = fyle_user['data']['org']['name']
         org_id = fyle_user['data']['org']['id']
-
         org = Org.objects.filter(fyle_org_id=org_id).first()
 
         if org:
@@ -56,7 +53,7 @@ class OrgSerializer(serializers.ModelSerializer):
 
             FyleCredential.objects.update_or_create(
                 refresh_token=auth_tokens.refresh_token,
-                org_id=org.id,
+                org_id=org.id
             )
 
         return org
