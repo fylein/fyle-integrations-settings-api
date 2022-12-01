@@ -8,7 +8,7 @@ from rest_framework.views import status
 from rest_framework import generics
 
 from apps.orgs.serializers import OrgSerializer
-from apps.orgs.models import Org, User
+from apps.orgs.models import Org, User, FyleCredential
 from workato.workato import Workato
 
 
@@ -67,6 +67,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
+        fyle_credentials = FyleCredential.objects.get(org__id=org.id)
 
         try:
             workspace_data = {
@@ -84,8 +85,8 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                     "properties": {
                         "FYLE_CLIENT_ID": os.environ.get('FYLE_CLIENT_ID'),
                         "FYLE_CLIENT_SECRET": os.environ.get('FYLE_CLIENT_SECRET'),
-                        "REFRESH_TOKEN": os.environ.get('FYLE_REFRESH_TOKEN'),
-                        "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL')
+                        "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL'),
+                        "REFRESH_TOKEN": fyle_credentials.refresh_token
                     }
                 }
 
@@ -127,9 +128,6 @@ class FyleConnection(generics.CreateAPIView):
             )
 
             if connection['authorization_status'] == 'success':
-                org.is_bamboo_connector = True
-                org.save()
-
                 return Response(
                     data={
                         'message': 'Connection Successfull'
