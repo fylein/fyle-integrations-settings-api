@@ -67,6 +67,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
+        fyle_credentials = FyleCredential.objects.get(org__id=org.id)
 
         try:
             workspace_data = {
@@ -75,7 +76,6 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 'notification_email': org.user.first().email
             }
             managed_user = connector.managed_users.post(workspace_data)
-            fyle_crendentials = FyleCredential.objects.get(org__id=org.id)
 
             if managed_user['id']:
                 org.managed_user_id = managed_user['id']
@@ -86,7 +86,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                         "FYLE_CLIENT_ID": os.environ.get('FYLE_CLIENT_ID'),
                         "FYLE_CLIENT_SECRET": os.environ.get('FYLE_CLIENT_SECRET'),
                         "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL'),
-                        "REFRESH_TOKEN": fyle_crendentials.refresh_token,
+                        "REFRESH_TOKEN": fyle_credentials.refresh_token
                     }
                 }
 
@@ -128,9 +128,6 @@ class FyleConnection(generics.CreateAPIView):
             )
 
             if connection['authorization_status'] == 'success':
-                org.is_bamboo_connector = True
-                org.save()
-
                 return Response(
                     data={
                         'message': 'Connection Successfull'
