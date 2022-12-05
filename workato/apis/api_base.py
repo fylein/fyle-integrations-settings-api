@@ -46,11 +46,11 @@ class ApiBase:
         """
         Post the data to the API.
         """
+
         response = requests.post('{}{}'.format(API_URL, url), headers=API_HEADERS, json=data)
-        
-        if response.status_code == 200:
+        if response.status_code == 200 or response.status_code == 201:
             return json.loads(response.text)
-        
+
         if response.status_code == 401:
             error_msg = json.loads(response.text)
             raise UnAuthorizedError(error_msg)
@@ -72,7 +72,6 @@ class ApiBase:
         """
         Post the data to the API.
         """
-
         if action:
             response = requests.put('{}{}/{}'.format(API_URL, url, action), headers=API_HEADERS)
         else:

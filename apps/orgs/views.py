@@ -2,6 +2,7 @@
 import os
 import logging
 import traceback
+import json
 
 from rest_framework.response import Response
 from rest_framework.views import status
@@ -9,7 +10,8 @@ from rest_framework import generics
 
 from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User, FyleCredential
-from workato.workato import Workato
+from workato import Workato
+from workato.exceptions import *
 
 
 logger = logging.getLogger(__name__)
@@ -75,8 +77,8 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 'external_id': org.fyle_org_id,
                 'notification_email': org.user.first().email
             }
-            managed_user = connector.managed_users.post(workspace_data)
 
+            managed_user = connector.managed_users.post(workspace_data)
             if managed_user['id']:
                 org.managed_user_id = managed_user['id']
                 org.save()
@@ -96,6 +98,16 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                     properties,
                     status=status.HTTP_200_OK
                 )
+        
+        except BadRequestError as exception:
+            logger.error(
+                'Error while creating Workato Workspace org_id - %s in Fyle %s',
+                org.id, exception.message
+            )
+            return Response(
+                data=exception.message,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         except Exception:
             error = traceback.format_exc()
@@ -117,13 +129,13 @@ class FyleConnection(generics.CreateAPIView):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
 
-        connections = connector.connections.get(managed_user_id=org.managed_user_id)
-        fyle_connection_id = connections['result'][2]['id']
+        connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+        fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Test Connection")
 
         try:
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id, 
-                connection_id=fyle_connection_id,
+                connection_id=fyle_connection['id'],
                 data=request.data
             )
 
@@ -139,6 +151,17 @@ class FyleConnection(generics.CreateAPIView):
                connection,
                status=status.HTTP_200_OK
             )
+
+        except BadRequestError as exception:
+            logger.error(
+                'Error while creating Fyle Connection in Workato with org_id - %s in Fyle %s',
+                org.id, exception.message
+            )
+            return Response(
+                data=exception.message,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
 
         except Exception:
             return Response(
@@ -157,34 +180,38 @@ class SendgridConnection(generics.CreateAPIView):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
 
-        connections = connector.connections.get(managed_user_id=org.managed_user_id)
-        sendgrid_connection_id = connections['result'][0]['id']
-
         try:
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            sendgrid_connection_id = next(connection for connection in connections if connection['name'] == "My SendGrid account")
+            
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id,
-                connection_id=sendgrid_connection_id,
+                connection_id=sendgrid_connection_id['id'],
                 data={
                     "input": {
                         "api_key": os.environ.get('SENDGRID_API_KEY')
                     }
                 }
             )
-
-            if connection['authorization_status'] == 'success':
-                return Response(
-                    data={
-                        'message': 'Connection Successfull'
-                    },
-                    status=status.HTTP_201_CREATED
-                )
-
+            
             return Response(
                connection,
                status=status.HTTP_200_OK
             )
+            
+        except BadRequestError as exception:
+            logger.error(
+                'Error while creating Sendgrid Connection org_id - %s in Fyle %s',
+                org.id, exception.message
+            )
+            return Response(
+                data=exception.message,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         except Exception:
+            error = traceback.format_exc()
+            logger.error(error)
             return Response(
                 data={
                     'message': 'Error in Creating Fyle Connection in Recipe'

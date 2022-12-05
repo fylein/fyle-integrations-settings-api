@@ -21,7 +21,7 @@ def run_post_configration_triggers(sender, instance: Configuration, **kwargs):
     :param instance: Row Instance of Sender Class
     :return: None
     """
-    
+
     connector = Workato()
     org = Org.objects.get(id=instance.org_id)
 
