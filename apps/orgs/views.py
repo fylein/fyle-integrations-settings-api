@@ -63,7 +63,6 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
     """
     Create and Get Managed User In Workato
     """
-
     def update(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
@@ -116,24 +115,14 @@ class FyleConnection(generics.CreateAPIView):
 
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
-
-        connections = connector.connections.get(managed_user_id=org.managed_user_id)
-        fyle_connection_id = connections['result'][2]['id']
-
         try:
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)
+            fyle_connection_id = connections['result'][2]['id']
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id, 
                 connection_id=fyle_connection_id,
                 data=request.data
             )
-
-            if connection['authorization_status'] == 'success':
-                return Response(
-                    data={
-                        'message': 'Connection Successfull'
-                    },
-                    status=status.HTTP_201_CREATED
-                )
 
             return Response(
                connection,
@@ -143,7 +132,7 @@ class FyleConnection(generics.CreateAPIView):
         except Exception:
             return Response(
                 data={
-                    'message': 'Error in Creating Fyle Connection in Recipe'
+                    'message': 'Error Creating Fyle Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -157,10 +146,10 @@ class SendgridConnection(generics.CreateAPIView):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
 
-        connections = connector.connections.get(managed_user_id=org.managed_user_id)
-        sendgrid_connection_id = connections['result'][0]['id']
-
         try:
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)
+            sendgrid_connection_id = connections['result'][0]['id']
+
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id,
                 connection_id=sendgrid_connection_id,
@@ -171,14 +160,6 @@ class SendgridConnection(generics.CreateAPIView):
                 }
             )
 
-            if connection['authorization_status'] == 'success':
-                return Response(
-                    data={
-                        'message': 'Connection Successfull'
-                    },
-                    status=status.HTTP_201_CREATED
-                )
-
             return Response(
                connection,
                status=status.HTTP_200_OK
@@ -187,7 +168,7 @@ class SendgridConnection(generics.CreateAPIView):
         except Exception:
             return Response(
                 data={
-                    'message': 'Error in Creating Fyle Connection in Recipe'
+                    'message': 'Error Creating Sendgrid Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

@@ -16,7 +16,7 @@ class Connections(ApiBase):
         :return: List of Dicts in Connections Schema
         """
         return self._get_request(Connections.GET_CONNECTIONS.format(managed_user_id))
-    
+
 
     def put(self, managed_user_id, connection_id, data):
         """

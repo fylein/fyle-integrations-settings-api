@@ -34,9 +34,6 @@ class BambooHrView(generics.ListAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    def get_object(self):
-        return self.get(self)
-
 class PostFolder(generics.CreateAPIView):
     """
     API Call to Create Folder in Workato
@@ -49,11 +46,11 @@ class PostFolder(generics.CreateAPIView):
 
         try:
             folder = connector.folders.post(org.managed_user_id, 'Bamboo HR')
-            BambooHr.objects.create(folder_id=folder['id'], org=org)
+            bamboohr = BambooHr.objects.create(folder_id=folder['id'], org=org)
 
             return Response(
-                data=folder,
-                status=status.HTTP_201_CREATED
+                data=BambooHrSerializer(bamboohr).data,
+                status=status.HTTP_200_OK
             )
 
         except Exception:
@@ -76,24 +73,22 @@ class PostPackage(generics.CreateAPIView):
         connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
         bamboohr = BambooHr.objects.filter(org__id=org.id).first()
-        try:
-            if bamboohr.package_id:  
-                package = connector.packages.get(org.managed_user_id, bamboohr.package_id)   
-            else:
-                package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/package.zip')                
-                polling.poll(
-                    lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
-                    step=5,
-                    timeout=50
-                )
-                bamboohr.package_id = package['id']
-                bamboohr.save()
 
+        try:
+            package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/package.zip')                
+            polling.poll(
+                lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
+                step=5,
+                timeout=50
+            )
+            bamboohr.package_id = package['id']
+            bamboohr.save()
+    
             return Response(
                 data={
-                    'package uploaded successfully'
+                    'message': 'package uploaded successfully'
                 },
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_200_OK
             )
 
         except Exception:
@@ -116,53 +111,30 @@ class BambooHrConnection(generics.CreateAPIView):
         org = Org.objects.filter(id=kwargs['org_id']).first()
         bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
-        connections = connector.connections.get(managed_user_id=org.managed_user_id)
-        bamboo_connections = connections['result'][1]   
+        try:
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)
+            bamboo_connections = connections['result'][1]
+            connector.connections.put(
+                managed_user_id=org.managed_user_id,
+                connection_id=bamboo_connections['id'],
+                data=request.data
+            )
 
-        if org.is_bamboo_connector:
+            bamboohr.api_token = request.data['input']['api_token']
+            bamboohr.sub_domain = request.data['input']['subdomain']
+
+            bamboohr.save()
+            org.save()
+
             return Response(
-                data={'account already connected'},
+                data=BambooHrSerializer(bamboohr).data,
                 status=status.HTTP_200_OK
             )
-        else:
-            try:
-                connection = connector.connections.put(
-                    managed_user_id=org.managed_user_id,
-                    connection_id=bamboo_connections['id'],
-                    data=request.data
-                )
 
-                org.is_bamboo_connector = True
-                bamboohr.api_token = request.data['input']['api_token']
-                bamboohr.sub_domain = request.data['input']['subdomain']
-
-                bamboohr.save()
-                org.save()
-
-                return Response(
-                    data=connection,
-                    status=status.HTTP_200_OK
-                )
-
-            except Exception:
-                return Response(
-                    data={
-                        'message': 'Error in Creating Bamboo HR Connection in Recipe'
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-class RecipeView(generics.ListAPIView):
-    """
-    API Call to Get Fyle Recipe
-    """
-
-    def get(self, request, *args, **kwargs):
-        connector = Workato()
-        org = Org.objects.get(id=kwargs['org_id'])
-        recipes = connector.recipes.get(managed_user_id=org.managed_user_id)
-
-        return Response(
-           recipes,
-           status=status.HTTP_200_OK
-        )
+        except Exception:
+            return Response(
+                data={
+                    'message': 'Error Creating Bamboo HR Connection in Recipe'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )

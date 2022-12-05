@@ -1,0 +1,81 @@
+{
+    "managed_users": {
+        "id":890744,
+        "external_id":"orTwovfDpEYc",
+        "name":"Sage Intacct Demo 1",
+        "notification_email":"ashwin.t@fyle.in",
+        "admin_notification_emails":"ashwin.t@fyle.in",
+        "error_notification_emails":"ashwin.t@fyle.in",
+        "plan_id":"oem_enterprise",
+        "origin_url":"None",
+        "trial":false,
+        "in_trial":false,
+        "whitelisted_apps":[
+           
+        ],
+        "frame_ancestors":"None",
+        "created_at":"2022-12-04T03:59:08.809-08:00",
+        "updated_at":"2022-12-04T04:26:16.409-08:00",
+        "time_zone":"Pacific Time (US & Canada)",
+        "auth_settings":{
+           "type":"workato_auth"
+        },
+        "current_billing_period_start":"2022-12-04T03:59:08.837-08:00",
+        "current_billing_period_end":"2023-01-04T03:59:08.837-08:00",
+        "task_count":7,
+        "active_connection_limit":0,
+        "active_connection_count":4,
+        "active_recipe_count":1
+    },
+    "connections": {
+        "id":1130068,
+        "name":"My second HTTP account",
+        "provider":"rest",
+        "authorized_at":"None",
+        "authorization_status":"None",
+        "authorization_error":"None",
+        "created_at":"2022-12-04T04:00:14.752-08:00",
+        "updated_at":"2022-12-04T04:00:14.752-08:00",
+        "external_id":"None",
+        "folder_id":1626902,
+        "identity":"None",
+        "parent_id":"None"
+    },
+    "folders": {
+        "id":1626902,
+        "name":"Bamboo HR",
+        "parent_id":1626901,
+        "created_at":"2022-12-04T03:59:27.920-08:00",
+        "updated_at":"2022-12-04T03:59:27.928-08:00"
+    },
+    "recipes": {
+        "id":3419489,
+        "user_id":890744,
+        "name":"bamboo hr new",
+        "created_at":"2022-12-04T04:00:14.990-08:00",
+        "updated_at":"2022-12-04T04:30:36.179-08:00",
+        "copy_count":1,
+        "trigger_application":"bamboohr",
+        "action_applications":[],
+        "applications":[],
+        "description":"When there is a trigger event, do action",
+        "parameters_schema":[
+
+        ],
+        "parameters":{
+           
+        },
+        "webhook_url":"None",
+        "folder_id":1626902,
+        "running":true,
+        "job_succeeded_count":0,
+        "job_failed_count":0,
+        "lifetime_task_count":0,
+        "last_run_at":"2022-12-04T04:30:50.846-08:00",
+        "stopped_at":"None",
+        "version_no":3,
+        "stop_cause":"None",
+        "config":[],
+        "code":""
+    }
+}
