@@ -247,7 +247,7 @@ class StartAndStopRecipe(generics.CreateAPIView):
             )
             return Response(
                 data={
-                    'message': 'Error in Starting The Recipe'
+                    'message': 'Error in Starting Or Stopping The Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

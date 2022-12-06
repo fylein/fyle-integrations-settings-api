@@ -189,13 +189,7 @@ def test_sync_employees_view(api_client, mocker, access_token):
             'org_id':1,
         }
     )
-
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-    response = api_client.post(url)
-
-    assert response.status_code == 400
-    assert response.data['message'] == 'Not found'
-
 
     mocker.patch(
         'workato.workato.Recipes.get',
@@ -221,21 +215,16 @@ def test_start_and_stop_view(api_client, mocker, access_token):
             'org_id':1,
         }
     )
-
-    data = {
-        'payload': 'start'
-    }
-
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-    response = api_client.post(url, data, json=True)
-
-    assert response.status_code == 400
-    assert response.data['message'] == 'Not found'
 
     mocker.patch(
         'workato.workato.Recipes.post',
         return_value={'message': 'success'}
     )
+
+    data = {
+        'payload': 'start'
+    }
 
     response = api_client.post(url, data, json=True)
     assert response.status_code == 200
