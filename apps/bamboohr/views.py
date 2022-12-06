@@ -230,6 +230,10 @@ class StartAndStopRecipe(generics.CreateAPIView):
         
         try:
             connection = connector.recipes.post(org.managed_user_id, config.recipe_id, None, request.data['payload'])
+            recipe_status = True if request.data['payload'] == 'start' else False
+
+            config.recipe_status = recipe_status
+            config.save()
 
         except NotFoundItemError as exception:
             logger.error(
