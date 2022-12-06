@@ -631,7 +631,6 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 --
 
 COPY public.auth_tokens (id, refresh_token, user_id) FROM stdin;
-1	eyJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2Njk3MzYzMjMsImlzcyI6IkZ5bGVBcHAiLCJvcmdfdXNlcl9pZCI6Ilwib3VHMzdIcXpPcUQ1XCIiLCJ0cGFfaWQiOiJcInRwYThhdkY5MnUwVjdcIiIsInRwYV9uYW1lIjoiXCJQb29mIFRlc3RcIiIsImNsdXN0ZXJfZG9tYWluIjoiXCJodHRwczovL3N0YWdpbmcuZnlsZS50ZWNoXCIiLCJleHAiOjE5ODUwOTYzMjN9.kJlkg_wxyazcSn03fYoz_94rAKdogtlnT2FyHmErFho	1
 \.
 
 
