@@ -26,12 +26,10 @@ services:
       FYLE_CLIENT_SECRET: dummy
       FYLE_REFRESH_TOKEN: dummy
       FYLE_TOKEN_URI: https://lolo.fyle.tech
-      APP_WK_ORIGIN: ''
-      WK_JWT_PRIVATE_KEY: ''
-      WK_CUSTOMER_ID: ''
-      WK_API_PLATFORM_KEY: ''
-      WK_PARTNER_EMAIL: ''
-      FYLE_REFRESH_TOKEN: ''
+      APP_WK_ORIGIN: https://app.workato.com
+      WK_API_PLATFORM_KEY: ""
+      WK_PARTNER_EMAIL: ""
+      FYLE_REFRESH_TOKEN: ""
   db:
     image: "postgres:latest"
     environment: 
