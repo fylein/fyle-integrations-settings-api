@@ -237,7 +237,7 @@ class StartAndStopRecipe(generics.CreateAPIView):
             )
             return Response(
                 data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
         except Exception as exception:
@@ -283,7 +283,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
             )
             return Response(
                 data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
         except Exception as exception:

@@ -108,6 +108,16 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        except InternalServerError as exception:
+            logger.error(
+                'Error while creating Workato Workspace org_id - %s in Fyle %s',
+                org.id, exception.message
+            )
+            return Response(
+                data=exception.message,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
         except Exception:
             error = traceback.format_exc()
             logger.error(error)

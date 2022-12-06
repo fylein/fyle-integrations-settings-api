@@ -1,10 +1,14 @@
 
 import json
 import pytest
+from unittest import mock
+
 from django.urls import reverse
 
 from tests.helper import dict_compare_keys
 from .fixtures import fixture
+
+from workato.exceptions import *
 
 
 @pytest.mark.django_db(databases=['default'])
@@ -77,7 +81,18 @@ def test_create_workato_workspace(api_client, mocker, access_token):
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-
+    
+    
+    with mock.patch('workato.workato.ManagedUser.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
+        response = api_client.put(url)
+        assert response.data['message'] == 'something wrong happened'
+        assert response.status_code == 400
+    
+    with mock.patch('workato.workato.ManagedUser.post', side_effect=InternalServerError({'message': 'internal server error'})):
+        response = api_client.put(url)
+        assert response.data['message'] == 'internal server error'
+        assert response.status_code == 500
+    
     mocker.patch(
         'workato.workato.ManagedUser.post',
         return_value={}
@@ -115,6 +130,11 @@ def test_fyle_connection(api_client, mocker, access_token):
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
+        response = api_client.post(url)
+        assert response.data['message'] == 'something wrong happened'
+        assert response.status_code == 400
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -154,11 +174,16 @@ def test_sendgrid_connection(api_client, mocker, access_token):
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
+    with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
+        response = api_client.post(url)
+        assert response.data['message'] == 'something wrong happened'
+        assert response.status_code == 400
+
     mocker.patch(
         'workato.workato.Connections.get',
         return_value={'result': [{}]}
     )
-    
+
     response = api_client.post(url)
     assert response.status_code == 400
     assert response.data['message'] == 'Error Creating Sendgrid Connection in Recipe'
