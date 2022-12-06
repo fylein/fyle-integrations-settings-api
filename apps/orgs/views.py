@@ -129,10 +129,10 @@ class FyleConnection(generics.CreateAPIView):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
 
-        connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-        fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Test Connection")
-
         try:
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Test Connection")
+
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id, 
                 connection_id=fyle_connection['id'],
@@ -161,7 +161,6 @@ class FyleConnection(generics.CreateAPIView):
                 data=exception.message,
                 status=status.HTTP_400_BAD_REQUEST
             )
-
 
         except Exception:
             return Response(
