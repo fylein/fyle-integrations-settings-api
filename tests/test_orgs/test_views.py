@@ -73,12 +73,11 @@ def test_create_workato_workspace(api_client, mocker, access_token):
     """
     url = reverse('workato-workspace',
         kwargs={
-            'org_id': 11,
+            'org_id': 14,
         }
     )
-    
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-    
+
     mocker.patch(
         'workato.workato.ManagedUser.post',
         return_value={}
@@ -112,7 +111,7 @@ def test_fyle_connection(api_client, mocker, access_token):
     """
     url = reverse('fyle-connection',
         kwargs={
-            'org_id': 12,
+            'org_id': 15,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -150,7 +149,7 @@ def test_sendgrid_connection(api_client, mocker, access_token):
     
     url = reverse('sendgrid',
         kwargs={
-            'org_id':13,
+            'org_id':16,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))

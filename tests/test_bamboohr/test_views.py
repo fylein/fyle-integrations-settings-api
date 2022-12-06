@@ -36,7 +36,6 @@ def test_bamboohr_get_view(api_client, mocker, access_token):
     response = json.loads(response.content)
     assert response['message'] != None
 
-
 @pytest.mark.django_db(databases=['default'])
 def test_post_folder_view(api_client, mocker, access_token):
     """
@@ -107,7 +106,6 @@ def test_post_package(api_client, mocker, access_token):
     assert response.status_code == 200
     assert response.data['message'] == 'package uploaded successfully'
 
-
 @pytest.mark.django_db(databases=['default'])
 def test_bamboohr_connection(api_client, mocker, access_token):
     """
@@ -152,3 +150,92 @@ def test_bamboohr_connection(api_client, mocker, access_token):
     
     assert response.status_code == 200
     assert dict_compare_keys(response, fixture['bamboohr']) == [], 'Bamboohr diff in keys'
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_get_configuration_view(api_client, mocker, access_token):
+    """
+    Test Creating Bamboohr Connection In Workato
+    """
+
+    url = reverse('configuration',
+        kwargs={
+            'org_id':1,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    response = api_client.get(url, {'org_id': '1'})
+    assert response.status_code == 200
+
+    response = json.loads(response.content)
+    assert dict_compare_keys(response, fixture['configurations']) == [], 'orgs GET diff in keys'
+
+    response = api_client.get(url, {'org_id': '1231'})
+    assert response.status_code == 400
+
+    response = json.loads(response.content)
+    assert response['message'] != None
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_sync_employees_view(api_client, mocker, access_token):
+    """
+    Test Sync Of Employees In Workato
+    """
+
+    url = reverse('sync-employees',
+        kwargs={
+            'org_id':1,
+        }
+    )
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    response = api_client.post(url)
+
+    assert response.status_code == 400
+    assert response.data['message'] == 'Not found'
+
+
+    mocker.patch(
+        'workato.workato.Recipes.get',
+        return_value=fixture['recipes']
+    )
+    mocker.patch(
+        'workato.workato.Recipes.post',
+        return_value={'message': 'success'}
+    )
+
+    response = api_client.post(url)
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_start_and_stop_view(api_client, mocker, access_token):
+    """
+    Test Start and Stop Of Recipes In Workato
+    """
+
+    url = reverse('start-and-stop',
+        kwargs={
+            'org_id':1,
+        }
+    )
+
+    data = {
+        'payload': 'start'
+    }
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    response = api_client.post(url, data, json=True)
+
+    assert response.status_code == 400
+    assert response.data['message'] == 'Not found'
+
+    mocker.patch(
+        'workato.workato.Recipes.post',
+        return_value={'message': 'success'}
+    )
+
+    response = api_client.post(url, data, json=True)
+    assert response.status_code == 200

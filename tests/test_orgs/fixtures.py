@@ -8,9 +8,10 @@ fixture = {
     },
     "connections": {
         "result": [
-            {"id": 12},
-            {"id": 13},
-            {"id": 14}
+            {"id": 12, "name": "My SendGrid account"},
+            {"id": 13, "name": "My BambooHR account"},
+            {"id": 14, "name": "Bamboo HR Test"},
+            {"id": 15, "name": "Fyle Test Connection"}
         ] 
     },
     "orgs": {

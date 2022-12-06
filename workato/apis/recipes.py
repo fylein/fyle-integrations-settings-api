@@ -9,7 +9,7 @@ class Recipes(ApiBase):
 
     GET_RECIPES = '/managed_users/{0}/recipes/'
     GET_RECIPE_BY_ID = '/managed_users/{0}/recipes/{1}'
-    POST_RECIPE = '/managed_users/{0}/recipes/{1}/{2}'
+    POST_RECIPE = '/managed_users/{0}/recipes/{1}'
 
     def get(self, managed_user_id):
         """
@@ -25,8 +25,8 @@ class Recipes(ApiBase):
         """
         return self._get_request(Recipes.GET_RECIPE_BY_ID.format(managed_user_id, recipe_id))
     
-    def post(self, managed_user_id, recipe_id, action):
+    def post(self, managed_user_id, recipe_id, data: dict = None, action: str = None):
         """
         Start And Stop API Connection
         """
-        return self._put_request(Recipes.POST_RECIPE.format(managed_user_id, recipe_id, action))
+        return self._put_request(Recipes.POST_RECIPE.format(managed_user_id, recipe_id), data, action)
