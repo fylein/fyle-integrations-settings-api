@@ -65,7 +65,6 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
     """
     Create and Get Managed User In Workato
     """
-
     def update(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
@@ -98,7 +97,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                     properties,
                     status=status.HTTP_200_OK
                 )
-        
+
         except BadRequestError as exception:
             logger.error(
                 'Error while creating Workato Workspace org_id - %s in Fyle %s',
@@ -107,6 +106,16 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
             return Response(
                 data=exception.message,
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except InternalServerError as exception:
+            logger.error(
+                'Error while creating Workato Workspace org_id - %s in Fyle %s',
+                org.id, exception.message
+            )
+            return Response(
+                data=exception.message,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
         except Exception:
@@ -139,14 +148,6 @@ class FyleConnection(generics.CreateAPIView):
                 data=request.data
             )
 
-            if connection['authorization_status'] == 'success':
-                return Response(
-                    data={
-                        'message': 'Connection Successfull'
-                    },
-                    status=status.HTTP_201_CREATED
-                )
-
             return Response(
                connection,
                status=status.HTTP_200_OK
@@ -165,7 +166,7 @@ class FyleConnection(generics.CreateAPIView):
         except Exception:
             return Response(
                 data={
-                    'message': 'Error in Creating Fyle Connection in Recipe'
+                    'message': 'Error Creating Fyle Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -213,7 +214,7 @@ class SendgridConnection(generics.CreateAPIView):
             logger.error(error)
             return Response(
                 data={
-                    'message': 'Error in Creating Fyle Connection in Recipe'
+                    'message': 'Error Creating Sendgrid Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

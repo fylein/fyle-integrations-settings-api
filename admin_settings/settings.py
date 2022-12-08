@@ -225,3 +225,6 @@ CORS_ALLOW_HEADERS = [
     'authorization',
     'content-type'
 ]
+
+# Environ Variable Required for Tests
+FYLE_REFRESH_TOKEN = os.environ.get('FYLE_REFRESH_TOKEN')

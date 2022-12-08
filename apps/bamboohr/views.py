@@ -35,9 +35,6 @@ class BambooHrView(generics.ListAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    def get_object(self):
-        return self.get(self)
-
 class PostFolder(generics.CreateAPIView):
     """
     API Call to Create Folder in Workato
@@ -50,11 +47,11 @@ class PostFolder(generics.CreateAPIView):
 
         try:
             folder = connector.folders.post(org.managed_user_id, 'Bamboo HR')
-            BambooHr.objects.create(folder_id=folder['id'], org=org)
+            bamboohr = BambooHr.objects.create(folder_id=folder['id'], org=org)
 
             return Response(
-                data=folder,
-                status=status.HTTP_201_CREATED
+                data=BambooHrSerializer(bamboohr).data,
+                status=status.HTTP_200_OK
             )
 
         except BadRequestError as exception:
@@ -87,24 +84,22 @@ class PostPackage(generics.CreateAPIView):
         connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
         bamboohr = BambooHr.objects.filter(org__id=org.id).first()
-        try:
-            if bamboohr.package_id:  
-                package = connector.packages.get(org.managed_user_id, bamboohr.package_id)   
-            else:
-                package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/package.zip')                
-                polling.poll(
-                    lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
-                    step=5,
-                    timeout=50
-                )
-                bamboohr.package_id = package['id']
-                bamboohr.save()
 
+        try:
+            package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/package.zip')                
+            polling.poll(
+                lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
+                step=5,
+                timeout=50
+            )
+            bamboohr.package_id = package['id']
+            bamboohr.save()
+    
             return Response(
                 data={
-                    'package uploaded successfully'
+                    'message': 'package uploaded successfully'
                 },
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_200_OK
             )
 
         except BadRequestError as exception:
@@ -187,7 +182,7 @@ class BambooHrConnection(generics.CreateAPIView):
             logger.error(error)
             return Response(
                 data={
-                    'message': 'Error in Creating Bamboo HR Connection in Recipe'
+                    'message': 'Error Creating Bamboo HR Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -242,16 +237,18 @@ class StartAndStopRecipe(generics.CreateAPIView):
             )
             return Response(
                 data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
-        
-        except BadRequestError as exception:
+
+        except Exception as exception:
             logger.error(
                 'Something unexpected happened in workato with org_id - %s in Fyle %s',
                 org.id, exception.message
             )
             return Response(
-                data=exception.message,
+                data={
+                    'message': 'Error in Starting Or Stopping The Recipe'
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
  
@@ -271,7 +268,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
         
         org = Org.objects.get(id=kwargs['org_id'])
         config = Configuration.objects.get(org__id=kwargs['org_id'])
-        
+
         try:
             recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
             sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "Bamboo HR")
@@ -286,19 +283,19 @@ class SyncEmployeesView(generics.UpdateAPIView):
             )
             return Response(
                 data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
-        
-        except BadRequestError as exception:
+
+        except Exception as exception:
             logger.error(
                 'Something unexpected happened in workato with org_id - %s in Fyle %s',
                 org.id, exception.message
             )
             return Response(
-                data=exception.message,
+                data={'message': 'Error in Syncing Employees in BambooHR'},
                 status=status.HTTP_400_BAD_REQUEST
             )
- 
+
         return Response(
             data=sync_recipe,
             status=status.HTTP_200_OK

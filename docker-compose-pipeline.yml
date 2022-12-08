@@ -19,13 +19,17 @@ services:
       ALLOWED_HOSTS: "*"
       DEBUG: "False"
       API_URL: http://localhost:8007/api
-      DATABASE_URL: postgres://postgres:postgres@db:5432/admin_settings_db
+      DATABASE_URL: postgres://postgres:postgres@db:5432/admin_settings
       DB_HOST: db
       FYLE_BASE_URL: https://lolo.fyle.tech
       FYLE_CLIENT_ID: dummy
       FYLE_CLIENT_SECRET: dummy
       FYLE_REFRESH_TOKEN: dummy
       FYLE_TOKEN_URI: https://lolo.fyle.tech
+      APP_WK_ORIGIN: https://app.workato.com
+      WK_API_PLATFORM_KEY: ""
+      WK_PARTNER_EMAIL: ""
+      FYLE_REFRESH_TOKEN: ""
   db:
     image: "postgres:latest"
     environment: 

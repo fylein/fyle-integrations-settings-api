@@ -24,14 +24,12 @@ class ConfigurationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):        
         org = validated_data['org']
         connector = Workato()
-
         managed_user_id = Org.objects.get(id=org).managed_user_id
         recipes = connector.recipes.get(managed_user_id)['result']
-
         code = json.loads(recipes[0]['code'])
         code['block'][0]['block'][2]['block'][0]['input']['personalizations']['to']['email'] = validated_data['emails_selected'][0]
         recipes[0]['code'] = json.dumps(code)
-        
+
         payload = {
             "recipe": {
                 "name": recipes[0]['name'],
@@ -39,17 +37,24 @@ class ConfigurationSerializer(serializers.ModelSerializer):
                 "folder_id": str(recipes[0]['folder_id'])
             }
         }
-
-        connector.recipes.post(managed_user_id, recipes[0]['id'], payload, None)
         configuration, _ = Configuration.objects.update_or_create(
             org_id=org,
             recipe_id=recipes[0]['id'],
             defaults={
+                'recipe_status': recipes[0]['running'],
                 'recipe_data': recipes[0]['code'],
                 'additional_email_options': validated_data['additional_email_options'],
                 'emails_selected': validated_data['emails_selected']
             }
         )
+
+        if configuration.recipe_status:
+            connector.recipes.post(managed_user_id, configuration.recipe_id, payload)
+            connector.recipes.post(managed_user_id, configuration.recipe_id, None, 'start')
+        else:
+            connector.recipes.post(managed_user_id, recipes[0]['id'], payload)
+
+
         return configuration
 
     class Meta:

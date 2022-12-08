@@ -4,10 +4,12 @@ from datetime import datetime, timezone
 import pytest
 from fyle_rest_auth.models import User, AuthToken
 from rest_framework.test import APIClient
+from admin_settings import settings
 
 from tests.fixture import fixture
-from apps.orgs.models import Org
-
+from apps.orgs.models import Org, FyleCredential
+from workato import Workato
+from tests.test_workato.common.utils import get_mock_workato
 
 def pytest_configure():
     os.system('sh ./tests/sql_fixtures/reset_db_fixtures/reset_db.sh')
@@ -17,6 +19,15 @@ def pytest_configure():
 def api_client():
     return APIClient()
 
+@pytest.fixture(scope='module')
+def workato():
+    connection = Workato()
+
+    return connection
+
+@pytest.fixture
+def mock_workato():
+    return get_mock_workato()
 
 @pytest.fixture(scope="session", autouse=True)
 def default_session_fixture(request):
@@ -84,7 +95,12 @@ def create_user_and_tokens():
     org = Org.objects.create(
         name='Anagha Org', fyle_org_id='orHVw3ikkCxJ', cluster_domain='https://lolo.fyle.tech'
     )
+    
     org.user.add(user)
+    FyleCredential.objects.create(
+        refresh_token=settings.FYLE_REFRESH_TOKEN,
+        org=org,
+    )
 
     user = create_user('ashwin.t+1@fyle.in', 'Joannaa', 'usqywo0f3nBZ')
     create_auth_token(user)
