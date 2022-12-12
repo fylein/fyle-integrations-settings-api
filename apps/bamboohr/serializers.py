@@ -1,9 +1,11 @@
+import json
+import time
 from rest_framework import serializers
+
 from apps.bamboohr.models import BambooHr, Configuration
 from apps.orgs.models import Org
 from workato import Workato
 
-import json
 
 class BambooHrSerializer(serializers.ModelSerializer):
     """
@@ -27,7 +29,7 @@ class ConfigurationSerializer(serializers.ModelSerializer):
         managed_user_id = Org.objects.get(id=org).managed_user_id
         recipes = connector.recipes.get(managed_user_id)['result']
         code = json.loads(recipes[0]['code'])
-        code['block'][0]['block'][2]['block'][0]['input']['personalizations']['to']['email'] = validated_data['emails_selected'][0]
+        code['block'][0]['block'][2]['block'][0]['input']['personalizations']['to']['email'] = validated_data['emails_selected'][0]['email']
         recipes[0]['code'] = json.dumps(code)
 
         payload = {
@@ -41,19 +43,15 @@ class ConfigurationSerializer(serializers.ModelSerializer):
             org_id=org,
             recipe_id=recipes[0]['id'],
             defaults={
-                'recipe_status': recipes[0]['running'],
+                'recipe_status': True,
                 'recipe_data': recipes[0]['code'],
                 'additional_email_options': validated_data['additional_email_options'],
                 'emails_selected': validated_data['emails_selected']
             }
         )
 
-        if configuration.recipe_status:
-            connector.recipes.post(managed_user_id, configuration.recipe_id, payload)
-            connector.recipes.post(managed_user_id, configuration.recipe_id, None, 'start')
-        else:
-            connector.recipes.post(managed_user_id, recipes[0]['id'], payload)
-
+        connector.recipes.post(managed_user_id, configuration.recipe_id, payload)
+        connector.recipes.post(managed_user_id, configuration.recipe_id, None, 'start')
 
         return configuration
 

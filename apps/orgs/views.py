@@ -7,15 +7,23 @@ import json
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
+from fyle_rest_auth.models import AuthToken
+from django.contrib.auth import get_user_model
+
 
 from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User, FyleCredential
 from workato import Workato
 from workato.exceptions import *
 
+from apps.users.helpers import PlatformConnector
+
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
+
+User = get_user_model()
+
 
 class ReadyView(generics.RetrieveAPIView):
     """
@@ -103,6 +111,13 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 'Error while creating Workato Workspace org_id - %s in Fyle %s',
                 org.id, exception.message
             )
+
+            if 'message' in exception.message and 'external id has already been taken' in exception.message['message'].lower():
+                return Response(
+                    data={'message': 'Workspace already exists'},
+                    status=status.HTTP_201_CREATED
+                )
+
             return Response(
                 data=exception.message,
                 status=status.HTTP_400_BAD_REQUEST
@@ -217,4 +232,48 @@ class SendgridConnection(generics.CreateAPIView):
                     'message': 'Error Creating Sendgrid Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+class WorkspaceAdminsView(generics.ListAPIView):
+
+    def get(self, request, *args, **kwargs):
+        """
+        Get Admins for the workspaces
+        """
+
+        org = Org.objects.get(pk=kwargs['org_id'])
+        refresh_token = AuthToken.objects.get(user__user_id=request.user).refresh_token
+        platform = PlatformConnector(refresh_token, org.cluster_domain)
+
+        admin_email = []
+        user_ids = []
+        users = org.user.all()
+        for user in users:
+            admin = User.objects.get(user_id=user)
+            user_ids.append(admin.user_id)
+
+        id_filter = 'in.{}'.format(tuple(user_ids)).replace('\'', '"') \
+            if len(user_ids) > 1 else 'eq.{}'.format(user_ids[0])
+
+        employees_generator = platform.connection.v1beta.admin.employees.list_all(query_params={
+            'user->id': id_filter,
+            'order': 'id.desc'
+        })
+
+        for employee in employees_generator:
+            admin_employees = [
+                    {
+                     'email': employee['user']['email'],
+                     'name': employee['user']['full_name']
+                    } for employee in employee['data']]
+
+        for user in users:
+            admin = User.objects.get(user_id=user)
+            for employee in admin_employees:
+                if employee['email'] == admin.email:
+                    admin_email.append(employee)
+
+        return Response(
+                data=admin_email,
+                status=status.HTTP_200_OK
             )

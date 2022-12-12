@@ -1,6 +1,6 @@
 from django.urls import path, include
 
-from .views import  OrgsView, ReadyView, CreateWorkatoWorkspace, FyleConnection, SendgridConnection
+from .views import  OrgsView, ReadyView, CreateWorkatoWorkspace, FyleConnection, SendgridConnection, WorkspaceAdminsView
 
 org_app_path = [
     path('', OrgsView.as_view(), name='orgs'),
@@ -8,6 +8,8 @@ org_app_path = [
     path('ready/', ReadyView.as_view(), name='ready'),
     path('<int:org_id>/connect_fyle/', FyleConnection.as_view(), name='fyle-connection'),
     path('<int:org_id>/sendgrid_connection/', SendgridConnection.as_view(), name='sendgrid'),
+    path('<int:org_id>/admins/', WorkspaceAdminsView.as_view(), name='admin-view')
+
 ]
 
 integration_paths = [

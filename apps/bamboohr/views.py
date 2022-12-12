@@ -1,12 +1,11 @@
-from requests import Response
 import polling
 import traceback
 import logging
-import time
 
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
+
 
 from workato import Workato
 from workato.exceptions import *
@@ -14,9 +13,9 @@ from apps.orgs.models import Org
 from apps.bamboohr.models import BambooHr, Configuration
 from apps.bamboohr.serializers import BambooHrSerializer, ConfigurationSerializer
 
-
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
+
 
 class BambooHrView(generics.ListAPIView):
     serializer_class = BambooHrSerializer
