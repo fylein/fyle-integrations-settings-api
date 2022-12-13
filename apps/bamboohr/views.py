@@ -217,7 +217,7 @@ class ConfigurationView(generics.ListCreateAPIView):
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
 
-class StartAndStopRecipe(generics.CreateAPIView):
+class DisconnectView(generics.CreateAPIView):
 
     """
     API Call to Start And Stop a Recipe in Workato
@@ -228,13 +228,34 @@ class StartAndStopRecipe(generics.CreateAPIView):
         
         org = Org.objects.get(id=kwargs['org_id'])
         config = Configuration.objects.get(org__id=kwargs['org_id'])
-        
-        try:
-            connection = connector.recipes.post(org.managed_user_id, config.recipe_id, None, request.data['payload'])
-            recipe_status = True if request.data['payload'] == 'start' else False
+        bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
-            config.recipe_status = recipe_status
+        try:
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
+            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
+
+            config.recipe_status = False
             config.save()
+
+            connection = connector.connections.post(
+                managed_user_id=org.managed_user_id,
+                connection_id=bamboo_connection_1['id'],
+
+            )
+            connector.connections.post(
+                managed_user_id=org.managed_user_id,
+                connection_id=bamboo_connection_2['id'],
+            )
+
+            bamboohr.api_token = None
+            bamboohr.sub_domain = None
+            bamboohr.save()
+
+            return Response(
+                data=connection,
+                status=status.HTTP_200_OK
+            )
 
         except NotFoundItemError as exception:
             logger.error(

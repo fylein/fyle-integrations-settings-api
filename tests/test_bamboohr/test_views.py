@@ -234,7 +234,7 @@ def test_start_and_stop_view(api_client, mocker, access_token):
     Test Start and Stop Of Recipes In Workato
     """
 
-    url = reverse('start-and-stop',
+    url = reverse('disconnect',
         kwargs={
             'org_id':1,
         }

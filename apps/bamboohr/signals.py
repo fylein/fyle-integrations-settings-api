@@ -10,6 +10,5 @@ from apps.orgs.models import Org
 @receiver(pre_save, sender=Configuration)
 def run_pre_save_configuration_triggers(sender, instance: Configuration, **kwargs):
     connector = Workato()
-    if instance.recipe_status:
-        org = Org.objects.get(id=instance.org_id)
-        connector.recipes.post(org.managed_user_id, instance.recipe_id, None, 'stop')
+    org = Org.objects.get(id=instance.org_id)
+    connector.recipes.post(org.managed_user_id, instance.recipe_id, None, 'stop')
