@@ -2,21 +2,19 @@
 import os
 import logging
 import traceback
-import json
 
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
-from fyle_rest_auth.models import AuthToken
 from django.contrib.auth import get_user_model
 
 
-from apps.orgs.serializers import OrgSerializer
-from apps.orgs.models import Org, User, FyleCredential
 from workato import Workato
 from workato.exceptions import *
+from apps.orgs.serializers import OrgSerializer
+from apps.orgs.models import Org, User, FyleCredential
+from apps.orgs.actions import get_admin_employees
 
-from apps.users.helpers import PlatformConnector
 
 
 logger = logging.getLogger(__name__)
@@ -91,11 +89,13 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 org.save()
 
                 properties_payload = {
-                    "properties": {
-                        "FYLE_CLIENT_ID": os.environ.get('FYLE_CLIENT_ID'),
-                        "FYLE_CLIENT_SECRET": os.environ.get('FYLE_CLIENT_SECRET'),
-                        "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL'),
-                        "REFRESH_TOKEN": fyle_credentials.refresh_token
+                    'properties': {
+                        'FYLE_CLIENT_ID': os.environ.get('FYLE_CLIENT_ID'),
+                        'FYLE_CLIENT_SECRET': os.environ.get('FYLE_CLIENT_SECRET'),
+                        'FYLE_BASE_URL': os.environ.get('FYLE_BASE_URL'),
+                        'BASE_URI': os.environ.get('BASE_URI'),
+                        'FYLE_TOKEN_URI': os.environ.get('FYLE_TOKEN_URI'),
+                        'REFRESH_TOKEN': fyle_credentials.refresh_token
                     }
                 }
 
@@ -155,7 +155,7 @@ class FyleConnection(generics.CreateAPIView):
 
         try:
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Test Connection")
+            fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Connection")
 
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id, 
@@ -213,7 +213,7 @@ class SendgridConnection(generics.CreateAPIView):
                connection,
                status=status.HTTP_200_OK
             )
-            
+
         except BadRequestError as exception:
             logger.error(
                 'Error while creating Sendgrid Connection org_id - %s in Fyle %s',
@@ -241,39 +241,9 @@ class WorkspaceAdminsView(generics.ListAPIView):
         Get Admins for the workspaces
         """
 
-        org = Org.objects.get(pk=kwargs['org_id'])
-        refresh_token = AuthToken.objects.get(user__user_id=request.user).refresh_token
-        platform = PlatformConnector(refresh_token, org.cluster_domain)
-
-        admin_email = []
-        user_ids = []
-        users = org.user.all()
-        for user in users:
-            admin = User.objects.get(user_id=user)
-            user_ids.append(admin.user_id)
-
-        id_filter = 'in.{}'.format(tuple(user_ids)).replace('\'', '"') \
-            if len(user_ids) > 1 else 'eq.{}'.format(user_ids[0])
-
-        employees_generator = platform.connection.v1beta.admin.employees.list_all(query_params={
-            'user->id': id_filter,
-            'order': 'id.desc'
-        })
-
-        for employee in employees_generator:
-            admin_employees = [
-                    {
-                     'email': employee['user']['email'],
-                     'name': employee['user']['full_name']
-                    } for employee in employee['data']]
-
-        for user in users:
-            admin = User.objects.get(user_id=user)
-            for employee in admin_employees:
-                if employee['email'] == admin.email:
-                    admin_email.append(employee)
+        admin_employees = get_admin_employees(org_id=kwargs['org_id'], user=request.user)
 
         return Response(
-                data=admin_email,
+                data=admin_employees,
                 status=status.HTTP_200_OK
             )

@@ -12,5 +12,4 @@ def run_pre_save_configuration_triggers(sender, instance: Configuration, **kwarg
     connector = Workato()
     if instance.recipe_status:
         org = Org.objects.get(id=instance.org_id)
-        print('nilesh')
         connector.recipes.post(org.managed_user_id, instance.recipe_id, None, 'stop')

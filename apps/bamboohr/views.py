@@ -133,8 +133,8 @@ class BambooHrConnection(generics.CreateAPIView):
 
         try:
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'My BambooHR account')
-            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'Bamboo HR Test')
+            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
+            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
 
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id,
@@ -277,7 +277,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
         try:
             recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
-            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "Bamboo HR")
+            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "Bamboo HR Sync")
 
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'stop')
