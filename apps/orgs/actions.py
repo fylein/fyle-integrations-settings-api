@@ -4,7 +4,7 @@ from fyle_rest_auth.models import AuthToken
 from apps.users.helpers import PlatformConnector
 
 
-def get_admin_employees(org_id, user) -> dict[list]:
+def get_admin_employees(org_id, user):
 
     org = Org.objects.get(pk=org_id)
     refresh_token = AuthToken.objects.get(user__user_id=user).refresh_token
