@@ -112,7 +112,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 org.id, exception.message
             )
 
-            if 'message' in exception.message and 'external id has already been taken' in exception.message['message'].lower():
+            if 'message' in exception.message and 'external has already been taken' in exception.message['message'].lower():
                 return Response(
                     data={'message': 'Workspace already exists'},
                     status=status.HTTP_201_CREATED

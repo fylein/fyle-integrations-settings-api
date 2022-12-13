@@ -142,28 +142,35 @@ class BambooHrConnection(generics.CreateAPIView):
                 data=request.data
             )
 
-            connection_payload = {
-                "input": {
-                    "ssl_params": "false",
-                    "auth_type": "basic",
-                    "basic_user": request.data['input']['api_token'],
-                    "basic_password": "x"
+            if connection['authorization_status'] == 'success':
+                connection_payload = {
+                    "input": {
+                        "ssl_params": "false",
+                        "auth_type": "basic",
+                        "basic_user": request.data['input']['api_token'],
+                        "basic_password": "x"
+                    }
                 }
-            }
 
-            connection = connector.connections.put(
-                managed_user_id=org.managed_user_id,
-                connection_id=bamboo_connection_2['id'],
-                data=connection_payload
-            )
+                connector.connections.put(
+                    managed_user_id=org.managed_user_id,
+                    connection_id=bamboo_connection_2['id'],
+                    data=connection_payload
+                )
 
-            bamboohr.api_token = request.data['input']['api_token']
-            bamboohr.sub_domain = request.data['input']['subdomain']
-            bamboohr.save()
+                bamboohr.api_token = request.data['input']['api_token']
+                bamboohr.sub_domain = request.data['input']['subdomain']
+                bamboohr.save()
+
+
+                return Response(
+                    data=connection,
+                    status=status.HTTP_200_OK
+                )
 
             return Response(
                 data=connection,
-                status=status.HTTP_200_OK
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         except BadRequestError as exception:
