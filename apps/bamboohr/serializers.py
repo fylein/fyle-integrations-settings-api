@@ -29,7 +29,14 @@ class ConfigurationSerializer(serializers.ModelSerializer):
         managed_user_id = Org.objects.get(id=org).managed_user_id
         recipes = connector.recipes.get(managed_user_id)['result']
         code = json.loads(recipes[0]['code'])
-        code['block'][0]['block'][2]['block'][0]['input']['personalizations']['to']['email'] = validated_data['emails_selected'][0]['email']
+
+        admin_emails = [
+            {
+             'email': admin['email'],
+            } for admin in validated_data['emails_selected']
+        ]
+
+        code['block'][0]['block'][2]['block'][0]['input']['personalizations']['to'] = admin_emails
         recipes[0]['code'] = json.dumps(code)
 
         payload = {

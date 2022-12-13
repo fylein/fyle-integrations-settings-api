@@ -85,7 +85,7 @@ class PostPackage(generics.CreateAPIView):
         bamboohr = BambooHr.objects.filter(org__id=org.id).first()
 
         try:
-            package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/package.zip')                
+            package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/bamboohr_package.zip')
             polling.poll(
                 lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
                 step=5,
