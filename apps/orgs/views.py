@@ -160,7 +160,11 @@ class FyleConnection(generics.CreateAPIView):
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id, 
                 connection_id=fyle_connection['id'],
-                data=request.data
+                data={
+                    "input": {
+                        "key": "***"
+                    }
+                }
             )
 
             return Response(
