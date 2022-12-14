@@ -8,7 +8,8 @@ class Connections(ApiBase):
     """Class for Connection xAPIs."""
 
     GET_CONNECTIONS = '/managed_users/{0}/connections'
-    POST_CONNECTION = 'managed_users/{0}/connections/{1}'
+    PUT_CONNECTION = 'managed_users/{0}/connections/{1}'
+    POST_CONNECTION = '/managed_users/{0}/connections/{1}/disconnect'
 
     def get(self, managed_user_id):
         """
@@ -22,4 +23,11 @@ class Connections(ApiBase):
         """
         Create A Connection
         """
-        return self._put_request(Connections.POST_CONNECTION.format(managed_user_id, connection_id), data)
+        return self._put_request(Connections.PUT_CONNECTION.format(managed_user_id, connection_id), data)
+
+
+    def post(self, managed_user_id, connection_id):
+        """
+        Disconnect a Connection in BambooHe
+        """
+        return self._post_request(Connections.POST_CONNECTION.format(managed_user_id, connection_id))

@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import PostFolder, PostPackage, BambooHrConnection, BambooHrView, ConfigurationView, \
-    StartAndStopRecipe, SyncEmployeesView
+    DisconnectView, SyncEmployeesView
 
 urlpatterns = [
     path('', BambooHrView.as_view(), name='bamboohr'),
@@ -10,5 +10,5 @@ urlpatterns = [
     path('bamboo_connection/', BambooHrConnection.as_view(), name='bamboo-connection'),
     path('configuration/', ConfigurationView.as_view(), name='configuration'),
     path('refresh_employees/', SyncEmployeesView.as_view(), name='sync-employees'),
-    path('start&stop/', StartAndStopRecipe.as_view(), name='start-and-stop')
+    path('disconnect/', DisconnectView.as_view(), name='disconnect'),
 ]

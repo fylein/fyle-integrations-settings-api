@@ -2,20 +2,26 @@
 import os
 import logging
 import traceback
-import json
 
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
+from django.contrib.auth import get_user_model
 
-from apps.orgs.serializers import OrgSerializer
-from apps.orgs.models import Org, User, FyleCredential
+
 from workato import Workato
 from workato.exceptions import *
+from apps.orgs.serializers import OrgSerializer
+from apps.orgs.models import Org, User, FyleCredential
+from apps.orgs.actions import get_admin_employees
+
 
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
+
+User = get_user_model()
+
 
 class ReadyView(generics.RetrieveAPIView):
     """
@@ -83,11 +89,13 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 org.save()
 
                 properties_payload = {
-                    "properties": {
-                        "FYLE_CLIENT_ID": os.environ.get('FYLE_CLIENT_ID'),
-                        "FYLE_CLIENT_SECRET": os.environ.get('FYLE_CLIENT_SECRET'),
-                        "FYLE_BASE_URL": os.environ.get('FYLE_BASE_URL'),
-                        "REFRESH_TOKEN": fyle_credentials.refresh_token
+                    'properties': {
+                        'FYLE_CLIENT_ID': os.environ.get('FYLE_CLIENT_ID'),
+                        'FYLE_CLIENT_SECRET': os.environ.get('FYLE_CLIENT_SECRET'),
+                        'FYLE_BASE_URL': os.environ.get('FYLE_BASE_URL'),
+                        'BASE_URI': os.environ.get('BASE_URI'),
+                        'FYLE_TOKEN_URI': os.environ.get('FYLE_TOKEN_URI'),
+                        'REFRESH_TOKEN': fyle_credentials.refresh_token
                     }
                 }
 
@@ -103,6 +111,13 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 'Error while creating Workato Workspace org_id - %s in Fyle %s',
                 org.id, exception.message
             )
+
+            if 'message' in exception.message and 'external has already been taken' in exception.message['message'].lower():
+                return Response(
+                    data={'message': 'Workspace already exists'},
+                    status=status.HTTP_201_CREATED
+                )
+
             return Response(
                 data=exception.message,
                 status=status.HTTP_400_BAD_REQUEST
@@ -140,7 +155,7 @@ class FyleConnection(generics.CreateAPIView):
 
         try:
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Test Connection")
+            fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Connection")
 
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id, 
@@ -198,7 +213,7 @@ class SendgridConnection(generics.CreateAPIView):
                connection,
                status=status.HTTP_200_OK
             )
-            
+
         except BadRequestError as exception:
             logger.error(
                 'Error while creating Sendgrid Connection org_id - %s in Fyle %s',
@@ -217,4 +232,18 @@ class SendgridConnection(generics.CreateAPIView):
                     'message': 'Error Creating Sendgrid Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
+            )
+
+class WorkspaceAdminsView(generics.ListAPIView):
+
+    def get(self, request, *args, **kwargs):
+        """
+        Get Admins for the workspaces
+        """
+
+        admin_employees = get_admin_employees(org_id=kwargs['org_id'], user=request.user)
+
+        return Response(
+                data=admin_employees,
+                status=status.HTTP_200_OK
             )

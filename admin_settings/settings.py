@@ -217,6 +217,8 @@ FYLE_CLIENT_SECRET = os.environ.get('FYLE_CLIENT_SECRET')
 FYLE_BASE_URL = os.environ.get('FYLE_BASE_URL')
 FYLE_APP_URL = os.environ.get('APP_URL')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
+BASE_URI = os.environ.get('BASE_URI')
+
 
 CORS_ORIGIN_ALLOW_ALL = True
 

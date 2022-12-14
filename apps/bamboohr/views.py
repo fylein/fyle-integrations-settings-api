@@ -1,12 +1,11 @@
-from requests import Response
 import polling
 import traceback
 import logging
-import time
 
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
+
 
 from workato import Workato
 from workato.exceptions import *
@@ -14,9 +13,9 @@ from apps.orgs.models import Org
 from apps.bamboohr.models import BambooHr, Configuration
 from apps.bamboohr.serializers import BambooHrSerializer, ConfigurationSerializer
 
-
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
+
 
 class BambooHrView(generics.ListAPIView):
     serializer_class = BambooHrSerializer
@@ -86,7 +85,7 @@ class PostPackage(generics.CreateAPIView):
         bamboohr = BambooHr.objects.filter(org__id=org.id).first()
 
         try:
-            package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/package.zip')                
+            package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/bamboohr_package.zip')
             polling.poll(
                 lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
                 step=5,
@@ -134,8 +133,8 @@ class BambooHrConnection(generics.CreateAPIView):
 
         try:
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'My BambooHR account')
-            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'Bamboo HR Test')
+            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
+            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
 
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id,
@@ -143,28 +142,35 @@ class BambooHrConnection(generics.CreateAPIView):
                 data=request.data
             )
 
-            connection_payload = {
-                "input": {
-                    "ssl_params": "false",
-                    "auth_type": "basic",
-                    "basic_user": request.data['input']['api_token'],
-                    "basic_password": "x"
+            if connection['authorization_status'] == 'success':
+                connection_payload = {
+                    "input": {
+                        "ssl_params": "false",
+                        "auth_type": "basic",
+                        "basic_user": request.data['input']['api_token'],
+                        "basic_password": "x"
+                    }
                 }
-            }
 
-            connection = connector.connections.put(
-                managed_user_id=org.managed_user_id,
-                connection_id=bamboo_connection_2['id'],
-                data=connection_payload
-            )
+                connector.connections.put(
+                    managed_user_id=org.managed_user_id,
+                    connection_id=bamboo_connection_2['id'],
+                    data=connection_payload
+                )
 
-            bamboohr.api_token = request.data['input']['api_token']
-            bamboohr.sub_domain = request.data['input']['subdomain']
-            bamboohr.save()
+                bamboohr.api_token = request.data['input']['api_token']
+                bamboohr.sub_domain = request.data['input']['subdomain']
+                bamboohr.save()
+
+
+                return Response(
+                    data=connection,
+                    status=status.HTTP_200_OK
+                )
 
             return Response(
                 data=connection,
-                status=status.HTTP_200_OK
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         except BadRequestError as exception:
@@ -211,7 +217,7 @@ class ConfigurationView(generics.ListCreateAPIView):
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
 
-class StartAndStopRecipe(generics.CreateAPIView):
+class DisconnectView(generics.CreateAPIView):
 
     """
     API Call to Start And Stop a Recipe in Workato
@@ -222,13 +228,34 @@ class StartAndStopRecipe(generics.CreateAPIView):
         
         org = Org.objects.get(id=kwargs['org_id'])
         config = Configuration.objects.get(org__id=kwargs['org_id'])
-        
-        try:
-            connection = connector.recipes.post(org.managed_user_id, config.recipe_id, None, request.data['payload'])
-            recipe_status = True if request.data['payload'] == 'start' else False
+        bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
-            config.recipe_status = recipe_status
+        try:
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
+            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
+
+            config.recipe_status = False
             config.save()
+
+            connection = connector.connections.post(
+                managed_user_id=org.managed_user_id,
+                connection_id=bamboo_connection_1['id'],
+
+            )
+            connector.connections.post(
+                managed_user_id=org.managed_user_id,
+                connection_id=bamboo_connection_2['id'],
+            )
+
+            bamboohr.api_token = None
+            bamboohr.sub_domain = None
+            bamboohr.save()
+
+            return Response(
+                data=connection,
+                status=status.HTTP_200_OK
+            )
 
         except NotFoundItemError as exception:
             logger.error(
@@ -271,7 +298,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
         try:
             recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
-            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "Bamboo HR")
+            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "Bamboo HR Sync")
 
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'stop')
