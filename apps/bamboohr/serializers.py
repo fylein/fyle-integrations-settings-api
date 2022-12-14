@@ -1,6 +1,6 @@
 import json
-import time
 from rest_framework import serializers
+from django.conf import settings
 
 from apps.bamboohr.models import BambooHr, Configuration
 from apps.orgs.models import Org
@@ -35,8 +35,10 @@ class ConfigurationSerializer(serializers.ModelSerializer):
              'email': admin['email'],
             } for admin in validated_data['emails_selected']
         ]
+        
+        code['block'][0]['block'][2]['block'][0]['input']['personalizations'][0]['to'] = admin_emails
+        code['block'][0]['block'][2]['block'][0]['input']['from']['email'] = settings.SENDGRID_EMAIL
 
-        code['block'][0]['block'][2]['block'][0]['input']['personalizations']['to'] = admin_emails
         recipes[0]['code'] = json.dumps(code)
 
         payload = {

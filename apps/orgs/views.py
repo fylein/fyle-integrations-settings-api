@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 
 from workato import Workato
@@ -208,7 +209,7 @@ class SendgridConnection(generics.CreateAPIView):
                 connection_id=sendgrid_connection_id['id'],
                 data={
                     "input": {
-                        "api_key": os.environ.get('SENDGRID_API_KEY')
+                        "api_key": settings.SENDGRID_API_KEY
                     }
                 }
             )
