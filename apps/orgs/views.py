@@ -98,7 +98,8 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                         'REFRESH_TOKEN': fyle_credentials.refresh_token
                     }
                 }
-
+                
+                # Setting Up Properties in Workato, to be used by fyle sdk
                 properties = connector.properties.post(managed_user['id'], properties_payload)
 
                 return Response(
@@ -155,6 +156,8 @@ class FyleConnection(generics.CreateAPIView):
 
         try:
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            
+            # Filtering Fyle Connection out of all the connections in the recipe
             fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Connection")
 
             connection = connector.connections.put(
@@ -169,6 +172,8 @@ class FyleConnection(generics.CreateAPIView):
             )
 
         except BadRequestError as exception:
+            error = traceback.format_exc()
+            logger.error(error)
             logger.error(
                 'Error while creating Fyle Connection in Workato with org_id - %s in Fyle %s',
                 org.id, exception.message
@@ -179,6 +184,8 @@ class FyleConnection(generics.CreateAPIView):
             )
 
         except Exception:
+            error = traceback.format_exc()
+            logger.error(error)
             return Response(
                 data={
                     'message': 'Error Creating Fyle Connection in Recipe'
@@ -197,6 +204,8 @@ class SendgridConnection(generics.CreateAPIView):
 
         try:
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            
+            # Filtering Sendgrid Connection, out of all the connection
             sendgrid_connection_id = next(connection for connection in connections if connection['name'] == "My SendGrid account")
             
             connection = connector.connections.put(
@@ -238,7 +247,7 @@ class WorkspaceAdminsView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         """
-        Get Admins for the workspaces
+        Get All Admins of this orgs
         """
 
         admin_employees = get_admin_employees(org_id=kwargs['org_id'], user=request.user)

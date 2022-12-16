@@ -10,8 +10,8 @@ from rest_framework import generics
 from workato import Workato
 from workato.exceptions import *
 from apps.orgs.models import Org
-from apps.bamboohr.models import BambooHr, Configuration
-from apps.bamboohr.serializers import BambooHrSerializer, ConfigurationSerializer
+from apps.bamboohr.models import BambooHr, BambooHrConfiguration
+from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -77,7 +77,6 @@ class PostPackage(generics.CreateAPIView):
     """
     API Call to Post Package in Workato
     """
-    serializer_class = BambooHrSerializer
 
     def post(self, request, *args, **kwargs):
         connector = Workato()
@@ -86,6 +85,8 @@ class PostPackage(generics.CreateAPIView):
 
         try:
             package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/bamboohr_package.zip')
+            
+            # post package is an async request, polling to get the status of the package
             polling.poll(
                 lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
                 step=5,
@@ -96,12 +97,14 @@ class PostPackage(generics.CreateAPIView):
     
             return Response(
                 data={
-                    'message': 'package uploaded successfully'
+                    'message': 'package uploaded successfully',
                 },
                 status=status.HTTP_200_OK
             )
 
         except BadRequestError as exception:
+            error = traceback.format_exc()
+            logger.error(error)
             logger.error(
                 'Error while posting bamboo package to workato for org_id - %s in Fyle %s',
                 org.id, exception.message
@@ -193,24 +196,24 @@ class BambooHrConnection(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-class ConfigurationView(generics.ListCreateAPIView):
+class BambooHrConfigurationView(generics.ListCreateAPIView):
 
-    serializer_class = ConfigurationSerializer
-    queryset = Configuration.objects.all()
+    serializer_class = BambooHrConfigurationSerializer
+    queryset = BambooHrConfiguration.objects.all()
 
     def get(self, request, *args, **kwargs):
         try:
             org_id = self.request.query_params.get('org_id')
-            configuration = Configuration.objects.get(org__id=org_id)
+            configuration = BambooHrConfiguration.objects.get(org__id=org_id)
 
             return Response(
-                data=ConfigurationSerializer(configuration).data,
+                data=BambooHrConfigurationSerializer(configuration).data,
                 status=status.HTTP_200_OK
             )
 
-        except Configuration.DoesNotExist:
+        except BambooHrConfiguration.DoesNotExist:
             return Response(
-                data={'message': 'Configuration does not exist for this Workspace'},
+                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -227,7 +230,7 @@ class DisconnectView(generics.CreateAPIView):
         connector = Workato()
         
         org = Org.objects.get(id=kwargs['org_id'])
-        config = Configuration.objects.get(org__id=kwargs['org_id'])
+        config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
         bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
         try:
@@ -294,7 +297,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
         connector = Workato()
         
         org = Org.objects.get(id=kwargs['org_id'])
-        config = Configuration.objects.get(org__id=kwargs['org_id'])
+        config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
 
         try:
             recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
