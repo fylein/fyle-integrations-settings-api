@@ -161,7 +161,7 @@ def test_bamboohr_connection(api_client, mocker, access_token):
 
     mocker.patch(
         'workato.workato.Connections.put',
-        return_value={'message': 'success'}
+        return_value={'message': 'success', 'authorization_status': 'success'}
     )
 
 
@@ -229,7 +229,7 @@ def test_sync_employees_view(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_start_and_stop_view(api_client, mocker, access_token):
+def test_disconnect_view(api_client, mocker, access_token):
     """
     Test Start and Stop Of Recipes In Workato
     """
@@ -244,9 +244,21 @@ def test_start_and_stop_view(api_client, mocker, access_token):
         'payload': 'start'
     }
 
-    with mock.patch('workato.workato.Recipes.post', side_effect=NotFoundItemError({'message': 'Item Not Found'})):
+    mocker.patch(
+        'workato.workato.Connections.get',
+        return_value=fixture['connections']
+    )
+
+    mocker.patch(
+        'workato.workato.Connections.post',
+        return_value={'message': 'success'}
+    )
+
+
+    with mock.patch('workato.workato.Recipes.post', side_effect=NotFoundItemError({'message': 'Not found'})):
         response = api_client.post(url, data, json=True)
-        assert response.data['message'] == 'Item Not Found'
+        print('response', response.data)
+        assert response.data['message'] == 'Not found'
         assert response.status_code == 404
 
     mocker.patch(

@@ -96,6 +96,7 @@ def create_user_and_tokens():
         name='Anagha Org', fyle_org_id='orHVw3ikkCxJ', cluster_domain='https://lolo.fyle.tech'
     )
     
+    print('org', org.id)
     org.user.add(user)
     FyleCredential.objects.create(
         refresh_token=settings.FYLE_REFRESH_TOKEN,

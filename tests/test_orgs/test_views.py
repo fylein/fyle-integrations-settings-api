@@ -150,23 +150,30 @@ def test_fyle_connection(api_client, mocker, access_token):
         return_value=fixture['connections']
     )
 
-
     mocker.patch(
         'workato.workato.Connections.put',
-        return_value={'message': 'success'}
+        return_value={'message': 'failed', 'authorization_status': 'failed'}
     )
 
     response = api_client.post(url)
-    
+    assert response.status_code == 400
+    assert response.data == {'message': 'connection failed'}
+
+    mocker.patch(
+        'workato.workato.Connections.put',
+        return_value={'message': 'success', 'authorization_status': 'success'}
+    )
+
+    response = api_client.post(url)
     assert response.status_code == 200
-    assert response.data == {'message': 'success'}
-    
+    assert response.data == {'message': 'success', 'authorization_status': 'success'}
+
 @pytest.mark.django_db(databases=['default'])
 def test_sendgrid_connection(api_client, mocker, access_token):
     """
     Test Creating Sendgrid Connection In Workato
     """
-    
+
     url = reverse('sendgrid',
         kwargs={
             'org_id':16,
@@ -195,11 +202,19 @@ def test_sendgrid_connection(api_client, mocker, access_token):
 
     mocker.patch(
         'workato.workato.Connections.put',
-        return_value={'message': 'success'}
+        return_value={'message': 'failed', 'authorization_status': 'failed'}
     )
 
+    response = api_client.post(url)
+    assert response.status_code == 400
+    assert response.data == {'message': 'connection failed'}
+
+    mocker.patch(
+        'workato.workato.Connections.put',
+        return_value={'message': 'success', 'authorization_status': 'success'}
+    )
 
     response = api_client.post(url)
     
     assert response.status_code == 200
-    assert response.data == {'message': 'success'}
+    assert response.data == {'message': 'success', 'authorization_status': 'success'}

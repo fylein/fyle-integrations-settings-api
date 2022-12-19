@@ -235,6 +235,7 @@ class DisconnectView(generics.CreateAPIView):
 
         try:
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            print('sdfsdfsd', connections)
             bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
             bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
 
