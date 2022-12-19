@@ -257,7 +257,6 @@ def test_disconnect_view(api_client, mocker, access_token):
 
     with mock.patch('workato.workato.Recipes.post', side_effect=NotFoundItemError({'message': 'Not found'})):
         response = api_client.post(url, data, json=True)
-        print('response', response.data)
         assert response.data['message'] == 'Not found'
         assert response.status_code == 404
 
