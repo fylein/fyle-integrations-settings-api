@@ -1,6 +1,9 @@
 import polling
 import traceback
 import logging
+import json
+
+from django.conf import settings
 
 from rest_framework.response import Response
 from rest_framework.views import status
@@ -281,11 +284,6 @@ class DisconnectView(generics.CreateAPIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
- 
-        return Response(
-            data=connection,
-            status=status.HTTP_200_OK
-        )
 
 class SyncEmployeesView(generics.UpdateAPIView):
     
@@ -302,9 +300,33 @@ class SyncEmployeesView(generics.UpdateAPIView):
         try:
             recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
             sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "Bamboo HR Sync")
+            code = json.loads(sync_recipe['code'])
 
+            admin_emails = [
+                {
+                 'email': admin['email'],
+                } for admin in config.emails_selected
+            ]
+            code['block'][6]['block'][1]['input']['personalizations']['to'] = admin_emails
+            code['block'][6]['block'][1]['input']['from']['email'] = settings.SENDGRID_EMAIL
+            sync_recipe['code'] = json.dumps(code)
+            payload = {
+                "recipe": {
+                    "name": sync_recipe['name'],
+                    "code": sync_recipe['code'],
+                    "folder_id": str(sync_recipe['folder_id'])
+                }
+            }
+
+            connector.recipes.post(org.managed_user_id, sync_recipe['id'], payload)
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'stop')
+            
+            return Response(
+                data=sync_recipe,
+                status=status.HTTP_200_OK
+            )
+
 
         except NotFoundItemError as exception:
             logger.error(
@@ -325,8 +347,3 @@ class SyncEmployeesView(generics.UpdateAPIView):
                 data={'message': 'Error in Syncing Employees in BambooHR'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        return Response(
-            data=sync_recipe,
-            status=status.HTTP_200_OK
-        )

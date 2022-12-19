@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 
 from workato import Workato
@@ -163,7 +164,11 @@ class FyleConnection(generics.CreateAPIView):
             connection = connector.connections.put(
                 managed_user_id=org.managed_user_id, 
                 connection_id=fyle_connection['id'],
-                data=request.data
+                data={
+                    "input": {
+                        "key": "***"
+                    }
+                }
             )
 
             return Response(
@@ -213,7 +218,7 @@ class SendgridConnection(generics.CreateAPIView):
                 connection_id=sendgrid_connection_id['id'],
                 data={
                     "input": {
-                        "api_key": os.environ.get('SENDGRID_API_KEY')
+                        "api_key": settings.SENDGRID_API_KEY
                     }
                 }
             )
