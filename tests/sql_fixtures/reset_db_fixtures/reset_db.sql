@@ -188,8 +188,8 @@ CREATE TABLE public.configurations (
     recipe_data text,
     recipe_status boolean,
     additional_email_options jsonb,
-    emails_selected character varying(255)[],
-    org_id integer NOT NULL
+    org_id integer NOT NULL,
+    emails_selected jsonb
 );
 
 
@@ -215,47 +215,6 @@ ALTER TABLE public.configurations_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.configurations_id_seq OWNED BY public.configurations.id;
-
-
---
--- Name: django_admin_log; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.django_admin_log (
-    id integer NOT NULL,
-    action_time timestamp with time zone NOT NULL,
-    object_id text,
-    object_repr character varying(200) NOT NULL,
-    action_flag smallint NOT NULL,
-    change_message text NOT NULL,
-    content_type_id integer,
-    user_id integer NOT NULL,
-    CONSTRAINT django_admin_log_action_flag_check CHECK ((action_flag >= 0))
-);
-
-
-ALTER TABLE public.django_admin_log OWNER TO postgres;
-
---
--- Name: django_admin_log_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.django_admin_log_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.django_admin_log_id_seq OWNER TO postgres;
-
---
--- Name: django_admin_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.django_admin_log_id_seq OWNED BY public.django_admin_log.id;
 
 
 --
@@ -411,9 +370,10 @@ CREATE TABLE public.orgs (
     fyle_org_id character varying(255) NOT NULL,
     managed_user_id character varying(255),
     cluster_domain character varying(255) NOT NULL,
-    is_bamboo_connector boolean,
     created_at timestamp with time zone NOT NULL,
-    updated_at timestamp with time zone NOT NULL
+    updated_at timestamp with time zone NOT NULL,
+    is_fyle_connected boolean,
+    is_sendgrid_connected boolean
 );
 
 
@@ -560,13 +520,6 @@ ALTER TABLE ONLY public.configurations ALTER COLUMN id SET DEFAULT nextval('publ
 
 
 --
--- Name: django_admin_log id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.django_admin_log ALTER COLUMN id SET DEFAULT nextval('public.django_admin_log_id_seq'::regclass);
-
-
---
 -- Name: django_content_type id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -629,50 +582,46 @@ COPY public.auth_group_permissions (id, group_id, permission_id) FROM stdin;
 --
 
 COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
-1	Can add log entry	1	add_logentry
-2	Can change log entry	1	change_logentry
-3	Can delete log entry	1	delete_logentry
-4	Can view log entry	1	view_logentry
-5	Can add permission	2	add_permission
-6	Can change permission	2	change_permission
-7	Can delete permission	2	delete_permission
-8	Can view permission	2	view_permission
-9	Can add group	3	add_group
-10	Can change group	3	change_group
-11	Can delete group	3	delete_group
-12	Can view group	3	view_group
-13	Can add content type	4	add_contenttype
-14	Can change content type	4	change_contenttype
-15	Can delete content type	4	delete_contenttype
-16	Can view content type	4	view_contenttype
-17	Can add session	5	add_session
-18	Can change session	5	change_session
-19	Can delete session	5	delete_session
-20	Can view session	5	view_session
-21	Can add auth token	6	add_authtoken
-22	Can change auth token	6	change_authtoken
-23	Can delete auth token	6	delete_authtoken
-24	Can view auth token	6	view_authtoken
-25	Can add user	7	add_user
-26	Can change user	7	change_user
-27	Can delete user	7	delete_user
-28	Can view user	7	view_user
-29	Can add bamboo hr	8	add_bamboohr
-30	Can change bamboo hr	8	change_bamboohr
-31	Can delete bamboo hr	8	delete_bamboohr
-32	Can view bamboo hr	8	view_bamboohr
-33	Can add configuration	9	add_configuration
-34	Can change configuration	9	change_configuration
-35	Can delete configuration	9	delete_configuration
-36	Can view configuration	9	view_configuration
-37	Can add org	10	add_org
-38	Can change org	10	change_org
-39	Can delete org	10	delete_org
-40	Can view org	10	view_org
-41	Can add fyle credential	11	add_fylecredential
-42	Can change fyle credential	11	change_fylecredential
-43	Can delete fyle credential	11	delete_fylecredential
-44	Can view fyle credential	11	view_fylecredential
+1	Can add permission	1	add_permission
+2	Can change permission	1	change_permission
+3	Can delete permission	1	delete_permission
+4	Can view permission	1	view_permission
+5	Can add group	2	add_group
+6	Can change group	2	change_group
+7	Can delete group	2	delete_group
+8	Can view group	2	view_group
+9	Can add content type	3	add_contenttype
+10	Can change content type	3	change_contenttype
+11	Can delete content type	3	delete_contenttype
+12	Can view content type	3	view_contenttype
+13	Can add session	4	add_session
+14	Can change session	4	change_session
+15	Can delete session	4	delete_session
+16	Can view session	4	view_session
+17	Can add auth token	5	add_authtoken
+18	Can change auth token	5	change_authtoken
+19	Can delete auth token	5	delete_authtoken
+20	Can view auth token	5	view_authtoken
+21	Can add user	6	add_user
+22	Can change user	6	change_user
+23	Can delete user	6	delete_user
+24	Can view user	6	view_user
+25	Can add bamboo hr	7	add_bamboohr
+26	Can change bamboo hr	7	change_bamboohr
+27	Can delete bamboo hr	7	delete_bamboohr
+28	Can view bamboo hr	7	view_bamboohr
+29	Can add configuration	8	add_configuration
+30	Can change configuration	8	change_configuration
+31	Can delete configuration	8	delete_configuration
+32	Can view configuration	8	view_configuration
+33	Can add org	9	add_org
+34	Can change org	9	change_org
+35	Can delete org	9	delete_org
+36	Can view org	9	view_org
+37	Can add fyle credential	10	add_fylecredential
+38	Can change fyle credential	10	change_fylecredential
+39	Can delete fyle credential	10	delete_fylecredential
+40	Can view fyle credential	10	view_fylecredential
 \.
 
 
@@ -689,7 +638,6 @@ COPY public.auth_tokens (id, refresh_token, user_id) FROM stdin;
 --
 
 COPY public.bamboohr (id, folder_id, package_id, api_token, sub_domain, created_at, updated_at, org_id) FROM stdin;
-1	163	112	dummy	dummy	2022-12-06 14:42:38.724679+05:30	2022-12-06 14:43:33.008685+05:30	1
 \.
 
 
@@ -697,16 +645,7 @@ COPY public.bamboohr (id, folder_id, package_id, api_token, sub_domain, created_
 -- Data for Name: configurations; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.configurations (id, recipe_id, recipe_data, recipe_status, additional_email_options, emails_selected, org_id) FROM stdin;
-1	3429	{"number": 0, "provider": "bamboohr", "name": "updated_employee", "as": "6761c014", "title": null, "description": null, "keyword": "trigger", "dynamicPickListSelection": {}, "toggleCfg": {"flag": true}, "input": {"flag": "true"}, "extended_output_schema": [{"control_type": "text", "label": "NIN", "name": "customNIN1", "optional": true, "type": "string"}, {"control_type": "select", "label": "Secondary Language", "name": "customSecondaryLanguage1", "optional": true, "pick_list": [["French", "French"], ["German", "German"], ["Japanese", "Japanese"], ["Mandarin", "Mandarin"], ["Spanish", "Spanish"]], "toggle_field": {"control_type": "text", "label": "Secondary Language", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customSecondaryLanguage1"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "select", "label": "Shirt size", "name": "customShirtsize", "optional": true, "pick_list": [["1. Small", "1. Small"], ["2. Medium", "2. Medium"], ["3. Large", "3. Large"], ["4. XLarge", "4. XLarge"], ["5. XXLarge", "5. XXLarge"]], "toggle_field": {"control_type": "text", "label": "Shirt size", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customShirtsize"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "text", "label": "Tax File Number", "name": "customTaxFileNumber1", "optional": true, "type": "string"}], "block": [{"number": 1, "keyword": "try", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {}, "block": [{"number": 2, "keyword": "if", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"type": "compound", "operand": "and", "conditions": [{"operand": "present", "lhs": "#{_('data.bamboohr.6761c014.supervisorEId')}", "rhs": "", "uuid": "condition-79dc736e-21b3-4f53-bcd3-eafef8a76362"}]}, "block": [{"number": 3, "provider": "bamboohr", "name": "get_employee_by_id", "as": "e5cf843b", "title": null, "description": null, "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"id": "#{_('data.bamboohr.6761c014.supervisorEId')}"}, "extended_output_schema": [{"control_type": "text", "label": "NIN", "name": "customNIN1", "optional": true, "type": "string"}, {"control_type": "select", "label": "Secondary Language", "name": "customSecondaryLanguage1", "optional": true, "pick_list": [["French", "French"], ["German", "German"], ["Japanese", "Japanese"], ["Mandarin", "Mandarin"], ["Spanish", "Spanish"]], "toggle_field": {"control_type": "text", "label": "Secondary Language", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customSecondaryLanguage1"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "select", "label": "Shirt size", "name": "customShirtsize", "optional": true, "pick_list": [["1. Small", "1. Small"], ["2. Medium", "2. Medium"], ["3. Large", "3. Large"], ["4. XLarge", "4. XLarge"], ["5. XXLarge", "5. XXLarge"]], "toggle_field": {"control_type": "text", "label": "Shirt size", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customShirtsize"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "text", "label": "Tax File Number", "name": "customTaxFileNumber1", "optional": true, "type": "string"}], "uuid": "587d07c1-2d4e-473a-853a-f768b441bd7c"}, {"number": 4, "provider": "fyle_staging_connector_892703_1670317976", "name": "search_employee", "as": "d02a328f", "title": null, "description": null, "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"email": "='eq.' + _('data.bamboohr.e5cf843b.workEmail')"}, "extended_output_schema": [{"label": "Employees", "name": "data", "of": "object", "optional": true, "properties": [{"control_type": "number", "label": "Count", "parse_output": "float_conversion", "optional": true, "type": "number", "name": "count"}, {"name": "data", "type": "array", "of": "object", "label": "Data", "optional": true, "properties": [{"control_type": "text", "label": "Branch account", "optional": true, "type": "string", "name": "branch_account"}, {"control_type": "text", "label": "Branch ifsc", "optional": true, "type": "string", "name": "branch_ifsc"}, {"control_type": "text", "label": "Business unit", "optional": true, "type": "string", "name": "business_unit"}, {"control_type": "text", "label": "Code", "optional": true, "type": "string", "name": "code"}, {"control_type": "text", "label": "Created at", "render_input": "date_time_conversion", "parse_output": "date_time_conversion", "optional": true, "type": "date_time", "name": "created_at"}, {"control_type": "text", "label": "Department", "optional": true, "type": "string", "name": "department"}, {"control_type": "text", "label": "Department ID", "optional": true, "type": "string", "name": "department_id"}, {"control_type": "text", "label": "Has accepted invite", "parse_output": {}, "render_input": {}, "toggle_hint": "Select from option list", "toggle_field": {"label": "Has accepted invite", "control_type": "text", "toggle_hint": "Use custom value", "type": "boolean", "name": "has_accepted_invite"}, "optional": true, "type": "number", "name": "has_accepted_invite"}, {"control_type": "text", "label": "ID", "optional": true, "type": "string", "name": "id"}, {"control_type": "text", "label": "Is enabled", "parse_output": {}, "render_input": {}, "toggle_hint": "Select from option list", "toggle_field": {"label": "Is enabled", "control_type": "text", "toggle_hint": "Use custom value", "type": "boolean", "name": "is_enabled"}, "optional": true, "type": "number", "name": "is_enabled"}, {"control_type": "text", "label": "Joined at", "render_input": "date_time_conversion", "parse_output": "date_time_conversion", "optional": true, "type": "date_time", "name": "joined_at"}, {"control_type": "text", "label": "Level", "optional": true, "type": "string", "name": "level"}, {"control_type": "text", "label": "Level ID", "optional": true, "type": "string", "name": "level_id"}, {"control_type": "text", "label": "Location", "optional": true, "type": "string", "name": "location"}, {"control_type": "text", "label": "Mobile", "optional": true, "type": "string", "name": "mobile"}, {"control_type": "text", "label": "Org ID", "optional": true, "type": "string", "name": "org_id"}, {"name": "roles", "type": "array", "of": "string", "label": "Roles", "optional": true}, {"control_type": "text", "label": "Special email", "optional": true, "type": "string", "name": "special_email"}, {"control_type": "text", "label": "Title", "optional": true, "type": "string", "name": "title"}, {"control_type": "text", "label": "Updated at", "render_input": "date_time_conversion", "parse_output": "date_time_conversion", "optional": true, "type": "date_time", "name": "updated_at"}, {"label": "User", "optional": true, "type": "object", "name": "user", "properties": [{"control_type": "text", "label": "Email", "optional": true, "type": "string", "name": "email"}, {"control_type": "text", "label": "Full name", "optional": true, "type": "string", "name": "full_name"}, {"control_type": "text", "label": "ID", "optional": true, "type": "string", "name": "id"}]}, {"control_type": "text", "label": "User ID", "optional": true, "type": "string", "name": "user_id"}]}, {"control_type": "number", "label": "Offset", "parse_output": "float_conversion", "optional": true, "type": "number", "name": "offset"}], "type": "array"}], "uuid": "55913e43-d3fd-451e-837a-445246be5c7f"}], "uuid": "499d0a9a-7aec-4b07-a106-30ca7589545a"}, {"number": 5, "provider": "fyle_staging_connector_892703_1670317976", "name": "create_employees_in_fyle", "as": "07f04431", "title": null, "description": null, "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"data": {"user_email": "#{_('data.bamboohr.6761c014.workEmail')}", "user_full_name": "#{_('data.bamboohr.6761c014.displayName')}", "title": "#{_('data.bamboohr.6761c014.jobTitle')}", "location": "#{_('data.bamboohr.6761c014.location')}", "is_enabled": "=_('data.bamboohr.6761c014.status').include?(\\"Active\\")", "approver_emails": "=_('data.fyle_staging_connector_892703_1670317976.d02a328f.data').present? ? [_('data.bamboohr.e5cf843b.workEmail')] : []"}}, "visible_config_fields": ["data", "data.is_enabled", "data.user_full_name", "data.user_email", "data.title", "data.location", "data.approver_emails"], "uuid": "36320f70-4509-46fe-80c3-fd89ac93a0dd", "skip": false}, {"number": 6, "as": "86be96e2", "keyword": "catch", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"max_retry_count": "0", "retry_interval": "2"}, "block": [{"number": 7, "provider": "sendgrid", "name": "send_email", "as": "2c55fabe", "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"personalizations": {"to": {"email": "ni12lesh[amt1212@gmail.in"}}, "from": {"email": "notifications-staging@fylehq.com"}, "subject": "This Is A Test Email", "content": {"type": "text/plain", "value": "This is a Test Email From Workato"}}, "uuid": "93f8d230-00ae-456e-891c-653daa656dea"}], "uuid": "d6e76e57-08a2-4d26-a7c1-d74c92709d06"}], "uuid": "14f5a93e-8d8a-4659-8dba-ded9b816b173"}], "uuid": "9facdee0-dff2-4a3c-bf60-06265ca8a599"}	f	{"name": "Nilsh", "email": "dfoisdfoh@gmail.com"}	{ni12lesh[amt1212@gmail.in,ashwin.t@fyle.in}	1
-\.
-
-
---
--- Data for Name: django_admin_log; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY public.django_admin_log (id, action_time, object_id, object_repr, action_flag, change_message, content_type_id, user_id) FROM stdin;
+COPY public.configurations (id, recipe_id, recipe_data, recipe_status, additional_email_options, org_id, emails_selected) FROM stdin;
 \.
 
 
@@ -715,17 +654,16 @@ COPY public.django_admin_log (id, action_time, object_id, object_repr, action_fl
 --
 
 COPY public.django_content_type (id, app_label, model) FROM stdin;
-1	admin	logentry
-2	auth	permission
-3	auth	group
-4	contenttypes	contenttype
-5	sessions	session
-6	fyle_rest_auth	authtoken
-7	users	user
-8	bamboohr	bamboohr
-9	bamboohr	configuration
-10	orgs	org
-11	orgs	fylecredential
+1	auth	permission
+2	auth	group
+3	contenttypes	contenttype
+4	sessions	session
+5	fyle_rest_auth	authtoken
+6	users	user
+7	bamboohr	bamboohr
+8	bamboohr	configuration
+9	orgs	org
+10	orgs	fylecredential
 \.
 
 
@@ -734,34 +672,33 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 --
 
 COPY public.django_migrations (id, app, name, applied) FROM stdin;
-1	users	0001_initial	2022-12-06 14:32:18.022273+05:30
-2	contenttypes	0001_initial	2022-12-06 14:32:18.034756+05:30
-3	admin	0001_initial	2022-12-06 14:32:18.048041+05:30
-4	admin	0002_logentry_remove_auto_add	2022-12-06 14:32:18.065884+05:30
-5	admin	0003_logentry_add_action_flag_choices	2022-12-06 14:32:18.069645+05:30
-6	contenttypes	0002_remove_content_type_name	2022-12-06 14:32:18.081797+05:30
-7	auth	0001_initial	2022-12-06 14:32:18.10736+05:30
-8	auth	0002_alter_permission_name_max_length	2022-12-06 14:32:18.134234+05:30
-9	auth	0003_alter_user_email_max_length	2022-12-06 14:32:18.138514+05:30
-10	auth	0004_alter_user_username_opts	2022-12-06 14:32:18.142935+05:30
-11	auth	0005_alter_user_last_login_null	2022-12-06 14:32:18.148892+05:30
-12	auth	0006_require_contenttypes_0002	2022-12-06 14:32:18.151058+05:30
-13	auth	0007_alter_validators_add_error_messages	2022-12-06 14:32:18.155629+05:30
-14	auth	0008_alter_user_username_max_length	2022-12-06 14:32:18.16014+05:30
-15	auth	0009_alter_user_last_name_max_length	2022-12-06 14:32:18.164688+05:30
-16	auth	0010_alter_group_name_max_length	2022-12-06 14:32:18.174758+05:30
-17	auth	0011_update_proxy_permissions	2022-12-06 14:32:18.180157+05:30
-18	auth	0012_alter_user_first_name_max_length	2022-12-06 14:32:18.184402+05:30
-19	orgs	0001_initial	2022-12-06 14:32:18.215468+05:30
-20	bamboohr	0001_initial	2022-12-06 14:32:18.246728+05:30
-21	bamboohr	0002_configuration	2022-12-06 14:32:18.264679+05:30
-22	fyle_rest_auth	0001_initial	2022-12-06 14:32:18.28398+05:30
-23	fyle_rest_auth	0002_auto_20200101_1205	2022-12-06 14:32:18.346245+05:30
-24	fyle_rest_auth	0003_auto_20200107_0921	2022-12-06 14:32:18.363352+05:30
-25	fyle_rest_auth	0004_auto_20200107_1345	2022-12-06 14:32:18.37859+05:30
-26	fyle_rest_auth	0005_remove_authtoken_access_token	2022-12-06 14:32:18.383442+05:30
-27	fyle_rest_auth	0006_auto_20201221_0849	2022-12-06 14:32:18.388297+05:30
-28	sessions	0001_initial	2022-12-06 14:32:18.39665+05:30
+1	contenttypes	0001_initial	2022-12-19 16:37:16.895848+05:30
+2	contenttypes	0002_remove_content_type_name	2022-12-19 16:37:16.903269+05:30
+3	auth	0001_initial	2022-12-19 16:37:16.922727+05:30
+4	auth	0002_alter_permission_name_max_length	2022-12-19 16:37:16.971383+05:30
+5	auth	0003_alter_user_email_max_length	2022-12-19 16:37:16.975006+05:30
+6	auth	0004_alter_user_username_opts	2022-12-19 16:37:16.978515+05:30
+7	auth	0005_alter_user_last_login_null	2022-12-19 16:37:16.982361+05:30
+8	auth	0006_require_contenttypes_0002	2022-12-19 16:37:16.983434+05:30
+9	auth	0007_alter_validators_add_error_messages	2022-12-19 16:37:16.986741+05:30
+10	auth	0008_alter_user_username_max_length	2022-12-19 16:37:16.991014+05:30
+11	auth	0009_alter_user_last_name_max_length	2022-12-19 16:37:16.994258+05:30
+12	auth	0010_alter_group_name_max_length	2022-12-19 16:37:17.000773+05:30
+13	auth	0011_update_proxy_permissions	2022-12-19 16:37:17.00471+05:30
+14	auth	0012_alter_user_first_name_max_length	2022-12-19 16:37:17.00829+05:30
+15	users	0001_initial	2022-12-19 16:37:17.015675+05:30
+16	orgs	0001_initial	2022-12-19 16:37:17.04656+05:30
+17	bamboohr	0001_initial	2022-12-19 16:37:17.074421+05:30
+18	bamboohr	0002_configuration	2022-12-19 16:37:17.099385+05:30
+19	bamboohr	0003_auto_20221212_1052	2022-12-19 16:37:17.113784+05:30
+20	fyle_rest_auth	0001_initial	2022-12-19 16:37:17.124536+05:30
+21	fyle_rest_auth	0002_auto_20200101_1205	2022-12-19 16:37:17.158466+05:30
+22	fyle_rest_auth	0003_auto_20200107_0921	2022-12-19 16:37:17.170733+05:30
+23	fyle_rest_auth	0004_auto_20200107_1345	2022-12-19 16:37:17.182769+05:30
+24	fyle_rest_auth	0005_remove_authtoken_access_token	2022-12-19 16:37:17.186851+05:30
+25	fyle_rest_auth	0006_auto_20201221_0849	2022-12-19 16:37:17.191688+05:30
+26	orgs	0002_auto_20221219_1044	2022-12-19 16:37:17.205446+05:30
+27	sessions	0001_initial	2022-12-19 16:37:17.213626+05:30
 \.
 
 
@@ -785,8 +722,7 @@ COPY public.fyle_credentials (id, refresh_token, created_at, updated_at, org_id)
 -- Data for Name: orgs; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.orgs (id, name, fyle_org_id, managed_user_id, cluster_domain, is_bamboo_connector, created_at, updated_at) FROM stdin;
-1	Fyle For NetSuite Projects Customers	orf7jLXaJ6SY	12312	https://staging.fyle.tech	\N	2022-12-06 14:37:20.620757+05:30	2022-12-06 14:38:17.03424+05:30
+COPY public.orgs (id, name, fyle_org_id, managed_user_id, cluster_domain, created_at, updated_at, is_fyle_connected, is_sendgrid_connected) FROM stdin;
 \.
 
 
@@ -795,7 +731,6 @@ COPY public.orgs (id, name, fyle_org_id, managed_user_id, cluster_domain, is_bam
 --
 
 COPY public.orgs_user (id, org_id, user_id) FROM stdin;
-1	1	1
 \.
 
 
@@ -804,7 +739,6 @@ COPY public.orgs_user (id, org_id, user_id) FROM stdin;
 --
 
 COPY public.users (password, last_login, id, email, user_id, full_name, active, staff, admin) FROM stdin;
-	\N	1	ashwin.t+123@fyle.in	usqywo0fBY		t	f	f
 \.
 
 
@@ -826,77 +760,70 @@ SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.auth_permission_id_seq', 44, true);
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 40, true);
 
 
 --
 -- Name: bamboohr_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.bamboohr_id_seq', 1, true);
+SELECT pg_catalog.setval('public.bamboohr_id_seq', 1, false);
 
 
 --
 -- Name: configurations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.configurations_id_seq', 1, true);
-
-
---
--- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 1, false);
+SELECT pg_catalog.setval('public.configurations_id_seq', 1, false);
 
 
 --
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_content_type_id_seq', 11, true);
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 10, true);
 
 
 --
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 28, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 27, true);
 
 
 --
 -- Name: fyle_credentials_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.fyle_credentials_id_seq', 1, true);
+SELECT pg_catalog.setval('public.fyle_credentials_id_seq', 1, false);
 
 
 --
 -- Name: fyle_rest_auth_authtokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.fyle_rest_auth_authtokens_id_seq', 1, true);
+SELECT pg_catalog.setval('public.fyle_rest_auth_authtokens_id_seq', 1, false);
 
 
 --
 -- Name: orgs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.orgs_id_seq', 1, true);
+SELECT pg_catalog.setval('public.orgs_id_seq', 1, false);
 
 
 --
 -- Name: orgs_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.orgs_user_id_seq', 1, true);
+SELECT pg_catalog.setval('public.orgs_user_id_seq', 1, false);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 1, true);
+SELECT pg_catalog.setval('public.users_id_seq', 1, false);
 
 
 --
@@ -977,14 +904,6 @@ ALTER TABLE ONLY public.configurations
 
 ALTER TABLE ONLY public.configurations
     ADD CONSTRAINT configurations_pkey PRIMARY KEY (id);
-
-
---
--- Name: django_admin_log django_admin_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.django_admin_log
-    ADD CONSTRAINT django_admin_log_pkey PRIMARY KEY (id);
 
 
 --
@@ -1128,20 +1047,6 @@ CREATE INDEX auth_permission_content_type_id_2f476e4b ON public.auth_permission 
 
 
 --
--- Name: django_admin_log_content_type_id_c4bce8eb; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX django_admin_log_content_type_id_c4bce8eb ON public.django_admin_log USING btree (content_type_id);
-
-
---
--- Name: django_admin_log_user_id_c564eba6; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE INDEX django_admin_log_user_id_c564eba6 ON public.django_admin_log USING btree (user_id);
-
-
---
 -- Name: django_session_expire_date_a5c62663; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -1221,22 +1126,6 @@ ALTER TABLE ONLY public.bamboohr
 
 ALTER TABLE ONLY public.configurations
     ADD CONSTRAINT configurations_org_id_ddcda5f1_fk_orgs_id FOREIGN KEY (org_id) REFERENCES public.orgs(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- Name: django_admin_log django_admin_log_content_type_id_c4bce8eb_fk_django_co; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.django_admin_log
-    ADD CONSTRAINT django_admin_log_content_type_id_c4bce8eb_fk_django_co FOREIGN KEY (content_type_id) REFERENCES public.django_content_type(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- Name: django_admin_log django_admin_log_user_id_c564eba6_fk_users_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.django_admin_log
-    ADD CONSTRAINT django_admin_log_user_id_c564eba6_fk_users_id FOREIGN KEY (user_id) REFERENCES public.users(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
