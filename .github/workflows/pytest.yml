@@ -21,7 +21,7 @@ jobs:
           echo "FAILED=$(cat test-reports/report.xml | awk -F'=' '{print $5}' | awk -F' ' '{gsub(/"/, "", $1); print $1}')" >> $GITHUB_ENV
         continue-on-error: true
       - name: Pytest coverage comment
-        uses: MishaKav/pytest-coverage-comment@main
+        uses: MishaKav/pytest-coverage-comment@v1.1.40
         if: ${{ always() && github.ref != 'refs/heads/master' }}
         with:
           create-new-comment: true
