@@ -17,7 +17,8 @@ class Org(models.Model):
     fyle_org_id = models.CharField(max_length=255, help_text='org id', unique=True)
     managed_user_id = models.CharField(max_length=255, null=True, help_text='Managed User Id')
     cluster_domain = models.CharField(max_length=255, help_text='Fyle cluster domain')
-    is_bamboo_connector = models.BooleanField(null=True, help_text='Is Bamboo Hr Connected')
+    is_fyle_connected = models.BooleanField(null=True, help_text='Is Fyle API Connected')
+    is_sendgrid_connected = models.BooleanField(null=True, help_text='Is Sendgrid Connected')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
 

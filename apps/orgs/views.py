@@ -168,9 +168,18 @@ class FyleConnection(generics.CreateAPIView):
                 }
             )
 
+            if connection['authorization_status'] == 'success':
+                org.is_fyle_connected = True
+                org.save()
+
+                return Response(
+                   connection,
+                   status=status.HTTP_200_OK
+                )
+
             return Response(
-               connection,
-               status=status.HTTP_200_OK
+                data={'message': 'connection failed'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         except BadRequestError as exception:
@@ -213,10 +222,19 @@ class SendgridConnection(generics.CreateAPIView):
                     }
                 }
             )
-            
+
+            if connection['authorization_status'] == 'success':
+                org.is_sendgrid_connected = False
+                org.save()
+
+                return Response(
+                   connection,
+                   status=status.HTTP_200_OK
+                )
+
             return Response(
-               connection,
-               status=status.HTTP_200_OK
+                data={'message': 'connection failed'},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         except BadRequestError as exception:
