@@ -224,7 +224,7 @@ class SendgridConnection(generics.CreateAPIView):
             )
 
             if connection['authorization_status'] == 'success':
-                org.is_sendgrid_connected = False
+                org.is_sendgrid_connected = True
                 org.save()
 
                 return Response(
