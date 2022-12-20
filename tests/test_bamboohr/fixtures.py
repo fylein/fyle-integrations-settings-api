@@ -26,9 +26,9 @@ fixture = {
         },
     "connections": {
         "result": [
-            {"id": 12, "name": "My SendGrid account"},
-            {"id": 13, "name": "My BambooHR account"},
-            {"id": 14, "name": "Bamboo HR Test"},
+            {"id": 12, "authorization_status": "success", "name": "My SendGrid account"},
+            {"id": 13, "authorization_status": "success", "name": "BambooHR Connection"},
+            {"id": 14,"authorization_status": "success", "name": "BambooHR Sync Connection"},
         ] 
     },
     "recipes": {
@@ -36,7 +36,7 @@ fixture = {
                {
                   "id":3102,
                   "user_id":803,
-                  "name":"Bamboo HR",
+                  "name":"Bamboo HR Sync",
                   "created_at":"2022-12-06T01:12:57.445-08:00",
                   "updated_at":"2022-12-06T05:12:10.523-08:00",
                   "copy_count":1,
@@ -57,7 +57,7 @@ fixture = {
                   "version_no":4,
                   "stop_cause":"None",
                   "config":[],
-                  "code":""
+                  "code": ""
                },
             ]
     }
