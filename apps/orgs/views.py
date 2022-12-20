@@ -241,6 +241,6 @@ class WorkspaceAdminsView(generics.ListAPIView):
         admin_employees = get_admin_employees(org_id=kwargs['org_id'], user=request.user)
 
         return Response(
-                data=admin_employees,
-                status=status.HTTP_200_OK
-            )
+            data=admin_employees,
+            status=status.HTTP_200_OK
+        )
