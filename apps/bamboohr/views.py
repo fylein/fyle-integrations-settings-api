@@ -13,6 +13,7 @@ from rest_framework import generics
 from workato import Workato
 from workato.exceptions import *
 from apps.orgs.models import Org
+from apps.orgs.actions import create_connection_in_workato
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
 
@@ -133,22 +134,17 @@ class BambooHrConnection(generics.CreateAPIView):
     """
 
     def post(self, request, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
         bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
         try:
-            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
-            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
-
-            connection = connector.connections.put(
-                managed_user_id=org.managed_user_id,
-                connection_id=bamboo_connection_1['id'],
-                data=request.data
-            )
-
-            if connection['authorization_status'] == 'success':
+            
+            # creating bamboo connection for cron job that will look for new employee in bamboohr
+            bamboo_connection = create_connection_in_workato('BambooHR Connection', org.managed_user_id, request.data)
+            
+            # if the connection if successfull we will go on to create the second bamboohr connection
+            # that is used for the complete sync recipe in bamboohr
+            if bamboo_connection['authorization_status'] == 'success':
                 connection_payload = {
                     "input": {
                         "ssl_params": "false",
@@ -157,25 +153,18 @@ class BambooHrConnection(generics.CreateAPIView):
                         "basic_password": "x"
                     }
                 }
-
-                connector.connections.put(
-                    managed_user_id=org.managed_user_id,
-                    connection_id=bamboo_connection_2['id'],
-                    data=connection_payload
-                )
-
+                bamboo_sync_connection = create_connection_in_workato('BambooHR Sync Connection', org.managed_user_id, connection_payload)
                 bamboohr.api_token = request.data['input']['api_token']
                 bamboohr.sub_domain = request.data['input']['subdomain']
                 bamboohr.save()
 
-
                 return Response(
-                    data=connection,
+                    data=bamboo_sync_connection,
                     status=status.HTTP_200_OK
                 )
 
             return Response(
-                data=connection,
+                data=bamboo_connection,
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -233,7 +222,7 @@ class DisconnectView(generics.CreateAPIView):
         connector = Workato()
         
         org = Org.objects.get(id=kwargs['org_id'])
-        config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
+        configuration = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
         bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
         try:
@@ -241,8 +230,8 @@ class DisconnectView(generics.CreateAPIView):
             bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
             bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
 
-            config.recipe_status = False
-            config.save()
+            configuration.recipe_status = False
+            configuration.save()
 
             connection = connector.connections.post(
                 managed_user_id=org.managed_user_id,
