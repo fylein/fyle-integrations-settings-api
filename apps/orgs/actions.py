@@ -1,7 +1,8 @@
 
-from apps.orgs.models import Org
 from fyle_rest_auth.models import AuthToken
+
 from apps.users.helpers import PlatformConnector
+from apps.orgs.models import Org
 
 
 def get_admin_employees(org_id, user):

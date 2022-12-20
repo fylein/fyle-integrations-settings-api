@@ -15,7 +15,7 @@ from workato.exceptions import *
 from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User, FyleCredential
 from apps.orgs.actions import get_admin_employees
-
+from apps.bamboohr.models import BambooHr
 
 
 logger = logging.getLogger(__name__)
@@ -72,6 +72,57 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
     """
     Create and Get Managed User In Workato
     """
+
+    def get(self, request, *args, **kwargs):
+        org_id = self.request.query_params.get('org_id')
+
+        try:
+            connector = Workato()
+            managed_user = connector.managed_users.get_by_id(org_id=org_id)
+
+            if managed_user:
+                org, _ = Org.objects.update_or_create(
+                    fyle_org_id=org_id,
+                    defaults={
+                        'managed_user_id': managed_user['id']
+                    }
+                )
+
+                folder = connector.folders.get(managed_user_id=managed_user['id'])['result']
+                if len(folder) > 0:
+                    BambooHr.objects.update_or_create(
+                        org_id=org.id,
+                        defaults={
+                            'folder_id': folder[0]['id']
+                        }
+                    )
+
+                return Response(
+                    data={'message': 'Managed user already present'},
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    data={'message': 'Managed user not available'},
+                    status=status.HTTP_200_OK
+                )
+
+        except NotFoundItemError as exception:
+            return Response(
+                data=exception.message,
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        except Exception:
+            error = traceback.format_exc()
+            logger.error(error)
+            return Response(
+                data={
+                    'message': 'Error in Creating Getting Managed User From Workato'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
     def update(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
