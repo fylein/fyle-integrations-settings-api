@@ -255,7 +255,7 @@ class DisconnectView(generics.CreateAPIView):
         except NotFoundItemError as exception:
             logger.error(
                 'Recipe with id %s not found in workato with org_id - %s in Fyle %s',
-                config.recipe_id, org.id, exception.message
+                configuration.recipe_id, org.id, exception.message
             )
             return Response(
                 data=exception.message,
@@ -310,7 +310,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], payload)
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'stop')
-            
+
             return Response(
                 data=sync_recipe,
                 status=status.HTTP_200_OK
