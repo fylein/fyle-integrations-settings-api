@@ -179,7 +179,7 @@ def test_post_configuration_view(api_client, mocker, access_token):
 
     url = reverse('configuration',
         kwargs={
-            'org_id': 8,
+            'org_id': 6,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -194,7 +194,7 @@ def test_post_configuration_view(api_client, mocker, access_token):
     )
     response = api_client.post(url,
         {
-            "org": 2,
+            "org": 6,
             "additional_email_options": {},
             "emails_selected": [
                 {
