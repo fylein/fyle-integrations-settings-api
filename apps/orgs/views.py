@@ -94,8 +94,8 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                         'FYLE_CLIENT_ID': os.environ.get('FYLE_CLIENT_ID'),
                         'FYLE_CLIENT_SECRET': os.environ.get('FYLE_CLIENT_SECRET'),
                         'FYLE_BASE_URL': os.environ.get('FYLE_BASE_URL'),
-                        'BASE_URI': os.environ.get('BASE_URI'),
                         'FYLE_TOKEN_URI': os.environ.get('FYLE_TOKEN_URI'),
+                        'BASE_URI': org.cluster_domain,
                         'REFRESH_TOKEN': fyle_credentials.refresh_token
                     }
                 }
