@@ -35,7 +35,7 @@ class BambooHrConfigurationSerializer(serializers.ModelSerializer):
              'email': admin['email'],
             } for admin in validated_data['emails_selected']
         ]
-        
+
         code['block'][0]['block'][2]['block'][0]['input']['personalizations'][0]['to'] = admin_emails
         code['block'][0]['block'][2]['block'][0]['input']['from']['email'] = settings.SENDGRID_EMAIL
 

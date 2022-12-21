@@ -27,7 +27,6 @@ class BambooHrView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         try:
             bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']])
-            print('sdvsdv', bamboohr)
             return Response(
                 data=BambooHrSerializer(bamboohr).data,
                 status=status.HTTP_200_OK
