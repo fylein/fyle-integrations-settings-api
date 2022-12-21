@@ -179,7 +179,7 @@ def test_post_configuration_view(api_client, mocker, access_token):
 
     url = reverse('configuration',
         kwargs={
-            'org_id': 2,
+            'org_id': 8,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
