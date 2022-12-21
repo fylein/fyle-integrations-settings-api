@@ -197,7 +197,7 @@ class SendgridConnection(generics.CreateAPIView):
             connection = create_connection_in_workato('My SendGrid account', org.managed_user_id, data)
 
             if connection['authorization_status'] == 'success':
-                org.is_sendgrid_connected = False
+                org.is_sendgrid_connected = True
                 org.save()
 
                 return Response(
