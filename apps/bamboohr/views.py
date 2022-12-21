@@ -3,6 +3,8 @@ import traceback
 import logging
 import json
 
+
+from time import sleep
 from django.conf import settings
 
 from rest_framework.response import Response
@@ -317,6 +319,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], payload)
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
+            sleep(5)
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'stop')
             
             return Response(
