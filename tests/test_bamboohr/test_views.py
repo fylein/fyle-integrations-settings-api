@@ -262,9 +262,14 @@ def test_sync_employees_view(api_client, mocker, access_token):
         'workato.workato.Recipes.post',
         return_value={'message': 'success'}
     )
+    mocker.patch(
+        'apps.bamboohr.views.sleep',
+        return_value=None
+    )
 
     response = api_client.post(url)
     assert response.status_code == 200
+    assert response.data['name'] == 'Bamboo HR Sync'
 
 
 @pytest.mark.django_db(databases=['default'])
