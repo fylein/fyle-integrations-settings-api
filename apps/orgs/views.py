@@ -115,7 +115,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
             )
 
             if 'message' in exception.message and 'external has already been taken' in exception.message['message'].lower():
-                handle_managed_user_exception(org.fyle_org_id)
+                handle_managed_user_exception(org.fyle_org_id, connector)
                 return Response(
                     data={'message': 'Workspace already exists'},
                     status=status.HTTP_201_CREATED

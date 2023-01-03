@@ -31,8 +31,7 @@ def get_admin_employees(org_id, user):
     return admin_employees
 
 
-def handle_managed_user_exception(org_id):
-    connector = Workato()
+def handle_managed_user_exception(org_id, connector):
     managed_user = connector.managed_users.get_by_id(org_id=org_id)
 
     if managed_user:
