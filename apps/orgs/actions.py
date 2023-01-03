@@ -1,7 +1,10 @@
 
-from apps.orgs.models import Org
 from fyle_rest_auth.models import AuthToken
+
+from workato import Workato
 from apps.users.helpers import PlatformConnector
+from apps.orgs.models import Org
+from apps.bamboohr.models import BambooHr
 
 
 def get_admin_employees(org_id, user):
@@ -26,3 +29,24 @@ def get_admin_employees(org_id, user):
         ]
     
     return admin_employees
+
+
+def handle_managed_user_exception(org_id, connector):
+    managed_user = connector.managed_users.get_by_id(org_id=org_id)
+
+    if managed_user:
+        org, _ = Org.objects.update_or_create(
+            fyle_org_id=org_id,
+            defaults={
+                'managed_user_id': managed_user['id']
+            }
+        )
+
+        folder = connector.folders.get(managed_user_id=managed_user['id'])['result']
+        if len(folder) > 0:
+            BambooHr.objects.update_or_create(
+                org_id=org.id,
+                defaults={
+                    'folder_id': folder[0]['id']
+                }
+            )

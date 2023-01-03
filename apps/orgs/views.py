@@ -14,8 +14,8 @@ from workato import Workato
 from workato.exceptions import *
 from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User, FyleCredential
-from apps.orgs.actions import get_admin_employees
-
+from apps.orgs.actions import get_admin_employees, handle_managed_user_exception
+from apps.bamboohr.models import BambooHr
 
 
 logger = logging.getLogger(__name__)
@@ -72,6 +72,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
     """
     Create and Get Managed User In Workato
     """
+
     def update(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.get(id=kwargs['org_id'])
@@ -114,6 +115,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
             )
 
             if 'message' in exception.message and 'external has already been taken' in exception.message['message'].lower():
+                handle_managed_user_exception(org.fyle_org_id, connector)
                 return Response(
                     data={'message': 'Workspace already exists'},
                     status=status.HTTP_201_CREATED
