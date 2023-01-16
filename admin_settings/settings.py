@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     # User Created Apps
     'apps.users',
     'apps.bamboohr',
-    'apps.orgs'
+    'apps.orgs',
+    'apps.travelperk'
 ]
 
 MIDDLEWARE = [
