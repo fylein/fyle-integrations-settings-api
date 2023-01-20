@@ -51,7 +51,12 @@ class PostFolder(generics.CreateAPIView):
 
         try:
             folder = connector.folders.post(org.managed_user_id, 'Bamboo HR')
-            bamboohr = BambooHr.objects.create(folder_id=folder['id'], org=org)
+            bamboohr, _ = BambooHr.objects.update_or_create(
+                org=org,
+                defaults={
+                    'folder_id': folder['id']
+                }
+            )
 
             return Response(
                 data=BambooHrSerializer(bamboohr).data,

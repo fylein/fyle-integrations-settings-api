@@ -15,6 +15,7 @@ from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User
 from apps.orgs.actions import get_admin_employees, create_connection_in_workato, \
         create_managed_user_and_set_properties
+from apps.orgs.actions import get_admin_employees, handle_managed_user_exception
 
 
 logger = logging.getLogger(__name__)
@@ -92,6 +93,7 @@ class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
             )
 
             if 'message' in exception.message and 'external has already been taken' in exception.message['message'].lower():
+                handle_managed_user_exception(kwargs['org_id'])
                 return Response(
                     data={'message': 'Workspace already exists'},
                     status=status.HTTP_201_CREATED
