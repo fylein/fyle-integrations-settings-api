@@ -157,6 +157,23 @@ CREATE TABLE public.bamboohr (
 ALTER TABLE public.bamboohr OWNER TO postgres;
 
 --
+-- Name: bamboohr_configurations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.bamboohr_configurations (
+    id integer NOT NULL,
+    recipe_id character varying(255),
+    recipe_data text,
+    recipe_status boolean,
+    additional_email_options jsonb,
+    org_id integer NOT NULL,
+    emails_selected jsonb
+);
+
+
+ALTER TABLE public.bamboohr_configurations OWNER TO postgres;
+
+--
 -- Name: bamboohr_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -179,23 +196,6 @@ ALTER SEQUENCE public.bamboohr_id_seq OWNED BY public.bamboohr.id;
 
 
 --
--- Name: configurations; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.configurations (
-    id integer NOT NULL,
-    recipe_id character varying(255),
-    recipe_data text,
-    recipe_status boolean,
-    additional_email_options jsonb,
-    org_id integer NOT NULL,
-    emails_selected jsonb
-);
-
-
-ALTER TABLE public.configurations OWNER TO postgres;
-
---
 -- Name: configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -214,7 +214,7 @@ ALTER TABLE public.configurations_id_seq OWNER TO postgres;
 -- Name: configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE public.configurations_id_seq OWNED BY public.configurations.id;
+ALTER SEQUENCE public.configurations_id_seq OWNED BY public.bamboohr_configurations.id;
 
 
 --
@@ -554,10 +554,10 @@ ALTER TABLE ONLY public.bamboohr ALTER COLUMN id SET DEFAULT nextval('public.bam
 
 
 --
--- Name: configurations id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: bamboohr_configurations id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.configurations ALTER COLUMN id SET DEFAULT nextval('public.configurations_id_seq'::regclass);
+ALTER TABLE ONLY public.bamboohr_configurations ALTER COLUMN id SET DEFAULT nextval('public.configurations_id_seq'::regclass);
 
 
 --
@@ -674,6 +674,10 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 42	Can change fyle credential	11	change_fylecredential
 43	Can delete fyle credential	11	delete_fylecredential
 44	Can view fyle credential	11	view_fylecredential
+45	Can add bamboo hr configuration	9	add_bamboohrconfiguration
+46	Can change bamboo hr configuration	9	change_bamboohrconfiguration
+47	Can delete bamboo hr configuration	9	delete_bamboohrconfiguration
+48	Can view bamboo hr configuration	9	view_bamboohrconfiguration
 \.
 
 
@@ -695,10 +699,10 @@ COPY public.bamboohr (id, folder_id, package_id, api_token, sub_domain, created_
 
 
 --
--- Data for Name: configurations; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: bamboohr_configurations; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.configurations (id, recipe_id, recipe_data, recipe_status, additional_email_options, org_id, emails_selected) FROM stdin;
+COPY public.bamboohr_configurations (id, recipe_id, recipe_data, recipe_status, additional_email_options, org_id, emails_selected) FROM stdin;
 1	3429	{"number": 0, "provider": "bamboohr", "name": "updated_employee", "as": "6761c014", "title": null, "description": null, "keyword": "trigger", "dynamicPickListSelection": {}, "toggleCfg": {"flag": true}, "input": {"flag": "true"}, "extended_output_schema": [{"control_type": "text", "label": "NIN", "name": "customNIN1", "optional": true, "type": "string"}, {"control_type": "select", "label": "Secondary Language", "name": "customSecondaryLanguage1", "optional": true, "pick_list": [["French", "French"], ["German", "German"], ["Japanese", "Japanese"], ["Mandarin", "Mandarin"], ["Spanish", "Spanish"]], "toggle_field": {"control_type": "text", "label": "Secondary Language", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customSecondaryLanguage1"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "select", "label": "Shirt size", "name": "customShirtsize", "optional": true, "pick_list": [["1. Small", "1. Small"], ["2. Medium", "2. Medium"], ["3. Large", "3. Large"], ["4. XLarge", "4. XLarge"], ["5. XXLarge", "5. XXLarge"]], "toggle_field": {"control_type": "text", "label": "Shirt size", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customShirtsize"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "text", "label": "Tax File Number", "name": "customTaxFileNumber1", "optional": true, "type": "string"}], "block": [{"number": 1, "keyword": "try", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {}, "block": [{"number": 2, "keyword": "if", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"type": "compound", "operand": "and", "conditions": [{"operand": "present", "lhs": "#{_('data.bamboohr.6761c014.supervisorEId')}", "rhs": "", "uuid": "condition-79dc736e-21b3-4f53-bcd3-eafef8a76362"}]}, "block": [{"number": 3, "provider": "bamboohr", "name": "get_employee_by_id", "as": "e5cf843b", "title": null, "description": null, "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"id": "#{_('data.bamboohr.6761c014.supervisorEId')}"}, "extended_output_schema": [{"control_type": "text", "label": "NIN", "name": "customNIN1", "optional": true, "type": "string"}, {"control_type": "select", "label": "Secondary Language", "name": "customSecondaryLanguage1", "optional": true, "pick_list": [["French", "French"], ["German", "German"], ["Japanese", "Japanese"], ["Mandarin", "Mandarin"], ["Spanish", "Spanish"]], "toggle_field": {"control_type": "text", "label": "Secondary Language", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customSecondaryLanguage1"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "select", "label": "Shirt size", "name": "customShirtsize", "optional": true, "pick_list": [["1. Small", "1. Small"], ["2. Medium", "2. Medium"], ["3. Large", "3. Large"], ["4. XLarge", "4. XLarge"], ["5. XXLarge", "5. XXLarge"]], "toggle_field": {"control_type": "text", "label": "Shirt size", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customShirtsize"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "text", "label": "Tax File Number", "name": "customTaxFileNumber1", "optional": true, "type": "string"}], "uuid": "587d07c1-2d4e-473a-853a-f768b441bd7c"}, {"number": 4, "provider": "fyle_staging_connector_892703_1670317976", "name": "search_employee", "as": "d02a328f", "title": null, "description": null, "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"email": "='eq.' + _('data.bamboohr.e5cf843b.workEmail')"}, "extended_output_schema": [{"label": "Employees", "name": "data", "of": "object", "optional": true, "properties": [{"control_type": "number", "label": "Count", "parse_output": "float_conversion", "optional": true, "type": "number", "name": "count"}, {"name": "data", "type": "array", "of": "object", "label": "Data", "optional": true, "properties": [{"control_type": "text", "label": "Branch account", "optional": true, "type": "string", "name": "branch_account"}, {"control_type": "text", "label": "Branch ifsc", "optional": true, "type": "string", "name": "branch_ifsc"}, {"control_type": "text", "label": "Business unit", "optional": true, "type": "string", "name": "business_unit"}, {"control_type": "text", "label": "Code", "optional": true, "type": "string", "name": "code"}, {"control_type": "text", "label": "Created at", "render_input": "date_time_conversion", "parse_output": "date_time_conversion", "optional": true, "type": "date_time", "name": "created_at"}, {"control_type": "text", "label": "Department", "optional": true, "type": "string", "name": "department"}, {"control_type": "text", "label": "Department ID", "optional": true, "type": "string", "name": "department_id"}, {"control_type": "text", "label": "Has accepted invite", "parse_output": {}, "render_input": {}, "toggle_hint": "Select from option list", "toggle_field": {"label": "Has accepted invite", "control_type": "text", "toggle_hint": "Use custom value", "type": "boolean", "name": "has_accepted_invite"}, "optional": true, "type": "number", "name": "has_accepted_invite"}, {"control_type": "text", "label": "ID", "optional": true, "type": "string", "name": "id"}, {"control_type": "text", "label": "Is enabled", "parse_output": {}, "render_input": {}, "toggle_hint": "Select from option list", "toggle_field": {"label": "Is enabled", "control_type": "text", "toggle_hint": "Use custom value", "type": "boolean", "name": "is_enabled"}, "optional": true, "type": "number", "name": "is_enabled"}, {"control_type": "text", "label": "Joined at", "render_input": "date_time_conversion", "parse_output": "date_time_conversion", "optional": true, "type": "date_time", "name": "joined_at"}, {"control_type": "text", "label": "Level", "optional": true, "type": "string", "name": "level"}, {"control_type": "text", "label": "Level ID", "optional": true, "type": "string", "name": "level_id"}, {"control_type": "text", "label": "Location", "optional": true, "type": "string", "name": "location"}, {"control_type": "text", "label": "Mobile", "optional": true, "type": "string", "name": "mobile"}, {"control_type": "text", "label": "Org ID", "optional": true, "type": "string", "name": "org_id"}, {"name": "roles", "type": "array", "of": "string", "label": "Roles", "optional": true}, {"control_type": "text", "label": "Special email", "optional": true, "type": "string", "name": "special_email"}, {"control_type": "text", "label": "Title", "optional": true, "type": "string", "name": "title"}, {"control_type": "text", "label": "Updated at", "render_input": "date_time_conversion", "parse_output": "date_time_conversion", "optional": true, "type": "date_time", "name": "updated_at"}, {"label": "User", "optional": true, "type": "object", "name": "user", "properties": [{"control_type": "text", "label": "Email", "optional": true, "type": "string", "name": "email"}, {"control_type": "text", "label": "Full name", "optional": true, "type": "string", "name": "full_name"}, {"control_type": "text", "label": "ID", "optional": true, "type": "string", "name": "id"}]}, {"control_type": "text", "label": "User ID", "optional": true, "type": "string", "name": "user_id"}]}, {"control_type": "number", "label": "Offset", "parse_output": "float_conversion", "optional": true, "type": "number", "name": "offset"}], "type": "array"}], "uuid": "55913e43-d3fd-451e-837a-445246be5c7f"}], "uuid": "499d0a9a-7aec-4b07-a106-30ca7589545a"}, {"number": 5, "provider": "fyle_staging_connector_892703_1670317976", "name": "create_employees_in_fyle", "as": "07f04431", "title": null, "description": null, "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"data": {"user_email": "#{_('data.bamboohr.6761c014.workEmail')}", "user_full_name": "#{_('data.bamboohr.6761c014.displayName')}", "title": "#{_('data.bamboohr.6761c014.jobTitle')}", "location": "#{_('data.bamboohr.6761c014.location')}", "is_enabled": "=_('data.bamboohr.6761c014.status').include?(\\"Active\\")", "approver_emails": "=_('data.fyle_staging_connector_892703_1670317976.d02a328f.data').present? ? [_('data.bamboohr.e5cf843b.workEmail')] : []"}}, "visible_config_fields": ["data", "data.is_enabled", "data.user_full_name", "data.user_email", "data.title", "data.location", "data.approver_emails"], "uuid": "36320f70-4509-46fe-80c3-fd89ac93a0dd", "skip": false}, {"number": 6, "as": "86be96e2", "keyword": "catch", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"max_retry_count": "0", "retry_interval": "2"}, "block": [{"number": 7, "provider": "sendgrid", "name": "send_email", "as": "2c55fabe", "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"personalizations": {"to": {"email": "ni12lesh[amt1212@gmail.in"}}, "from": {"email": "notifications-staging@fylehq.com"}, "subject": "This Is A Test Email", "content": {"type": "text/plain", "value": "This is a Test Email From Workato"}}, "uuid": "93f8d230-00ae-456e-891c-653daa656dea"}], "uuid": "d6e76e57-08a2-4d26-a7c1-d74c92709d06"}], "uuid": "14f5a93e-8d8a-4659-8dba-ded9b816b173"}], "uuid": "9facdee0-dff2-4a3c-bf60-06265ca8a599"}	f	{"name": "Nilsh", "email": "dfoisdfoh@gmail.com"}	1	[]
 \.
 
@@ -724,9 +728,9 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 6	fyle_rest_auth	authtoken
 7	users	user
 8	bamboohr	bamboohr
-9	bamboohr	configuration
 10	orgs	org
 11	orgs	fylecredential
+9	bamboohr	bamboohrconfiguration
 \.
 
 
@@ -765,6 +769,7 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 28	sessions	0001_initial	2022-12-06 14:32:18.39665+05:30
 29	bamboohr	0003_auto_20221212_1052	2022-12-19 17:31:54.513271+05:30
 30	orgs	0002_auto_20221219_1044	2022-12-19 17:31:54.528076+05:30
+31	bamboohr	0004_auto_20221220_0935	2022-12-21 01:31:46.786736+05:30
 \.
 
 
@@ -829,7 +834,7 @@ SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.auth_permission_id_seq', 44, true);
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 48, true);
 
 
 --
@@ -864,7 +869,7 @@ SELECT pg_catalog.setval('public.django_content_type_id_seq', 11, true);
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 30, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 31, true);
 
 
 --
@@ -967,18 +972,18 @@ ALTER TABLE ONLY public.bamboohr
 
 
 --
--- Name: configurations configurations_org_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bamboohr_configurations configurations_org_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.configurations
+ALTER TABLE ONLY public.bamboohr_configurations
     ADD CONSTRAINT configurations_org_id_key UNIQUE (org_id);
 
 
 --
--- Name: configurations configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bamboohr_configurations configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.configurations
+ALTER TABLE ONLY public.bamboohr_configurations
     ADD CONSTRAINT configurations_pkey PRIMARY KEY (id);
 
 
@@ -1219,10 +1224,10 @@ ALTER TABLE ONLY public.bamboohr
 
 
 --
--- Name: configurations configurations_org_id_ddcda5f1_fk_orgs_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bamboohr_configurations configurations_org_id_ddcda5f1_fk_orgs_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.configurations
+ALTER TABLE ONLY public.bamboohr_configurations
     ADD CONSTRAINT configurations_org_id_ddcda5f1_fk_orgs_id FOREIGN KEY (org_id) REFERENCES public.orgs(id) DEFERRABLE INITIALLY DEFERRED;
 
 

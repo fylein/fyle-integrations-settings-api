@@ -172,9 +172,48 @@ def test_bamboohr_connection(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
+def test_post_configuration_view(api_client, mocker, access_token):
+    """
+    Test Post Configuration View
+    """
+
+    url = reverse('configuration',
+        kwargs={
+            'org_id': 6,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    mocker.patch(
+        'workato.workato.Recipes.get',
+        return_value=fixture['recipes']
+    )
+    mocker.patch(
+        'workato.workato.Recipes.post',
+        return_value={'message': 'success'}
+    )
+    response = api_client.post(url,
+        {
+            "org": 6,
+            "additional_email_options": {},
+            "emails_selected": [
+                {
+                    "name": "Nilesh",
+                    "email": "nilesh.p@fyle.in"
+                },
+            ]
+        }, format='json'
+    )
+
+    assert response.status_code == 201
+    assert response.data['recipe_id'] == '3545113'
+    assert response.data['emails_selected'] ==  [{'name': 'Nilesh', 'email': 'nilesh.p@fyle.in'}]
+
+
+@pytest.mark.django_db(databases=['default'])
 def test_get_configuration_view(api_client, mocker, access_token):
     """
-    Test Creating Bamboohr Connection In Workato
+    Test Get Configuration View
     """
 
     url = reverse('configuration',
@@ -223,9 +262,14 @@ def test_sync_employees_view(api_client, mocker, access_token):
         'workato.workato.Recipes.post',
         return_value={'message': 'success'}
     )
+    mocker.patch(
+        'apps.bamboohr.views.sleep',
+        return_value=None
+    )
 
     response = api_client.post(url)
     assert response.status_code == 200
+    assert response.data['name'] == 'Bamboo HR Sync'
 
 
 @pytest.mark.django_db(databases=['default'])

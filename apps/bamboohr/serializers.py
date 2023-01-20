@@ -2,7 +2,7 @@ import json
 from rest_framework import serializers
 from django.conf import settings
 
-from apps.bamboohr.models import BambooHr, Configuration
+from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.orgs.models import Org
 from workato import Workato
 
@@ -16,10 +16,10 @@ class BambooHrSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ConfigurationSerializer(serializers.ModelSerializer):
+class BambooHrConfigurationSerializer(serializers.ModelSerializer):
     """
-     Serializer For Configurations
-    """    
+     Serializer For BamhooHrConfigurations
+    """
 
     org = serializers.CharField()
 
@@ -35,7 +35,7 @@ class ConfigurationSerializer(serializers.ModelSerializer):
              'email': admin['email'],
             } for admin in validated_data['emails_selected']
         ]
-        
+
         code['block'][0]['block'][2]['block'][0]['input']['personalizations'][0]['to'] = admin_emails
         code['block'][0]['block'][2]['block'][0]['input']['from']['email'] = settings.SENDGRID_EMAIL
 
@@ -48,7 +48,7 @@ class ConfigurationSerializer(serializers.ModelSerializer):
                 "folder_id": str(recipes[0]['folder_id'])
             }
         }
-        configuration, _ = Configuration.objects.update_or_create(
+        configuration, _ = BambooHrConfiguration.objects.update_or_create(
             org_id=org,
             recipe_id=recipes[0]['id'],
             defaults={
@@ -65,7 +65,7 @@ class ConfigurationSerializer(serializers.ModelSerializer):
         return configuration
 
     class Meta:
-        model = Configuration
+        model = BambooHrConfiguration
         fields = '__all__'
         read_only_fields = [
             'recipe_id'

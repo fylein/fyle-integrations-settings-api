@@ -1,7 +1,7 @@
 
-import os
 import logging
 import traceback
+
 
 from rest_framework.response import Response
 from rest_framework.views import status
@@ -10,16 +10,17 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 
 
-from workato import Workato
 from workato.exceptions import *
 from apps.orgs.serializers import OrgSerializer
-from apps.orgs.models import Org, User, FyleCredential
+from apps.orgs.models import Org, User
+from apps.orgs.actions import get_admin_employees, create_connection_in_workato, \
+        create_managed_user_and_set_properties
 from apps.orgs.actions import get_admin_employees, handle_managed_user_exception
-from apps.bamboohr.models import BambooHr
 
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
+
 
 User = get_user_model()
 
@@ -42,6 +43,7 @@ class ReadyView(generics.RetrieveAPIView):
             },
             status=status.HTTP_200_OK
         )
+
 
 class OrgsView(generics.RetrieveUpdateAPIView):
     """
@@ -68,54 +70,30 @@ class OrgsView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.get(self)
 
-class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
+
+class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
     """
     Create and Get Managed User In Workato
     """
 
     def update(self, request, *args, **kwargs):
-        connector = Workato()
-        org = Org.objects.get(id=kwargs['org_id'])
-        fyle_credentials = FyleCredential.objects.get(org__id=org.id)
 
         try:
-            workspace_data = {
-                'name': org.name,
-                'external_id': org.fyle_org_id,
-                'notification_email': org.user.first().email
-            }
+            managed_user = create_managed_user_and_set_properties(kwargs['org_id'])
 
-            managed_user = connector.managed_users.post(workspace_data)
-            if managed_user['id']:
-                org.managed_user_id = managed_user['id']
-                org.save()
-
-                properties_payload = {
-                    'properties': {
-                        'FYLE_CLIENT_ID': os.environ.get('FYLE_CLIENT_ID'),
-                        'FYLE_CLIENT_SECRET': os.environ.get('FYLE_CLIENT_SECRET'),
-                        'FYLE_BASE_URL': os.environ.get('FYLE_BASE_URL'),
-                        'FYLE_TOKEN_URI': os.environ.get('FYLE_TOKEN_URI'),
-                        'BASE_URI': org.cluster_domain,
-                        'REFRESH_TOKEN': fyle_credentials.refresh_token
-                    }
-                }
-
-                properties = connector.properties.post(managed_user['id'], properties_payload)
-
-                return Response(
-                    properties,
-                    status=status.HTTP_200_OK
-                )
+            return Response(
+                managed_user,
+                status=status.HTTP_200_OK
+            )
 
         except BadRequestError as exception:
             logger.error(
                 'Error while creating Workato Workspace org_id - %s in Fyle %s',
-                org.id, exception.message
+                kwargs['org_id'], exception.message
             )
 
             if 'message' in exception.message and 'external has already been taken' in exception.message['message'].lower():
-                handle_managed_user_exception(org.fyle_org_id, connector)
+                handle_managed_user_exception(kwargs['org_id'])
                 return Response(
                     data={'message': 'Workspace already exists'},
                     status=status.HTTP_201_CREATED
@@ -129,7 +107,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
         except InternalServerError as exception:
             logger.error(
                 'Error while creating Workato Workspace org_id - %s in Fyle %s',
-                org.id, exception.message
+                kwargs['org_id'], exception.message
             )
             return Response(
                 data=exception.message,
@@ -146,6 +124,7 @@ class CreateWorkatoWorkspace(generics.RetrieveUpdateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
 class FyleConnection(generics.CreateAPIView):
     """
     Api Call to make Fyle Connection in workato
@@ -153,23 +132,17 @@ class FyleConnection(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
 
-        connector = Workato()
-        org = Org.objects.get(id=kwargs['org_id'])
-
         try:
-            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Connection")
-
-            connection = connector.connections.put(
-                managed_user_id=org.managed_user_id, 
-                connection_id=fyle_connection['id'],
-                data={
+            org = Org.objects.get(id=kwargs['org_id'])
+            data={
                     "input": {
                         "key": "***"
                     }
-                }
-            )
+            }
 
+            # Creating Fyle Connection In Workato
+            connection = create_connection_in_workato('Fyle Connection', org.managed_user_id, data)
+    
             if connection['authorization_status'] == 'success':
                 org.is_fyle_connected = True
                 org.save()
@@ -185,6 +158,8 @@ class FyleConnection(generics.CreateAPIView):
             )
 
         except BadRequestError as exception:
+            error = traceback.format_exc()
+            logger.error(error)
             logger.error(
                 'Error while creating Fyle Connection in Workato with org_id - %s in Fyle %s',
                 org.id, exception.message
@@ -195,6 +170,8 @@ class FyleConnection(generics.CreateAPIView):
             )
 
         except Exception:
+            error = traceback.format_exc()
+            logger.error(error)
             return Response(
                 data={
                     'message': 'Error Creating Fyle Connection in Recipe'
@@ -202,28 +179,24 @@ class FyleConnection(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
 class SendgridConnection(generics.CreateAPIView):
     """
     API Call To Make Sendgrid Connection
     """
+
     def post(self, request, *args, **kwargs):
 
-        connector = Workato()
-        org = Org.objects.get(id=kwargs['org_id'])
-
         try:
-            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            sendgrid_connection_id = next(connection for connection in connections if connection['name'] == "My SendGrid account")
-            
-            connection = connector.connections.put(
-                managed_user_id=org.managed_user_id,
-                connection_id=sendgrid_connection_id['id'],
-                data={
-                    "input": {
-                        "api_key": settings.SENDGRID_API_KEY
-                    }
+            org = Org.objects.get(id=kwargs['org_id'])
+            data = {
+                "input": {
+                    "api_key": settings.SENDGRID_API_KEY
                 }
-            )
+            }
+
+            # Creating Fyle Sendgrid Connection
+            connection = create_connection_in_workato('My SendGrid account', org.managed_user_id, data)
 
             if connection['authorization_status'] == 'success':
                 org.is_sendgrid_connected = True
@@ -259,16 +232,17 @@ class SendgridConnection(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
 class WorkspaceAdminsView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         """
-        Get Admins for the workspaces
+        Get All Admins of this orgs
         """
 
         admin_employees = get_admin_employees(org_id=kwargs['org_id'], user=request.user)
 
         return Response(
-                data=admin_employees,
-                status=status.HTTP_200_OK
-            )
+            data=admin_employees,
+            status=status.HTTP_200_OK
+        )
