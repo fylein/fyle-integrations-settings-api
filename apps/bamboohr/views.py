@@ -15,8 +15,9 @@ from rest_framework import generics
 from workato import Workato
 from workato.exceptions import *
 from apps.orgs.models import Org
-from apps.bamboohr.models import BambooHr, Configuration
-from apps.bamboohr.serializers import BambooHrSerializer, ConfigurationSerializer
+from apps.orgs.actions import create_connection_in_workato
+from apps.bamboohr.models import BambooHr, BambooHrConfiguration
+from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -28,7 +29,6 @@ class BambooHrView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         try:
             bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']])
-
             return Response(
                 data=BambooHrSerializer(bamboohr).data,
                 status=status.HTTP_200_OK
@@ -87,7 +87,6 @@ class PostPackage(generics.CreateAPIView):
     """
     API Call to Post Package in Workato
     """
-    serializer_class = BambooHrSerializer
 
     def post(self, request, *args, **kwargs):
         connector = Workato()
@@ -96,6 +95,8 @@ class PostPackage(generics.CreateAPIView):
 
         try:
             package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/bamboohr_package.zip')
+            
+            # post package is an async request, polling to get the status of the package
             polling.poll(
                 lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
                 step=5,
@@ -106,12 +107,14 @@ class PostPackage(generics.CreateAPIView):
     
             return Response(
                 data={
-                    'message': 'package uploaded successfully'
+                    'message': 'package uploaded successfully',
                 },
                 status=status.HTTP_200_OK
             )
 
         except BadRequestError as exception:
+            error = traceback.format_exc()
+            logger.error(error)
             logger.error(
                 'Error while posting bamboo package to workato for org_id - %s in Fyle %s',
                 org.id, exception.message
@@ -137,22 +140,17 @@ class BambooHrConnection(generics.CreateAPIView):
     """
 
     def post(self, request, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
         bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
         try:
-            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
-            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
-
-            connection = connector.connections.put(
-                managed_user_id=org.managed_user_id,
-                connection_id=bamboo_connection_1['id'],
-                data=request.data
-            )
-
-            if connection['authorization_status'] == 'success':
+            
+            # creating bamboo connection for cron job that will look for new employee in bamboohr
+            bamboo_connection = create_connection_in_workato('BambooHR Connection', org.managed_user_id, request.data)
+            
+            # if the connection if successfull we will go on to create the second bamboohr connection
+            # that is used for the complete sync recipe in bamboohr
+            if bamboo_connection['authorization_status'] == 'success':
                 connection_payload = {
                     "input": {
                         "ssl_params": "false",
@@ -161,20 +159,13 @@ class BambooHrConnection(generics.CreateAPIView):
                         "basic_password": "x"
                     }
                 }
-
-                connector.connections.put(
-                    managed_user_id=org.managed_user_id,
-                    connection_id=bamboo_connection_2['id'],
-                    data=connection_payload
-                )
-
+                bamboo_sync_connection = create_connection_in_workato('BambooHR Sync Connection', org.managed_user_id, connection_payload)
                 bamboohr.api_token = request.data['input']['api_token']
                 bamboohr.sub_domain = request.data['input']['subdomain']
                 bamboohr.save()
 
-
                 return Response(
-                    data=connection,
+                    data=bamboo_sync_connection,
                     status=status.HTTP_200_OK
                 )
 
@@ -203,24 +194,24 @@ class BambooHrConnection(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-class ConfigurationView(generics.ListCreateAPIView):
+class BambooHrConfigurationView(generics.ListCreateAPIView):
 
-    serializer_class = ConfigurationSerializer
-    queryset = Configuration.objects.all()
+    serializer_class = BambooHrConfigurationSerializer
+    queryset = BambooHrConfiguration.objects.all()
 
     def get(self, request, *args, **kwargs):
         try:
             org_id = self.request.query_params.get('org_id')
-            configuration = Configuration.objects.get(org__id=org_id)
+            configuration = BambooHrConfiguration.objects.get(org__id=org_id)
 
             return Response(
-                data=ConfigurationSerializer(configuration).data,
+                data=BambooHrConfigurationSerializer(configuration).data,
                 status=status.HTTP_200_OK
             )
 
-        except Configuration.DoesNotExist:
+        except BambooHrConfiguration.DoesNotExist:
             return Response(
-                data={'message': 'Configuration does not exist for this Workspace'},
+                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -237,7 +228,7 @@ class DisconnectView(generics.CreateAPIView):
         connector = Workato()
         
         org = Org.objects.get(id=kwargs['org_id'])
-        config = Configuration.objects.get(org__id=kwargs['org_id'])
+        configuration = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
         bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
         try:
@@ -245,8 +236,8 @@ class DisconnectView(generics.CreateAPIView):
             bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
             bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
 
-            config.recipe_status = False
-            config.save()
+            configuration.recipe_status = False
+            configuration.save()
 
             connection = connector.connections.post(
                 managed_user_id=org.managed_user_id,
@@ -270,7 +261,7 @@ class DisconnectView(generics.CreateAPIView):
         except NotFoundItemError as exception:
             logger.error(
                 'Recipe with id %s not found in workato with org_id - %s in Fyle %s',
-                config.recipe_id, org.id, exception.message
+                configuration.recipe_id, org.id, exception.message
             )
             return Response(
                 data=exception.message,
@@ -299,7 +290,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
         connector = Workato()
         
         org = Org.objects.get(id=kwargs['org_id'])
-        config = Configuration.objects.get(org__id=kwargs['org_id'])
+        config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
 
         try:
             recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
@@ -326,7 +317,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
             sleep(5)
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'stop')
-            
+
             return Response(
                 data=sync_recipe,
                 status=status.HTTP_200_OK

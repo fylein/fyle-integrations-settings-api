@@ -22,9 +22,9 @@ class BambooHr(models.Model):
         db_table = 'bamboohr'
 
 
-class Configuration(models.Model):
+class BambooHrConfiguration(models.Model):
     """
-    Configuration Model
+    BambooHr Configuration Model
     """
 
     id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Configuration')
@@ -36,4 +36,4 @@ class Configuration(models.Model):
     emails_selected = JSONField(default=list, help_text='Emails Selected For Email Notification',  null=True)
 
     class Meta:
-        db_table = 'configurations'
+        db_table = 'bamboohr_configurations'

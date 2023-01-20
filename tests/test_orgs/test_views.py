@@ -71,24 +71,24 @@ def test_new_org_put_view(api_client, mocker, access_token):
     assert response.status_code == 200
 
 @pytest.mark.django_db(databases=['default'])
-def test_create_workato_workspace(api_client, mocker, access_token):
+def test_create_managed_user_in_workato(api_client, mocker, access_token):
     """
     Test Create of Workato Workspace
     """
     url = reverse('workato-workspace',
         kwargs={
-            'org_id': 14,
+            'org_id': 15,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
     
     
-    with mock.patch('workato.workato.ManagedUser.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
+    with mock.patch('apps.orgs.views.create_managed_user_and_set_properties', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.put(url)
         assert response.data['message'] == 'something wrong happened'
         assert response.status_code == 400
-    
-    with mock.patch('workato.workato.ManagedUser.post', side_effect=InternalServerError({'message': 'internal server error'})):
+
+    with mock.patch('apps.orgs.views.create_managed_user_and_set_properties', side_effect=InternalServerError({'message': 'internal server error'})):
         response = api_client.put(url)
         assert response.data['message'] == 'internal server error'
         assert response.status_code == 500
@@ -117,7 +117,7 @@ def test_create_workato_workspace(api_client, mocker, access_token):
     response = api_client.put(url)
     
     assert response.status_code == 200
-    assert response.data == {'message': 'success'}
+    assert response.data == fixture['managed_user']
 
 @pytest.mark.django_db(databases=['default'])
 def test_fyle_connection(api_client, mocker, access_token):
@@ -126,7 +126,7 @@ def test_fyle_connection(api_client, mocker, access_token):
     """
     url = reverse('fyle-connection',
         kwargs={
-            'org_id': 15,
+            'org_id': 16,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -176,7 +176,7 @@ def test_sendgrid_connection(api_client, mocker, access_token):
 
     url = reverse('sendgrid',
         kwargs={
-            'org_id':16,
+            'org_id':17,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -218,3 +218,23 @@ def test_sendgrid_connection(api_client, mocker, access_token):
     
     assert response.status_code == 200
     assert response.data == {'message': 'success', 'authorization_status': 'success'}
+
+@pytest.mark.django_db(databases=['default'])
+def test_admin_view(api_client, mocker, access_token):
+    """
+    Test Admin View
+    """
+    url = reverse('admin-view',
+        kwargs={
+            'org_id':1,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    mocker.patch(
+        'fyle.platform.apis.v1beta.admin.employees.list_all',
+        return_value=[fixture['users']]
+    )
+
+    response = api_client.get(url)
+    assert response.status_code == 200
+    assert response.data == [{ "email": "abc@ac.com", "name": "abc"}]
