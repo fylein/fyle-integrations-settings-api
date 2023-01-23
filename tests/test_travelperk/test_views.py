@@ -45,7 +45,7 @@ def test_post_folder_view(api_client, mocker, access_token):
     Test Post Of Folder
     """
 
-    url = reverse('folder',
+    url = reverse('travelperk-folder',
         kwargs={
                 'org_id': 20,
             }
@@ -84,7 +84,7 @@ def test_post_package(api_client, mocker, access_token):
     Test Posting Package in Workato
     """
     
-    url = reverse('package',
+    url = reverse('travelperk-package',
         kwargs={
             'org_id': 1
         }
