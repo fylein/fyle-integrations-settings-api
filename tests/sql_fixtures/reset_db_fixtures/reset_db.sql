@@ -478,6 +478,83 @@ ALTER SEQUENCE public.orgs_user_id_seq OWNED BY public.orgs_user.id;
 
 
 --
+-- Name: travelperk; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.travelperk (
+    id integer NOT NULL,
+    folder_id character varying(255),
+    package_id character varying(255),
+    is_fyle_connected boolean,
+    is_s3_connected boolean,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    org_id integer NOT NULL
+);
+
+
+ALTER TABLE public.travelperk OWNER TO postgres;
+
+--
+-- Name: travelperk_configurations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.travelperk_configurations (
+    id integer NOT NULL,
+    recipe_id character varying(255),
+    recipe_data text,
+    recipe_status boolean,
+    org_id integer NOT NULL
+);
+
+
+ALTER TABLE public.travelperk_configurations OWNER TO postgres;
+
+--
+-- Name: travelperk_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.travelperk_configurations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.travelperk_configurations_id_seq OWNER TO postgres;
+
+--
+-- Name: travelperk_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.travelperk_configurations_id_seq OWNED BY public.travelperk_configurations.id;
+
+
+--
+-- Name: travelperk_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.travelperk_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.travelperk_id_seq OWNER TO postgres;
+
+--
+-- Name: travelperk_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.travelperk_id_seq OWNED BY public.travelperk.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -603,6 +680,20 @@ ALTER TABLE ONLY public.orgs_user ALTER COLUMN id SET DEFAULT nextval('public.or
 
 
 --
+-- Name: travelperk id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.travelperk ALTER COLUMN id SET DEFAULT nextval('public.travelperk_id_seq'::regclass);
+
+
+--
+-- Name: travelperk_configurations id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.travelperk_configurations ALTER COLUMN id SET DEFAULT nextval('public.travelperk_configurations_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -678,6 +769,14 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 46	Can change bamboo hr configuration	9	change_bamboohrconfiguration
 47	Can delete bamboo hr configuration	9	delete_bamboohrconfiguration
 48	Can view bamboo hr configuration	9	view_bamboohrconfiguration
+49	Can add travel perk	12	add_travelperk
+50	Can change travel perk	12	change_travelperk
+51	Can delete travel perk	12	delete_travelperk
+52	Can view travel perk	12	view_travelperk
+53	Can add travel perk configuration	13	add_travelperkconfiguration
+54	Can change travel perk configuration	13	change_travelperkconfiguration
+55	Can delete travel perk configuration	13	delete_travelperkconfiguration
+56	Can view travel perk configuration	13	view_travelperkconfiguration
 \.
 
 
@@ -731,6 +830,8 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 10	orgs	org
 11	orgs	fylecredential
 9	bamboohr	bamboohrconfiguration
+12	travelperk	travelperk
+13	travelperk	travelperkconfiguration
 \.
 
 
@@ -770,6 +871,7 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 29	bamboohr	0003_auto_20221212_1052	2022-12-19 17:31:54.513271+05:30
 30	orgs	0002_auto_20221219_1044	2022-12-19 17:31:54.528076+05:30
 31	bamboohr	0004_auto_20221220_0935	2022-12-21 01:31:46.786736+05:30
+32	travelperk	0001_initial	2023-01-23 15:54:48.169439+05:30
 \.
 
 
@@ -808,6 +910,24 @@ COPY public.orgs_user (id, org_id, user_id) FROM stdin;
 
 
 --
+-- Data for Name: travelperk; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.travelperk (id, folder_id, package_id, is_fyle_connected, is_s3_connected, created_at, updated_at, org_id) FROM stdin;
+2	162	111	\N	\N	2022-12-06 14:42:38.724679+05:30	2022-12-06 14:43:33.008685+05:30	1
+\.
+
+
+--
+-- Data for Name: travelperk_configurations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.travelperk_configurations (id, recipe_id, recipe_data, recipe_status, org_id) FROM stdin;
+2	3429	{"number": 0, "provider": "bamboohr", "name": "updated_employee", "as": "6761c014", "title": null, "description": null, "keyword": "trigger", "dynamicPickListSelection": {}, "toggleCfg": {"flag": true}, "input": {"flag": "true"}, "extended_output_schema": [{"control_type": "text", "label": "NIN", "name": "customNIN1", "optional": true, "type": "string"}, {"control_type": "select", "label": "Secondary Language", "name": "customSecondaryLanguage1", "optional": true, "pick_list": [["French", "French"], ["German", "German"], ["Japanese", "Japanese"], ["Mandarin", "Mandarin"], ["Spanish", "Spanish"]], "toggle_field": {"control_type": "text", "label": "Secondary Language", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customSecondaryLanguage1"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "select", "label": "Shirt size", "name": "customShirtsize", "optional": true, "pick_list": [["1. Small", "1. Small"], ["2. Medium", "2. Medium"], ["3. Large", "3. Large"], ["4. XLarge", "4. XLarge"], ["5. XXLarge", "5. XXLarge"]], "toggle_field": {"control_type": "text", "label": "Shirt size", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customShirtsize"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "text", "label": "Tax File Number", "name": "customTaxFileNumber1", "optional": true, "type": "string"}], "block": [{"number": 1, "keyword": "try", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {}, "block": [{"number": 2, "keyword": "if", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"type": "compound", "operand": "and", "conditions": [{"operand": "present", "lhs": "#{_('data.bamboohr.6761c014.supervisorEId')}", "rhs": "", "uuid": "condition-79dc736e-21b3-4f53-bcd3-eafef8a76362"}]}, "block": [{"number": 3, "provider": "bamboohr", "name": "get_employee_by_id", "as": "e5cf843b", "title": null, "description": null, "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"id": "#{_('data.bamboohr.6761c014.supervisorEId')}"}, "extended_output_schema": [{"control_type": "text", "label": "NIN", "name": "customNIN1", "optional": true, "type": "string"}, {"control_type": "select", "label": "Secondary Language", "name": "customSecondaryLanguage1", "optional": true, "pick_list": [["French", "French"], ["German", "German"], ["Japanese", "Japanese"], ["Mandarin", "Mandarin"], ["Spanish", "Spanish"]], "toggle_field": {"control_type": "text", "label": "Secondary Language", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customSecondaryLanguage1"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "select", "label": "Shirt size", "name": "customShirtsize", "optional": true, "pick_list": [["1. Small", "1. Small"], ["2. Medium", "2. Medium"], ["3. Large", "3. Large"], ["4. XLarge", "4. XLarge"], ["5. XXLarge", "5. XXLarge"]], "toggle_field": {"control_type": "text", "label": "Shirt size", "toggle_hint": "Enter custom value", "optional": true, "type": "string", "name": "customShirtsize"}, "toggle_hint": "Select from list", "type": "string"}, {"control_type": "text", "label": "Tax File Number", "name": "customTaxFileNumber1", "optional": true, "type": "string"}], "uuid": "587d07c1-2d4e-473a-853a-f768b441bd7c"}, {"number": 4, "provider": "fyle_staging_connector_892703_1670317976", "name": "search_employee", "as": "d02a328f", "title": null, "description": null, "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"email": "='eq.' + _('data.bamboohr.e5cf843b.workEmail')"}, "extended_output_schema": [{"label": "Employees", "name": "data", "of": "object", "optional": true, "properties": [{"control_type": "number", "label": "Count", "parse_output": "float_conversion", "optional": true, "type": "number", "name": "count"}, {"name": "data", "type": "array", "of": "object", "label": "Data", "optional": true, "properties": [{"control_type": "text", "label": "Branch account", "optional": true, "type": "string", "name": "branch_account"}, {"control_type": "text", "label": "Branch ifsc", "optional": true, "type": "string", "name": "branch_ifsc"}, {"control_type": "text", "label": "Business unit", "optional": true, "type": "string", "name": "business_unit"}, {"control_type": "text", "label": "Code", "optional": true, "type": "string", "name": "code"}, {"control_type": "text", "label": "Created at", "render_input": "date_time_conversion", "parse_output": "date_time_conversion", "optional": true, "type": "date_time", "name": "created_at"}, {"control_type": "text", "label": "Department", "optional": true, "type": "string", "name": "department"}, {"control_type": "text", "label": "Department ID", "optional": true, "type": "string", "name": "department_id"}, {"control_type": "text", "label": "Has accepted invite", "parse_output": {}, "render_input": {}, "toggle_hint": "Select from option list", "toggle_field": {"label": "Has accepted invite", "control_type": "text", "toggle_hint": "Use custom value", "type": "boolean", "name": "has_accepted_invite"}, "optional": true, "type": "number", "name": "has_accepted_invite"}, {"control_type": "text", "label": "ID", "optional": true, "type": "string", "name": "id"}, {"control_type": "text", "label": "Is enabled", "parse_output": {}, "render_input": {}, "toggle_hint": "Select from option list", "toggle_field": {"label": "Is enabled", "control_type": "text", "toggle_hint": "Use custom value", "type": "boolean", "name": "is_enabled"}, "optional": true, "type": "number", "name": "is_enabled"}, {"control_type": "text", "label": "Joined at", "render_input": "date_time_conversion", "parse_output": "date_time_conversion", "optional": true, "type": "date_time", "name": "joined_at"}, {"control_type": "text", "label": "Level", "optional": true, "type": "string", "name": "level"}, {"control_type": "text", "label": "Level ID", "optional": true, "type": "string", "name": "level_id"}, {"control_type": "text", "label": "Location", "optional": true, "type": "string", "name": "location"}, {"control_type": "text", "label": "Mobile", "optional": true, "type": "string", "name": "mobile"}, {"control_type": "text", "label": "Org ID", "optional": true, "type": "string", "name": "org_id"}, {"name": "roles", "type": "array", "of": "string", "label": "Roles", "optional": true}, {"control_type": "text", "label": "Special email", "optional": true, "type": "string", "name": "special_email"}, {"control_type": "text", "label": "Title", "optional": true, "type": "string", "name": "title"}, {"control_type": "text", "label": "Updated at", "render_input": "date_time_conversion", "parse_output": "date_time_conversion", "optional": true, "type": "date_time", "name": "updated_at"}, {"label": "User", "optional": true, "type": "object", "name": "user", "properties": [{"control_type": "text", "label": "Email", "optional": true, "type": "string", "name": "email"}, {"control_type": "text", "label": "Full name", "optional": true, "type": "string", "name": "full_name"}, {"control_type": "text", "label": "ID", "optional": true, "type": "string", "name": "id"}]}, {"control_type": "text", "label": "User ID", "optional": true, "type": "string", "name": "user_id"}]}, {"control_type": "number", "label": "Offset", "parse_output": "float_conversion", "optional": true, "type": "number", "name": "offset"}], "type": "array"}], "uuid": "55913e43-d3fd-451e-837a-445246be5c7f"}], "uuid": "499d0a9a-7aec-4b07-a106-30ca7589545a"}, {"number": 5, "provider": "fyle_staging_connector_892703_1670317976", "name": "create_employees_in_fyle", "as": "07f04431", "title": null, "description": null, "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"data": {"user_email": "#{_('data.bamboohr.6761c014.workEmail')}", "user_full_name": "#{_('data.bamboohr.6761c014.displayName')}", "title": "#{_('data.bamboohr.6761c014.jobTitle')}", "location": "#{_('data.bamboohr.6761c014.location')}", "is_enabled": "=_('data.bamboohr.6761c014.status').include?(\\"Active\\")", "approver_emails": "=_('data.fyle_staging_connector_892703_1670317976.d02a328f.data').present? ? [_('data.bamboohr.e5cf843b.workEmail')] : []"}}, "visible_config_fields": ["data", "data.is_enabled", "data.user_full_name", "data.user_email", "data.title", "data.location", "data.approver_emails"], "uuid": "36320f70-4509-46fe-80c3-fd89ac93a0dd", "skip": false}, {"number": 6, "as": "86be96e2", "keyword": "catch", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"max_retry_count": "0", "retry_interval": "2"}, "block": [{"number": 7, "provider": "sendgrid", "name": "send_email", "as": "2c55fabe", "keyword": "action", "dynamicPickListSelection": {}, "toggleCfg": {}, "input": {"personalizations": {"to": {"email": "ni12lesh[amt1212@gmail.in"}}, "from": {"email": "notifications-staging@fylehq.com"}, "subject": "This Is A Test Email", "content": {"type": "text/plain", "value": "This is a Test Email From Workato"}}, "uuid": "93f8d230-00ae-456e-891c-653daa656dea"}], "uuid": "d6e76e57-08a2-4d26-a7c1-d74c92709d06"}], "uuid": "14f5a93e-8d8a-4659-8dba-ded9b816b173"}], "uuid": "9facdee0-dff2-4a3c-bf60-06265ca8a599"}	f	1
+\.
+
+
+--
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -834,7 +954,7 @@ SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.auth_permission_id_seq', 48, true);
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 56, true);
 
 
 --
@@ -862,14 +982,14 @@ SELECT pg_catalog.setval('public.django_admin_log_id_seq', 1, false);
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_content_type_id_seq', 11, true);
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 13, true);
 
 
 --
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 31, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 32, true);
 
 
 --
@@ -898,6 +1018,20 @@ SELECT pg_catalog.setval('public.orgs_id_seq', 1, true);
 --
 
 SELECT pg_catalog.setval('public.orgs_user_id_seq', 1, true);
+
+
+--
+-- Name: travelperk_configurations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.travelperk_configurations_id_seq', 1, false);
+
+
+--
+-- Name: travelperk_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.travelperk_id_seq', 1, false);
 
 
 --
@@ -1092,6 +1226,38 @@ ALTER TABLE ONLY public.orgs_user
 
 
 --
+-- Name: travelperk_configurations travelperk_configurations_org_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.travelperk_configurations
+    ADD CONSTRAINT travelperk_configurations_org_id_key UNIQUE (org_id);
+
+
+--
+-- Name: travelperk_configurations travelperk_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.travelperk_configurations
+    ADD CONSTRAINT travelperk_configurations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: travelperk travelperk_org_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.travelperk
+    ADD CONSTRAINT travelperk_org_id_key UNIQUE (org_id);
+
+
+--
+-- Name: travelperk travelperk_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.travelperk
+    ADD CONSTRAINT travelperk_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1277,6 +1443,22 @@ ALTER TABLE ONLY public.orgs_user
 
 ALTER TABLE ONLY public.orgs_user
     ADD CONSTRAINT orgs_user_user_id_78de0fc6_fk_users_id FOREIGN KEY (user_id) REFERENCES public.users(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: travelperk_configurations travelperk_configurations_org_id_2c88713e_fk_orgs_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.travelperk_configurations
+    ADD CONSTRAINT travelperk_configurations_org_id_2c88713e_fk_orgs_id FOREIGN KEY (org_id) REFERENCES public.orgs(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: travelperk travelperk_org_id_fb977dc7_fk_orgs_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.travelperk
+    ADD CONSTRAINT travelperk_org_id_fb977dc7_fk_orgs_id FOREIGN KEY (org_id) REFERENCES public.orgs(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --

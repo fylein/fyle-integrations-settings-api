@@ -11,6 +11,7 @@ from workato.exceptions import *
 
 
 from apps.orgs.models import Org
+from apps.orgs.actions import create_connection_in_workato
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
 
@@ -134,26 +135,72 @@ class FyleTravelperkConnection(generics.CreateAPIView):
     """
 
     def post(self, request, *args, **kwargs):
-
-        connector = Workato()
+        
         org = Org.objects.get(id=kwargs['org_id'])
         travelperk = TravelPerk.objects.get(org_id=org.id)
         try:
-            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            fyle_connection = next(connection for connection in connections if connection['name'] == "Fyle Workato Connection")
-
-            connection = connector.connections.put(
-                managed_user_id=org.managed_user_id, 
-                connection_id=fyle_connection['id'],
-                data={
-                    "input": {
-                        "key": "***"
-                    }
+            data={
+                "input": {
+                    "key": "***"
                 }
-            )
+            }
 
+            # Creating Fyle Connection In Workato
+            connection = create_connection_in_workato('Fyle Workato Connection', org.managed_user_id, data)
             if connection['authorization_status'] == 'success':
                 travelperk.is_fyle_connected = True
+                travelperk.save()
+
+                return Response(
+                   connection,
+                   status=status.HTTP_200_OK
+                )
+
+            return Response(
+                data={'message': 'connection failed'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except BadRequestError as exception:
+            logger.error(
+                'Error while creating Fyle Connection in Workato with org_id - %s in Fyle %s',
+                org.id, exception.message
+            )
+            return Response(
+                data=exception.message,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except Exception:
+            return Response(
+                data={
+                    'message': 'Error Creating Fyle Connection in Recipe'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+class AwsS3Connection(generics.CreateAPIView):
+    """
+    Api Call to make S3 Connection in workato
+    """
+
+    def post(self, request, *args, **kwargs):
+
+        org = Org.objects.get(id=kwargs['org_id'])
+        travelperk = TravelPerk.objects.get(org_id=org.id)
+        try:
+        
+            data={
+                "input": {
+                    "key": "***"
+                }
+            }
+
+            # Creating Fyle Connection In Workato
+            connection = create_connection_in_workato('S3 Connection', org.managed_user_id, data)
+
+            if connection['authorization_status'] == 'success':
+                travelperk.is_s3_connected = True
                 travelperk.save()
 
                 return Response(
