@@ -215,7 +215,7 @@ class AwsS3Connection(generics.CreateAPIView):
 
         except BadRequestError as exception:
             logger.error(
-                'Error while creating Fyle Connection in Workato with org_id - %s in Fyle %s',
+                'Error while creating AWS Connection in Workato with org_id - %s in Fyle %s',
                 org.id, exception.message
             )
             return Response(
@@ -226,7 +226,7 @@ class AwsS3Connection(generics.CreateAPIView):
         except Exception:
             return Response(
                 data={
-                    'message': 'Error Creating Fyle Connection in Recipe'
+                    'message': 'Error Creating AWS Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

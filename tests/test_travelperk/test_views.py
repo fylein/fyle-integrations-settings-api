@@ -47,7 +47,7 @@ def test_post_folder_view(api_client, mocker, access_token):
 
     url = reverse('travelperk-folder',
         kwargs={
-                'org_id': 20,
+                'org_id': 21,
             }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -202,7 +202,7 @@ def test_aws_connection(api_client, mocker, access_token):
     Test Creating AWS S3 Connection In Workato
     """
 
-    url = reverse('sendgrid',
+    url = reverse('s3-connection',
         kwargs={
             'org_id':1,
         }
@@ -221,7 +221,7 @@ def test_aws_connection(api_client, mocker, access_token):
 
     response = api_client.post(url)
     assert response.status_code == 400
-    assert response.data['message'] == 'Error Creating Sendgrid Connection in Recipe'
+    assert response.data['message'] == 'Error Creating AWS Connection in Recipe'
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -256,7 +256,7 @@ def test_post_configuration_view(api_client, mocker, access_token):
 
     url = reverse('travelperk-configuration',
         kwargs={
-            'org_id': 25,
+            'org_id': 26,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -271,7 +271,7 @@ def test_post_configuration_view(api_client, mocker, access_token):
     )
     response = api_client.post(url,
         {
-          "org": 25,
+          "org": 26,
         }, format='json'
     )
 

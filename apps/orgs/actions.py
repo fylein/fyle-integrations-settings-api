@@ -105,6 +105,7 @@ def handle_managed_user_exception(org_id):
 
         folder = connector.folders.get(managed_user_id=managed_user['id'])['result']
         if len(folder) > 0:
+            print('nilesh')
             BambooHr.objects.update_or_create(
                 org_id=org.id,
                 defaults={
