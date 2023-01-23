@@ -26,8 +26,7 @@ class TravelPerkConfigurationSerializer(serializers.ModelSerializer):
         connector = Workato()
         managed_user_id = Org.objects.get(id=org).managed_user_id
         recipes = connector.recipes.get(managed_user_id)['result']
-        
-        print('iiuugiuig')
+
         travelperk_configuration, _ = TravelPerkConfiguration.objects.update_or_create(
             org_id=org,
             recipe_id=recipes[0]['id'],
