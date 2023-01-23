@@ -47,7 +47,7 @@ def test_post_folder_view(api_client, mocker, access_token):
 
     url = reverse('folder',
         kwargs={
-                'org_id': 3,
+                'org_id': 20,
             }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
