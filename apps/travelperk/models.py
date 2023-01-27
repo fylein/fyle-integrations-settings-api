@@ -30,7 +30,7 @@ class TravelPerkConfiguration(models.Model):
     org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
     recipe_id = models.CharField(max_length=255, help_text='Recipe Id', null=True)
     recipe_data = models.TextField(help_text='Code For Recipe', null=True)
-    recipe_status = models.BooleanField(help_text='recipe status', null=True)
+    is_recipe_enabled = models.BooleanField(help_text='recipe status', null=True)
 
     class Meta:
         db_table = 'travelperk_configurations'
