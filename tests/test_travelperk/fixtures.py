@@ -14,7 +14,7 @@ fixture = {
            "org": None,
            "recipe_id": None,
            "recipe_data": None,
-           "recipe_status": False,
+           "is_recipe_enabled": False,
         },
     "connections": {
         "result": [
@@ -30,11 +30,11 @@ fixture = {
          {
             "id": 3545113,
             "user_id": 910391,
-            "name": "BambooHr Cron Job",
+            "name": "Travelperk Cron Job",
             "created_at": "2022-12-16T10:01:06.655-08:00",
             "updated_at": "2022-12-16T10:01:06.655-08:00",
             "copy_count": 1,
-            "trigger_application": "bamboohr",
+            "trigger_application": "travelperk",
             "action_applications": [
                 "fyle_prod_connector_910391_1671213665",
                 "sendgrid"
