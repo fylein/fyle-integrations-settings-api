@@ -80,7 +80,7 @@ def create_managed_user_and_set_properties(org_id):
                 'FYLE_CLIENT_SECRET': settings.FYLE_CLIENT_SECRET,
                 'FYLE_BASE_URL': settings.FYLE_BASE_URL,
                 'FYLE_TOKEN_URI': settings.FYLE_TOKEN_URI,
-                'BASE_URI': org.managed_user_id,
+                'BASE_URI': org.cluster_domain,
                 'REFRESH_TOKEN': fyle_credentials.refresh_token
             }
         }
