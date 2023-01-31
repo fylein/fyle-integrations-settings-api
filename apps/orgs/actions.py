@@ -35,9 +35,8 @@ def get_admin_employees(org_id, user):
     
 
 def create_connection_in_workato(connection_name, managed_user_id, data):
-
     connector = Workato()
-    
+
     # Getting all the connection and filtering out the connection by 
     # the name to get the connection id
     connections = connector.connections.get(managed_user_id=managed_user_id)['result']
@@ -49,7 +48,7 @@ def create_connection_in_workato(connection_name, managed_user_id, data):
         connection_id=connection_id,
         data=data
     )
-
+    
     return connection
 
 
