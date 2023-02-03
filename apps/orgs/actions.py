@@ -1,12 +1,22 @@
 
+import logging
+import traceback
+
+
 from fyle_rest_auth.models import AuthToken
 from django.conf import settings
 
 
 from workato import Workato
+from workato.exceptions import *
+
 from apps.users.helpers import PlatformConnector
 from apps.orgs.models import Org, FyleCredential
 from apps.bamboohr.models import BambooHr
+
+
+logger = logging.getLogger(__name__)
+logger.level = logging.INFO
 
 
 def get_admin_employees(org_id, user):
@@ -91,23 +101,40 @@ def create_managed_user_and_set_properties(org_id):
 
 
 def handle_managed_user_exception(org_id):
-
-    connector = Workato()
-    managed_user = connector.managed_users.get_by_id(org_id=org_id)
-
-    if managed_user:
-        org, _ = Org.objects.update_or_create(
-            fyle_org_id=org_id,
-            defaults={
-                'managed_user_id': managed_user['id']
-            }
-        )
-
-        folder = connector.folders.get(managed_user_id=managed_user['id'])['result']
-        if len(folder) > 0:
-            BambooHr.objects.update_or_create(
-                org_id=org.id,
+    
+    try:
+        connector = Workato()
+        managed_user = connector.managed_users.get_by_id(org_id=org_id)
+    
+        if managed_user:
+            org, _ = Org.objects.update_or_create(
+                fyle_org_id=org_id,
                 defaults={
-                    'folder_id': folder[0]['id']
+                    'managed_user_id': managed_user['id']
                 }
             )
+    
+            folder = connector.folders.get(managed_user_id=managed_user['id'])['result']
+            if len(folder) > 0:
+                BambooHr.objects.update_or_create(
+                    org_id=org.id,
+                    defaults={
+                        'folder_id': folder[0]['id']
+                    }
+                )
+
+    except NotFoundItemError as exception:
+        logger.error(
+            'Managed user id not found in Workato - %s',
+            exception.message
+        )  
+
+    except InternalServerError as exception:
+        logger.error(
+            'Error while creating Workato Workspace org_id - %s in Fyle %s',
+            org.id, exception.message
+        )  
+    
+    except Exception as e:
+        error = traceback.format_exc()
+        logger.error(error)
