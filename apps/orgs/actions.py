@@ -124,17 +124,17 @@ def handle_managed_user_exception(org_id):
                 )
 
     except NotFoundItemError as exception:
-        logger.error(
+        logger.info(
             'Managed user id not found in Workato - %s',
             exception.message
         )  
 
     except InternalServerError as exception:
-        logger.error(
+        logger.info(
             'Error while creating Workato Workspace org_id - %s in Fyle %s',
             org.id, exception.message
         )  
     
-    except Exception as e:
+    except Exception:
         error = traceback.format_exc()
         logger.error(error)
