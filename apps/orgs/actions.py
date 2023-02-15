@@ -35,9 +35,8 @@ def get_admin_employees(org_id, user):
     
 
 def create_connection_in_workato(connection_name, managed_user_id, data):
-
     connector = Workato()
-    
+
     # Getting all the connection and filtering out the connection by 
     # the name to get the connection id
     connections = connector.connections.get(managed_user_id=managed_user_id)['result']
@@ -49,7 +48,7 @@ def create_connection_in_workato(connection_name, managed_user_id, data):
         connection_id=connection_id,
         data=data
     )
-
+    
     return connection
 
 
@@ -79,12 +78,12 @@ def create_managed_user_and_set_properties(org_id):
                 'FYLE_CLIENT_ID': settings.FYLE_CLIENT_ID,
                 'FYLE_CLIENT_SECRET': settings.FYLE_CLIENT_SECRET,
                 'FYLE_BASE_URL': settings.FYLE_BASE_URL,
-                'BASE_URI': settings.BASE_URI,
                 'FYLE_TOKEN_URI': settings.FYLE_TOKEN_URI,
+                'BASE_URI': org.cluster_domain,
                 'REFRESH_TOKEN': fyle_credentials.refresh_token
             }
         }
-        
+
         # Setting Up Properties in Workato, to be used by fyle sdk
         connector.properties.post(managed_user['id'], properties_payload)
 
