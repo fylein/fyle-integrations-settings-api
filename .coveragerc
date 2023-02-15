@@ -1,2 +1,2 @@
 [run]
-omit = workato/*, test.py, tests/*, ./venv/*, get-pip.py, fyle/*, admin_settings/*, *forms.py, *apps.py,*manage.py,*__init__.py,*migrations*,*asgi*,*wsgi*,*admin.py,*urls.py, *settings.py,
+omit = workato/*, test.py, tests/*, ./venv/*, get-pip.py, fyle/*, admin_settings/*, *forms.py, *apps.py,*manage.py,*__init__.py,*migrations*,*asgi*,*wsgi*,*admin.py,*urls.py, *settings.py, *gunicorn*,

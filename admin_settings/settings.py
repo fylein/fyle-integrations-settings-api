@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'request_logging.middleware.LoggingMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'admin_settings.logging_middleware.ErrorHandlerMiddleware',
@@ -141,6 +142,11 @@ LOGGING = {
             'handlers': ['debug_logs'],
             'level': 'ERROR',
             'propagate': False
+        },
+        'gunicorn': {
+            'handlers': ['request_logs'],
+            'level': 'INFO',
+            'propagate': False
         }
     }
 }
@@ -151,23 +157,14 @@ WSGI_APPLICATION = 'admin_settings.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
-if os.environ.get('DATABASE_URL', ''):
+# Defaulting django engine for qcluster
+if len(sys.argv) > 0 and sys.argv[1] == 'qcluster':
     DATABASES = {
         'default': dj_database_url.config()
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'OPTIONS': {
-                'options': '-c search_path={0}'.format(os.environ.get('DB_SCHEMA'))
-            },
-            'NAME': os.environ.get('DB_NAME'),
-            'USER': os.environ.get('DB_USER'),
-            'PASSWORD': os.environ.get('DB_PASSWORD'),
-            'HOST': os.environ.get('DB_HOST'),
-            'PORT': os.environ.get('DB_PORT'),
-        }
+        'default': dj_database_url.config(engine='django_db_geventpool.backends.postgresql_psycopg2')
     }
 
 # Password validation

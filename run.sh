@@ -4,4 +4,4 @@
 python manage.py migrate
 
 # Running development server
-python manage.py runserver 0.0.0.0:8000
+gunicorn -c gunicorn_config.py admin_settings.wsgi -b 0.0.0.0:8000
