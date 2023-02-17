@@ -100,10 +100,9 @@ def create_managed_user_and_set_properties(org: Org):
 
 
 def handle_managed_user_exception(org: Org):
-    
+
     try:
         connector = Workato()
-
         managed_user = connector.managed_users.get_by_id(org_id=org.fyle_org_id)
         if managed_user:
             org, _ = Org.objects.update_or_create(
@@ -112,7 +111,7 @@ def handle_managed_user_exception(org: Org):
                     'managed_user_id': managed_user['id']
                 }
             )
-            
+
             folder = connector.folders.get(managed_user_id=managed_user['id'])['result']
             if len(folder) > 0:
                 BambooHr.objects.update_or_create(
