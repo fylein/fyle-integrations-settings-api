@@ -27,17 +27,11 @@ class GustoConfigurationSerializer(serializers.ModelSerializer):
         connector = Workato()
         managed_user_id = Org.objects.get(id=org).managed_user_id
         recipes = connector.recipes.get(managed_user_id)['result']
-        payload = {
-            "recipe": {
-                "name": recipes[0]['name'],
-                "code": recipes[0]['code'],
-                "folder_id": str(recipes[0]['folder_id'])
-            }
-        }
+
         configuration, _ = GustoConfiguration.objects.update_or_create(
-            org_id=org,
-            recipe_id=recipes[0]['id'],
             defaults={
+                'org_id': org,
+                'recipe_id': recipes[0]['id'],
                 'recipe_status': True,
                 'recipe_data': recipes[0]['code'],
                 'additional_email_options': validated_data['additional_email_options'],
@@ -45,7 +39,6 @@ class GustoConfigurationSerializer(serializers.ModelSerializer):
             }
         )
 
-        connector.recipes.post(managed_user_id, configuration.recipe_id, payload)
         connector.recipes.post(managed_user_id, configuration.recipe_id, None, 'start')
 
         return configuration
