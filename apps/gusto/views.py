@@ -153,9 +153,6 @@ class GustoConfigurationView(generics.ListCreateAPIView):
                 data={'message': 'Gusto Configuration does not exist for this Workspace'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-    
-    def get_object(self, *args, **kwargs):
-        return self.get(self, *args, **kwargs)
 
 class SyncEmployeesView(generics.UpdateAPIView):
     
