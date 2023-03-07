@@ -129,36 +129,28 @@ class PostPackage(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-class FyleTravelperkConnection(generics.CreateAPIView):
+class FyleTravelperkConnection(generics.ListAPIView):
     """
     Api Call to make Fyle Connection in workato
     """
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         
         org = Org.objects.get(id=kwargs['org_id'])
         travelperk = TravelPerk.objects.get(org_id=org.id)
+        connector = Workato()
         try:
-            data={
-                "input": {
-                    "key": "***"
-                }
-            }
 
             # Creating Fyle Connection In Workato
-            connection = create_connection_in_workato('Fyle Workato Connection', org.managed_user_id, data)
-            if connection['authorization_status'] == 'success':
-                travelperk.is_fyle_connected = True
-                travelperk.save()
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            connection_id  = next(connection for connection in connections if connection['name'] == 'Travelperk Connection')['id']
 
-                return Response(
-                   connection,
-                   status=status.HTTP_200_OK
-                )
+            travelperk.travelperk_connection_id = connection_id
+            travelperk.save()
 
             return Response(
-                data={'message': 'connection failed'},
-                status=status.HTTP_400_BAD_REQUEST
+                data={'message': {'connection_id': connection_id}},
+                status=status.HTTP_200_OK
             )
 
         except BadRequestError as exception:
