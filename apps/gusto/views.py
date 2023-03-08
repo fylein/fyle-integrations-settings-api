@@ -93,7 +93,7 @@ class PostPackage(generics.CreateAPIView):
         gusto = Gusto.objects.filter(org__id=org.id).first()
 
         try:
-            package = connector.packages.post(org.managed_user_id, Gusto.folder_id, 'assets/gusto.zip')
+            package = connector.packages.post(org.managed_user_id, gusto.folder_id, 'assets/gusto.zip')
             
             # post package is an async request, polling to get the status of the package
             polling.poll(
