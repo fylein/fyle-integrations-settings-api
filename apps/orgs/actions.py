@@ -105,7 +105,6 @@ def handle_managed_user_exception(org_id):
     try:
         connector = Workato()
         managed_user = connector.managed_users.get_by_id(org_id=org_id)
-    
         if managed_user:
             org, _ = Org.objects.update_or_create(
                 fyle_org_id=org_id,

@@ -17,6 +17,7 @@ from workato.exceptions import *
 from apps.orgs.models import Org
 from apps.gusto.models import Gusto, GustoConfiguration
 from apps.gusto.serializers import GustoSerializer, GustoConfigurationSerializer
+from apps.gusto.utils import set_gusto_properties
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -49,6 +50,8 @@ class PostFolder(generics.CreateAPIView):
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
         try:
+            set_gusto_properties(org.managed_user_id)
+
             folder = connector.folders.post(org.managed_user_id, 'Gusto')
             gusto, _ = Gusto.objects.update_or_create(
                 org=org,
@@ -168,7 +171,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
         try:
             recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
-            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "Gusto Sync")
+            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "GustoSyncRecipe")
             code = json.loads(sync_recipe['code'])
             admin_emails = [
                 {
