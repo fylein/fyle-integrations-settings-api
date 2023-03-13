@@ -14,7 +14,6 @@ from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
-from apps.travelperk.utils import get_signed_api_key
 
 
 logger = logging.getLogger(__name__)
@@ -135,21 +134,6 @@ class TravelperkConnection(generics.ListCreateAPIView):
     Api Call to make Travelperk Connection in workato
     """
 
-    def get(self, request, *args, **kwargs):
-        org = Org.objects.get(id=kwargs['org_id'])
-        connection_id = TravelPerk.objects.get(org_id=org.id).travelperk_connection_id
-         
-        if connection_id:
-            return Response(
-                data={'message': {'connection_id': connection_id}},
-                status=status.HTTP_200_OK
-            )
-        
-        return Response(
-            data={'message': 'Connection Id not present'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
     def post(self, request, *args, **kwargs):
         
         org = Org.objects.get(id=kwargs['org_id'])
@@ -263,20 +247,3 @@ class TravekPerkConfigurationView(generics.ListCreateAPIView):
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
 
-class GenerateToken(generics.RetrieveAPIView):
-    def get(self, request, *args, **kwargs):
-        try:
-            managed_user_id = self.request.query_params.get('managed_user_id')
-            token = get_signed_api_key(managed_user_id)
-            return Response(
-                data={'token':token},
-                status=status.HTTP_200_OK
-            )
-        except Exception as e:
-            print(e)
-            return Response(
-                data={
-                    'message': 'Error Creating the Token'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )

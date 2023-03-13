@@ -16,6 +16,7 @@ from apps.orgs.models import Org, User
 from apps.orgs.actions import get_admin_employees, create_connection_in_workato, \
         create_managed_user_and_set_properties
 from apps.orgs.actions import get_admin_employees, handle_managed_user_exception
+from .utils import get_signed_api_key
 
 
 logger = logging.getLogger(__name__)
@@ -246,3 +247,21 @@ class WorkspaceAdminsView(generics.ListAPIView):
             data=admin_employees,
             status=status.HTTP_200_OK
         )
+
+
+class GenerateToken(generics.RetrieveAPIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            managed_user_id = self.request.query_params.get('managed_user_id')
+            token = get_signed_api_key(managed_user_id)
+            return Response(
+                data={'token':token},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                data={
+                    'message': 'Error Creating the Token'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )

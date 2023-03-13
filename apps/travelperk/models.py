@@ -12,7 +12,6 @@ class TravelPerk(models.Model):
     org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org table')
     folder_id = models.CharField(max_length=255, null=True, help_text='Travelperk Folder ID')
     package_id = models.CharField(max_length=255, null=True, help_text="Travelperk Package ID")
-    is_fyle_connected = models.BooleanField(null=True, help_text='If Fyle Account Connected')
     is_s3_connected = models.BooleanField(null=True, help_text='If S3 Is Connectoed')
     travelperk_connection_id = models.IntegerField(null=True, help_text='Travelperk Connection Id')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
