@@ -135,8 +135,7 @@ def handle_managed_user_exception(org: Org):
 
     except Exception:
         error = traceback.format_exc()
-        logger.info(
+        logger.error(
             'Something wrong happened with org_id - %s in Fyle %s',
-            org.id
+            org.id, error
         )  
-        logger.info(error)
