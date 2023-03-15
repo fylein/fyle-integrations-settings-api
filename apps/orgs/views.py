@@ -79,7 +79,8 @@ class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
 
         try:
-            managed_user = create_managed_user_and_set_properties(kwargs['org_id'])
+            org = Org.objects.get(id=kwargs['org_id'])
+            managed_user = create_managed_user_and_set_properties(org)
 
             return Response(
                 managed_user,
@@ -93,7 +94,7 @@ class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
             )
 
             if 'message' in exception.message and 'external has already been taken' in exception.message['message'].lower():
-                handle_managed_user_exception(kwargs['org_id'])
+                handle_managed_user_exception(org)
                 return Response(
                     data={'message': 'Workspace already exists'},
                     status=status.HTTP_201_CREATED
