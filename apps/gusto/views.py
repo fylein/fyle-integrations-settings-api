@@ -15,6 +15,7 @@ from rest_framework import generics
 from workato import Workato
 from workato.exceptions import *
 from apps.orgs.models import Org
+from apps.orgs.actions import create_connection_in_workato
 from apps.gusto.models import Gusto, GustoConfiguration
 from apps.gusto.serializers import GustoSerializer, GustoConfigurationSerializer
 from apps.gusto.utils import set_gusto_properties
@@ -217,4 +218,45 @@ class SyncEmployeesView(generics.UpdateAPIView):
             return Response(
                 data={'message': 'Error in Syncing Employees in Gusto'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class GustoConnection(generics.ListCreateAPIView):
+    """
+    Api Call to make Gusto Connection in workato
+    """
+
+    def post(self, request, *args, **kwargs):
+
+        org = Org.objects.get(id=kwargs['org_id'])
+        gusto = Gusto.objects.get(org_id=org.id)
+        connector = Workato()
+        try:
+
+            # Creating gusto Connection In Workato
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            connection_id  = next(connection for connection in connections if connection['name'] == 'Gusto Connection')['id']
+
+            gusto.gusto_connection_id = connection_id
+            gusto.save()
+
+            return Response(
+                data={'message': {'connection_id': connection_id}},
+                status=status.HTTP_200_OK
+            )
+
+        except BadRequestError as exception:
+            logger.error(
+                'Error while creating Gusto Connection in Workato with org_id - %s in Fyle %s',
+                org.id, exception.message
+            )
+            return Response(
+                data=exception.message,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception:
+            return Response(
+                data={
+                    'message': 'Error Creating Gusto Connection in Recipe'
+                },
+                status=status.HTTP_400_BAD_REQUEST
             )

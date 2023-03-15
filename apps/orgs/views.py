@@ -16,6 +16,7 @@ from apps.orgs.models import Org, User
 from apps.orgs.actions import get_admin_employees, create_connection_in_workato, \
         create_managed_user_and_set_properties
 from apps.orgs.actions import get_admin_employees, handle_managed_user_exception
+from .utils import get_signed_api_key
 
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,8 @@ class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
 
         try:
-            managed_user = create_managed_user_and_set_properties(kwargs['org_id'])
+            org = Org.objects.get(id=kwargs['org_id'])
+            managed_user = create_managed_user_and_set_properties(org)
 
             return Response(
                 managed_user,
@@ -93,7 +95,7 @@ class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
             )
 
             if 'message' in exception.message and 'external has already been taken' in exception.message['message'].lower():
-                handle_managed_user_exception(kwargs['org_id'])
+                handle_managed_user_exception(org)
                 return Response(
                     data={'message': 'Workspace already exists'},
                     status=status.HTTP_201_CREATED
@@ -141,8 +143,8 @@ class FyleConnection(generics.CreateAPIView):
             }
 
             # Creating Fyle Connection In Workato
-            fyle_connection_name = request.data.get('fyle_connection_name', 'Fyle Connection')
-            connection = create_connection_in_workato(fyle_connection_name, org.managed_user_id, data)
+            connection = create_connection_in_workato('Fyle Connection', org.managed_user_id, data)
+    
             if connection['authorization_status'] == 'success':
                 org.is_fyle_connected = True
                 org.save()
@@ -196,8 +198,7 @@ class SendgridConnection(generics.CreateAPIView):
             }
 
             # Creating Fyle Sendgrid Connection
-            sendgrid_connection_name = request.data.get('sendgrid_connection_name', 'My SendGrid account')
-            connection = create_connection_in_workato(sendgrid_connection_name, org.managed_user_id, data)
+            connection = create_connection_in_workato('My SendGrid account', org.managed_user_id, data)
 
             if connection['authorization_status'] == 'success':
                 org.is_sendgrid_connected = True
@@ -247,3 +248,20 @@ class WorkspaceAdminsView(generics.ListAPIView):
             data=admin_employees,
             status=status.HTTP_200_OK
         )
+
+class GenerateToken(generics.RetrieveAPIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            managed_user_id = self.request.query_params.get('managed_user_id')
+            token = get_signed_api_key(managed_user_id)
+            return Response(
+                data={'token':token},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                data={
+                    'message': 'Error Creating the Token'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
