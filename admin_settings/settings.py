@@ -218,7 +218,8 @@ FYLE_APP_URL = os.environ.get('APP_URL')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDGRID_EMAIL = os.environ.get('SENDGRID_EMAIL')
 BASE_URI = os.environ.get('BASE_URI')
-
+WK_JWT_PRIVATE_KEY = os.environ.get('WK_JWT_PRIVATE_KEY')
+WK_API_KEY = os.environ.get('WK_API_KEY')
 
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -230,8 +231,6 @@ CORS_ALLOW_HEADERS = [
 
 # Environ Variable Required for Tests
 FYLE_REFRESH_TOKEN = os.environ.get('FYLE_REFRESH_TOKEN')
-
-# Environment variables required to integrate Gusto
 GUSTO_CLIENT_ID = os.environ.get('GUSTO_CLIENT_ID')
 GUSTO_CLIENT_SECRET = os.environ.get('GUSTO_CLIENT_SECRET')
 GUSTO_ENVIRONMENT = os.environ.get('GUSTO_ENVIRONMENT')
