@@ -129,21 +129,21 @@ class PostPackage(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-class FyleTravelperkConnection(generics.ListAPIView):
+class TravelperkConnection(generics.ListCreateAPIView):
     """
-    Api Call to make Fyle Connection in workato
+    Api Call to make Travelperk Connection in workato
     """
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         
         org = Org.objects.get(id=kwargs['org_id'])
         travelperk = TravelPerk.objects.get(org_id=org.id)
         connector = Workato()
         try:
 
-            # Creating Fyle Connection In Workato
+            # Creating travelperk Connection In Workato
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            connection_id  = next(connection for connection in connections if connection['name'] == 'Travelperk Connection')['id']
+            connection_id  = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')['id']
 
             travelperk.travelperk_connection_id = connection_id
             travelperk.save()
@@ -155,7 +155,7 @@ class FyleTravelperkConnection(generics.ListAPIView):
 
         except BadRequestError as exception:
             logger.error(
-                'Error while creating Fyle Connection in Workato with org_id - %s in Fyle %s',
+                'Error while creating Travelperk Connection in Workato with org_id - %s in Fyle %s',
                 org.id, exception.message
             )
             return Response(
@@ -166,7 +166,7 @@ class FyleTravelperkConnection(generics.ListAPIView):
         except Exception:
             return Response(
                 data={
-                    'message': 'Error Creating Fyle Connection in Recipe'
+                    'message': 'Error Creating Travelperk Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -246,3 +246,4 @@ class TravekPerkConfigurationView(generics.ListCreateAPIView):
 
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
+
