@@ -170,7 +170,7 @@ def test_fyle_connection(api_client, mocker, access_token):
 
     response = api_client.post(url)
     assert response.status_code == 400
-    assert response.data['message'] == 'Error Creating Fyle Connection in Recipe'
+    assert response.data['message'] == 'connection failed'
 
     mocker.patch(
         'workato.workato.Connections.get',
