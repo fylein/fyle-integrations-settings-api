@@ -143,13 +143,13 @@ class TravelperkConnection(generics.ListCreateAPIView):
 
             # Creating travelperk Connection In Workato
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            connection_id  = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')['id']
+            connection = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')
 
-            travelperk.travelperk_connection_id = connection_id
+            travelperk.travelperk_connection_id = connection['id']
             travelperk.save()
 
             return Response(
-                data={'message': {'connection_id': connection_id}},
+                data={'message': {'connection_id': connection}},
                 status=status.HTTP_200_OK
             )
 
