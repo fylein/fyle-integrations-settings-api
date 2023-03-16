@@ -144,7 +144,7 @@ class FyleConnection(generics.CreateAPIView):
 
             # Creating Fyle Connection In Workato
             fyle_connection_name = request.data.get('fyle_connection_name', 'Fyle Connection')
-            connection = create_connection_in_workato('Fyle Connection', org.managed_user_id, data)
+            connection = create_connection_in_workato(fyle_connection_name, org.managed_user_id, data)
     
             if connection['authorization_status'] == 'success':
                 org.is_fyle_connected = True
@@ -199,7 +199,8 @@ class SendgridConnection(generics.CreateAPIView):
             }
 
             # Creating Fyle Sendgrid Connection
-            connection = create_connection_in_workato('My SendGrid account', org.managed_user_id, data)
+            sendgrid_connection_name = request.data.get('sendgrid_connection_name', 'My SendGrid account')
+            connection = create_connection_in_workato(sendgrid_connection_name, org.managed_user_id, data)
 
             if connection['authorization_status'] == 'success':
                 org.is_sendgrid_connected = True
