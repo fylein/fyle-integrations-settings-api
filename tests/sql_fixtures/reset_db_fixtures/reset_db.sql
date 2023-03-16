@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.3
--- Dumped by pg_dump version 14.3
+-- Dumped from database version 14.6 (Homebrew)
+-- Dumped by pg_dump version 14.6 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -489,7 +489,8 @@ CREATE TABLE public.travelperk (
     is_s3_connected boolean,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
-    org_id integer NOT NULL
+    org_id integer NOT NULL,
+    travelperk_connection_id integer
 );
 
 
@@ -872,6 +873,7 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 30	orgs	0002_auto_20221219_1044	2022-12-19 17:31:54.528076+05:30
 31	bamboohr	0004_auto_20221220_0935	2022-12-21 01:31:46.786736+05:30
 32	travelperk	0001_initial	2023-01-23 15:54:48.169439+05:30
+33	travelperk	0002_travelperk_travelperk_connection_id	2023-03-16 13:40:10.326912+05:30
 \.
 
 
@@ -913,8 +915,8 @@ COPY public.orgs_user (id, org_id, user_id) FROM stdin;
 -- Data for Name: travelperk; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.travelperk (id, folder_id, package_id, is_fyle_connected, is_s3_connected, created_at, updated_at, org_id) FROM stdin;
-8	162	111	\N	\N	2022-12-06 14:42:38.724679+05:30	2022-12-06 14:43:33.008685+05:30	1
+COPY public.travelperk (id, folder_id, package_id, is_fyle_connected, is_s3_connected, created_at, updated_at, org_id, travelperk_connection_id) FROM stdin;
+8	162	111	\N	\N	2022-12-06 14:42:38.724679+05:30	2022-12-06 14:43:33.008685+05:30	1	\N
 \.
 
 
@@ -989,7 +991,7 @@ SELECT pg_catalog.setval('public.django_content_type_id_seq', 13, true);
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 32, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 33, true);
 
 
 --

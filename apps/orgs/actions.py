@@ -62,11 +62,10 @@ def create_connection_in_workato(connection_name, managed_user_id, data):
     return connection
 
 
-def create_managed_user_and_set_properties(org_id):
+def create_managed_user_and_set_properties(org: Org):
 
     # Function for Creating a Managed user in Workato
     connector = Workato()
-    org = Org.objects.get(id=org_id)
     fyle_credentials = FyleCredential.objects.get(org__id=org.id)
     
     # Payload For Creating Managed User in Workato
@@ -100,19 +99,19 @@ def create_managed_user_and_set_properties(org_id):
     return managed_user
 
 
-def handle_managed_user_exception(org_id):
-    
+def handle_managed_user_exception(org: Org):
+
     try:
         connector = Workato()
-        managed_user = connector.managed_users.get_by_id(org_id=org_id)
+        managed_user = connector.managed_users.get_by_id(org_id=org.fyle_org_id)
         if managed_user:
             org, _ = Org.objects.update_or_create(
-                fyle_org_id=org_id,
+                fyle_org_id=org.fyle_org_id,
                 defaults={
                     'managed_user_id': managed_user['id']
                 }
             )
-    
+
             folder = connector.folders.get(managed_user_id=managed_user['id'])['result']
             if len(folder) > 0:
                 BambooHr.objects.update_or_create(
@@ -133,7 +132,10 @@ def handle_managed_user_exception(org_id):
             'Error while creating Workato Workspace org_id - %s in Fyle %s',
             org.id, exception.message
         )  
-    
+
     except Exception:
         error = traceback.format_exc()
-        logger.error(error)
+        logger.error(
+            'Something wrong happened with org_id - %s in Fyle %s',
+            org.id, error
+        )  

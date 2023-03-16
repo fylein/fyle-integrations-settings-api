@@ -142,9 +142,13 @@ class FyleConnection(generics.CreateAPIView):
                     }
             }
 
+            connection_name = 'Fyle Connection'
+
+            if request.data and 'app_name' in request.data and request.data['app_name'] == 'Travelperk':
+                connection_name = 'Fyle Workato Connection'
+
             # Creating Fyle Connection In Workato
-            fyle_connection_name = request.data.get('fyle_connection_name', 'Fyle Connection')
-            connection = create_connection_in_workato(fyle_connection_name, org.managed_user_id, data)
+            connection = create_connection_in_workato(connection_name, org.managed_user_id, data)
     
             if connection['authorization_status'] == 'success':
                 org.is_fyle_connected = True
@@ -251,6 +255,7 @@ class WorkspaceAdminsView(generics.ListAPIView):
             status=status.HTTP_200_OK
         )
 
+
 class GenerateToken(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         try:
@@ -261,6 +266,7 @@ class GenerateToken(generics.RetrieveAPIView):
                 status=status.HTTP_200_OK
             )
         except Exception as e:
+            logger.error('Error while generating token %s', e.__dict__)
             return Response(
                 data={
                     'message': 'Error Creating the Token'

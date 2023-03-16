@@ -22,4 +22,5 @@ def get_signed_api_key(managed_user_id: str) -> str:
         secret_file, 
         algorithm='RS256'
     )
+
     return encoded_token

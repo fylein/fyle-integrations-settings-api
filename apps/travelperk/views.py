@@ -129,41 +129,33 @@ class PostPackage(generics.CreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-class FyleTravelperkConnection(generics.CreateAPIView):
+class TravelperkConnection(generics.ListCreateAPIView):
     """
-    Api Call to make Fyle Connection in workato
+    Api Call to make Travelperk Connection in workato
     """
 
     def post(self, request, *args, **kwargs):
         
         org = Org.objects.get(id=kwargs['org_id'])
         travelperk = TravelPerk.objects.get(org_id=org.id)
+        connector = Workato()
         try:
-            data={
-                "input": {
-                    "key": "***"
-                }
-            }
 
-            # Creating Fyle Connection In Workato
-            connection = create_connection_in_workato('Fyle Workato Connection', org.managed_user_id, data)
-            if connection['authorization_status'] == 'success':
-                travelperk.is_fyle_connected = True
-                travelperk.save()
+            # Creating travelperk Connection In Workato
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            connection_id  = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')['id']
 
-                return Response(
-                   connection,
-                   status=status.HTTP_200_OK
-                )
+            travelperk.travelperk_connection_id = connection_id
+            travelperk.save()
 
             return Response(
-                data={'message': 'connection failed'},
-                status=status.HTTP_400_BAD_REQUEST
+                data={'message': {'connection_id': connection_id}},
+                status=status.HTTP_200_OK
             )
 
         except BadRequestError as exception:
             logger.error(
-                'Error while creating Fyle Connection in Workato with org_id - %s in Fyle %s',
+                'Error while creating Travelperk Connection in Workato with org_id - %s in Fyle %s',
                 org.id, exception.message
             )
             return Response(
@@ -174,7 +166,7 @@ class FyleTravelperkConnection(generics.CreateAPIView):
         except Exception:
             return Response(
                 data={
-                    'message': 'Error Creating Fyle Connection in Recipe'
+                    'message': 'Error Creating Travelperk Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -254,3 +246,4 @@ class TravekPerkConfigurationView(generics.ListCreateAPIView):
 
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
+
