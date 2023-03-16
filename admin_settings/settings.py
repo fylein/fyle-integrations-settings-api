@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.bamboohr',
     'apps.orgs',
-    'apps.travelperk'
+    'apps.travelperk',
+    'apps.gusto'
 ]
 
 MIDDLEWARE = [
@@ -230,3 +231,6 @@ CORS_ALLOW_HEADERS = [
 
 # Environ Variable Required for Tests
 FYLE_REFRESH_TOKEN = os.environ.get('FYLE_REFRESH_TOKEN')
+GUSTO_CLIENT_ID = os.environ.get('GUSTO_CLIENT_ID')
+GUSTO_CLIENT_SECRET = os.environ.get('GUSTO_CLIENT_SECRET')
+GUSTO_ENVIRONMENT = os.environ.get('GUSTO_ENVIRONMENT')

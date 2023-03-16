@@ -143,6 +143,7 @@ class FyleConnection(generics.CreateAPIView):
             }
 
             # Creating Fyle Connection In Workato
+            fyle_connection_name = request.data.get('fyle_connection_name', 'Fyle Connection')
             connection = create_connection_in_workato('Fyle Connection', org.managed_user_id, data)
     
             if connection['authorization_status'] == 'success':
