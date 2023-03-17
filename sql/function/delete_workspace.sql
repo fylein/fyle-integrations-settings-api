@@ -13,10 +13,22 @@ BEGIN
     RAISE NOTICE 'Deleted % bamboohr', rcount;
 
     DELETE
-    FROM configurations c
-    WHERE c.org_id = _org_id;
+    FROM travelperk t
+    WHERE t.org_id = _org_id;
     GET DIAGNOSTICS rcount = ROW_COUNT;
-    RAISE NOTICE 'Deleted % configurations', rcount;
+    RAISE NOTICE 'Deleted % travelperk', rcount;
+
+    DELETE
+    FROM bamboohr_configurations bc
+    WHERE bc.org_id = _org_id;
+    GET DIAGNOSTICS rcount = ROW_COUNT;
+    RAISE NOTICE 'Deleted % bamboohr_configurations', rcount;
+
+    DELETE
+    FROM travelperk_configurations tc
+    WHERE tc.org_id = _org_id;
+    GET DIAGNOSTICS rcount = ROW_COUNT;
+    RAISE NOTICE 'Deleted % travelperk_configurations', rcount;
 
     DELETE
     FROM fyle_credentials fc

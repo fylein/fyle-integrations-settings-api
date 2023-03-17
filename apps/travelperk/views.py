@@ -143,7 +143,7 @@ class TravelperkConnection(generics.ListCreateAPIView):
 
             # Creating travelperk Connection In Workato
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            connection_id  = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')['id']
+            connection_id = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')['id']
 
             travelperk.travelperk_connection_id = connection_id
             travelperk.save()
@@ -247,3 +247,20 @@ class TravekPerkConfigurationView(generics.ListCreateAPIView):
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
 
+class RecipeStatusView(generics.UpdateAPIView):
+    """
+    Update View For Changing Recipe Status
+    """
+    def update(self, request, *args, **kwargs):
+
+        org_id = request.data.get('org_id')
+        recipe_status = request.data['recipe_status']
+
+        travelperk_configuration = TravelPerkConfiguration.objects.get(org__id=org_id)
+        travelperk_configuration.is_recipe_enabled = recipe_status
+        travelperk_configuration.save()
+
+        return Response(
+            data=TravelPerkConfigurationSerializer(travelperk_configuration).data,
+            status=status.HTTP_200_OK
+        )
