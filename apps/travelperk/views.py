@@ -247,3 +247,31 @@ class TravekPerkConfigurationView(generics.ListCreateAPIView):
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
 
+class RecipeStatusView(generics.UpdateAPIView):
+    """
+    Update View For Changing Recipe Status
+    """
+    def update(self, request, *args, **kwargs):
+
+        try:
+            org_id = self.request.query_params.get('org_id')
+            status = self.request.query_params.get('status')
+
+            travelperk_configuration = TravelPerkConfiguration.objects.get(org__id=org_id)
+            travelperk_configuration.recipe_status = status
+            travelperk_configuration.save()
+
+            return Response(
+                data=TravelPerkConfigurationSerializer(travelperk_configuration).data,
+                status=status.HTTP_200_OK
+            )
+
+        except Exception:
+            error = traceback.format_exc()
+            logger.error(error)
+            return Response(
+                data={
+                    'message': 'Error in Updating Recipe'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
