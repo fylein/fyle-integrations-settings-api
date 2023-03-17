@@ -254,13 +254,8 @@ class RecipeStatusView(generics.UpdateAPIView):
     def update(self, request, *args, **kwargs):
 
         try:
-            org_id = self.request.query_params.get('org_id')
-            recipe_status = request.data['status']
-
-            if recipe_status.lower() == 'true':
-                recipe_status = True
-            elif recipe_status.lower() == 'false':
-                recipe_status = False
+            org_id = request.data.get('org_id')
+            recipe_status = request.data['recipe_status']
 
             travelperk_configuration = TravelPerkConfiguration.objects.get(org__id=org_id)
             travelperk_configuration.is_recipe_enabled = recipe_status
