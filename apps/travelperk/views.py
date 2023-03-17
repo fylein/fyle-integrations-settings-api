@@ -260,10 +260,6 @@ class RecipeStatusView(generics.UpdateAPIView):
         travelperk_configuration.is_recipe_enabled = recipe_status
         travelperk_configuration.save()
 
-        travelperk_configuration = TravelPerkConfiguration.objects.get(org__id=org_id)
-        travelperk_configuration.is_recipe_enabled = recipe_status
-        travelperk_configuration.save()
-
         return Response(
             data=TravelPerkConfigurationSerializer(travelperk_configuration).data,
             status=status.HTTP_200_OK
