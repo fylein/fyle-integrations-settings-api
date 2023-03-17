@@ -255,7 +255,7 @@ class RecipeStatusView(generics.UpdateAPIView):
 
         try:
             org_id = self.request.query_params.get('org_id')
-            recipe_status = self.request.query_params.get('recipe_status')
+            recipe_status = request.data['status']
 
             if recipe_status.lower() == 'true':
                 recipe_status = True
