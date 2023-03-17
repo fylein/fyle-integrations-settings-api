@@ -258,7 +258,7 @@ class RecipeStatusView(generics.UpdateAPIView):
             status = self.request.query_params.get('status')
 
             travelperk_configuration = TravelPerkConfiguration.objects.get(org__id=org_id)
-            travelperk_configuration.recipe_status = status
+            travelperk_configuration.is_recipe_enabled = status
             travelperk_configuration.save()
 
             return Response(
