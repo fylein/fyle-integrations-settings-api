@@ -142,10 +142,7 @@ class FyleConnection(generics.CreateAPIView):
                     }
             }
 
-            connection_name = 'Fyle Connection'
-
-            if request.data and 'app_name' in request.data and request.data['app_name'] == 'Travelperk':
-                connection_name = 'Fyle Common Connection'
+            connection_name = 'Fyle Common Connection'
 
             # Creating Fyle Connection In Workato
             connection = create_connection_in_workato(connection_name, org.managed_user_id, data)

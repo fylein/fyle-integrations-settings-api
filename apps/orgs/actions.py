@@ -66,14 +66,20 @@ def create_managed_user_and_set_properties(org: Org):
 
     # Function for Creating a Managed user in Workato
     connector = Workato()
+    org = Org.objects.get(id=org.id)
     fyle_credentials = FyleCredential.objects.get(org__id=org.id)
     
     # Payload For Creating Managed User in Workato
     workspace_data = {
         'name': org.name,
         'external_id': org.fyle_org_id,
-        'notification_email': org.user.first().email
     }
+    
+    if 'staging' in org.cluster_domain:
+        workspace_data['name'] = 'Staging - {}'.format(org.name)
+        workspace_data['origin_url'] = 'https://integrations.fyleapps.tech,http://localhost:4200'
+    else:
+        workspace_data['origin_url'] = 'https://integrations.fyleapps.com'
 
     managed_user = connector.managed_users.post(workspace_data)
     if managed_user['id']:
