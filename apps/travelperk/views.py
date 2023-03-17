@@ -143,13 +143,13 @@ class TravelperkConnection(generics.ListCreateAPIView):
 
             # Creating travelperk Connection In Workato
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            connection = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')
+            connection_id = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')['id']
 
-            travelperk.travelperk_connection_id = connection['id']
+            travelperk.travelperk_connection_id = connection_id
             travelperk.save()
 
             return Response(
-                data={'message': {'connection_id': connection}},
+                data={'message': {'connection_id': connection_id}},
                 status=status.HTTP_200_OK
             )
 
@@ -253,25 +253,18 @@ class RecipeStatusView(generics.UpdateAPIView):
     """
     def update(self, request, *args, **kwargs):
 
-        try:
-            org_id = request.data.get('org_id')
-            recipe_status = request.data['recipe_status']
+        org_id = request.data.get('org_id')
+        recipe_status = request.data['recipe_status']
 
-            travelperk_configuration = TravelPerkConfiguration.objects.get(org__id=org_id)
-            travelperk_configuration.is_recipe_enabled = recipe_status
-            travelperk_configuration.save()
+        travelperk_configuration = TravelPerkConfiguration.objects.get(org__id=org_id)
+        travelperk_configuration.is_recipe_enabled = recipe_status
+        travelperk_configuration.save()
 
-            return Response(
-                data=TravelPerkConfigurationSerializer(travelperk_configuration).data,
-                status=status.HTTP_200_OK
-            )
+        travelperk_configuration = TravelPerkConfiguration.objects.get(org__id=org_id)
+        travelperk_configuration.is_recipe_enabled = recipe_status
+        travelperk_configuration.save()
 
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Updating Recipe'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data=TravelPerkConfigurationSerializer(travelperk_configuration).data,
+            status=status.HTTP_200_OK
+        )
