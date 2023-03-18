@@ -94,6 +94,7 @@ class PostPackage(generics.CreateAPIView):
 
         try:
             package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/travelperk.zip')
+            print('package', package)
             polling.poll(
                 lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
                 step=5,
@@ -253,14 +254,19 @@ class RecipeStatusView(generics.UpdateAPIView):
     """
     def update(self, request, *args, **kwargs):
 
-        org_id = request.data.get('org_id')
-        recipe_status = request.data['recipe_status']
+        connector = Workato()
+        recipe_status = request.data.get('recipe_status')
 
-        travelperk_configuration = TravelPerkConfiguration.objects.get(org__id=org_id)
-        travelperk_configuration.is_recipe_enabled = recipe_status
-        travelperk_configuration.save()
+        configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.get(org__id=kwargs['org_id'])
+        configuration.is_recipe_enabled = recipe_status
+        configuration.save()
+
+        if recipe_status == 'False':
+            connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
+        else:
+            connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
 
         return Response(
-            data=TravelPerkConfigurationSerializer(travelperk_configuration).data,
+            data=TravelPerkConfigurationSerializer(configuration).data,
             status=status.HTTP_200_OK
         )

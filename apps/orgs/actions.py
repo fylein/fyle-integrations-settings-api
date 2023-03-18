@@ -1,7 +1,7 @@
 
 import logging
 import traceback
-
+import polling
 
 from fyle_rest_auth.models import AuthToken
 from django.conf import settings
@@ -73,6 +73,7 @@ def create_managed_user_and_set_properties(org: Org):
     workspace_data = {
         'name': org.name,
         'external_id': org.fyle_org_id,
+        'notification_email': 'nilesh.p@fyle.in'
     }
     
     if 'staging' in org.cluster_domain:
@@ -101,6 +102,17 @@ def create_managed_user_and_set_properties(org: Org):
 
         # Setting Up Properties in Workato, to be used by fyle sdk
         connector.properties.post(managed_user['id'], properties_payload)
+        folder = connector.folders.post(managed_user['id'], 'Connections')
+
+        # Need to post this package for creating common connections
+        package = connector.packages.post(org.managed_user_id, folder['id'], 'assets/common_connections.zip')
+        # post package is an async request, polling to get the status of the package
+
+        polling.poll(
+            lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
+            step=5,
+            timeout=50
+        )
 
     return managed_user
 
