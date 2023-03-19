@@ -218,6 +218,8 @@ FYLE_APP_URL = os.environ.get('APP_URL')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDGRID_EMAIL = os.environ.get('SENDGRID_EMAIL')
 BASE_URI = os.environ.get('BASE_URI')
+WK_JWT_PRIVATE_KEY = os.environ.get('WK_JWT_PRIVATE_KEY')
+WK_API_KEY = os.environ.get('WK_API_KEY')
 
 
 CORS_ORIGIN_ALLOW_ALL = True

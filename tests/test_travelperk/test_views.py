@@ -170,7 +170,7 @@ def test_fyle_connection(api_client, mocker, access_token):
 
     response = api_client.post(url)
     assert response.status_code == 400
-    assert response.data['message'] == 'Error Creating Fyle Connection in Recipe'
+    assert response.data['message'] == 'connection failed'
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -277,3 +277,18 @@ def test_post_configuration_view(api_client, mocker, access_token):
 
     assert response.status_code == 201
     assert response.data['recipe_id'] == '3545113'
+
+@pytest.mark.django_db(databases=['default'])
+def test_recipe_status_view(api_client, access_token):
+    
+    url = reverse(
+        kwargs={
+            'org_id': 1,
+            'status': True
+        }
+    )
+    
+    response = api_client.post(url, {'org_id': 1, 'status': True}, format='json')
+    
+    assert response.status_code == 200
+    assert response.data['is_recipe_enabled'] == True

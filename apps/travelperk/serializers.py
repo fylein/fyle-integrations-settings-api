@@ -31,8 +31,8 @@ class TravelPerkConfigurationSerializer(serializers.ModelSerializer):
             org_id=org,
             recipe_id=recipes[0]['id'],
             defaults={
-                'recipe_status': True,
                 'recipe_data': recipes[0]['code'],
+                'is_recipe_enabled': True
             }
         )
 
