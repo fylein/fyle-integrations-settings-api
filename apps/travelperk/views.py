@@ -49,8 +49,8 @@ class PostFolder(generics.CreateAPIView):
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
         properties_payload = {
-            'CLIENT_ID': settings.TRAVELPERK_CLIENT_ID,
-            'CLIENT_SECRET': settings.TRAVELPERK_CLIENT_SECRET,
+            'TRAVELPERK_CLIENT_ID': settings.TRAVELPERK_CLIENT_ID,
+            'TRAVELPERK_CLIENT_SECRET': settings.TRAVELPERK_CLIENT_SECRET,
             'TRAVELPERK_AUTH_URL': settings.TRAVELPERK_AUTH_URL,
             'TRAVELPERK_TOKEN_URL': settings.TRAVELPERK_TOKEN_URL,
             'TRAVELPERK_BASE_URL': settings.TRAVELPERK_BASE_URL
