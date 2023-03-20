@@ -58,7 +58,7 @@ def create_connection_in_workato(connection_name, managed_user_id, data):
         connection_id=connection_id,
         data=data
     )
-    
+
     return connection
 
 
@@ -148,7 +148,8 @@ def upload_properties(managed_user_id: int, payload):
 
     try:
         connector = Workato()
-        connector.properties.post(managed_user_id, payload)
+        properties = connector.properties.post(managed_user_id, payload)
+        return properties
 
     except Exception:
         error = traceback.format_exc()
