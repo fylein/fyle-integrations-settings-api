@@ -19,10 +19,10 @@ fixture = {
         },
     "connections": {
         "result": [
-            {"id": 12, "authorization_status": "success", "name": "My SendGrid account"},
+            {"id": 12, "authorization_status": "success", "name": "Sendgird Common Connection"},
             {"id": 13, "authorization_status": "success", "name": "BambooHR Connection"},
             {"id": 14,"authorization_status": "success", "name": "BambooHR Sync Connection"},
-            {"id": 15,"authorization_status": "success", "name": "Fyle Workato Connection"},
+            {"id": 15,"authorization_status": "success", "name": "Fyle Common Connection"}, 
             {"id": 16,"authorization_status": "success", "name": "S3 Connection"},
         ] 
     },
