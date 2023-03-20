@@ -251,3 +251,53 @@ def test_recipe_status_view(api_client, access_token, mocker):
     
     assert response.status_code == 200
     assert response.data['is_recipe_enabled'] == True
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_fyle_connection(api_client, mocker, access_token):
+    """
+    Test Creating Fyle Connection In Workato
+    """
+    url = reverse('fyle-travelperk-connection',
+        kwargs={
+            'org_id': 1,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
+        response = api_client.post(url)
+        assert response.data['message'] == 'something wrong happened'
+        assert response.status_code == 400
+
+    mocker.patch(
+        'workato.workato.Connections.get',
+        return_value={'result': [{}]}
+    )
+
+    response = api_client.post(url)
+    assert response.status_code == 400
+    assert response.data['message'] == 'connection failed'
+
+    mocker.patch(
+        'workato.workato.Connections.get',
+        return_value=fixture['connections']
+    )
+
+    mocker.patch(
+        'workato.workato.Connections.put',
+        return_value={'message': 'failed', 'authorization_status': 'failed'}
+    )
+
+    response = api_client.post(url)
+    assert response.status_code == 400
+    assert response.data == {'message': 'connection failed'}
+
+    mocker.patch(
+        'workato.workato.Connections.put',
+        return_value={'message': 'success', 'authorization_status': 'success'}
+    )
+
+    response = api_client.post(url)
+    assert response.status_code == 200
+    assert response.data == {'message': 'success', 'authorization_status': 'success'}
