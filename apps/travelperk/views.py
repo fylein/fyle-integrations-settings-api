@@ -1,6 +1,7 @@
 import logging
 import traceback
 import polling
+from django.conf import settings
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
@@ -11,7 +12,7 @@ from workato.exceptions import *
 
 
 from apps.orgs.models import Org
-from apps.orgs.actions import create_connection_in_workato
+from apps.orgs.actions import create_connection_in_workato, upload_properties
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
 
@@ -47,8 +48,18 @@ class PostFolder(generics.CreateAPIView):
         connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
+        properties_payload = {
+            'CLIENT_ID': settings.TRAVELPERK_CLIENT_ID,
+            'CLIENT_SECRET': settings.TRAVELPERK_CLIENT_SECRET,
+            'TRAVELPERK_AUTH_URL': settings.TRAVELPERK_AUTH_URL,
+            'TRAVELPERK_TOKEN_URL': settings.TRAVELPERK_TOKEN_URL,
+            'TRAVELPERK_BASE_URL': settings.TRAVELPERK_BASE_URL
+        }
+
         try:
             folder = connector.folders.post(org.managed_user_id, 'Travelperk')
+            upload_properties(org.managed_user_id, properties_payload)
+
             travelperk, _ = TravelPerk.objects.update_or_create(
                 org=org,
                 defaults={
@@ -90,17 +101,17 @@ class PostPackage(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
-        bamboohr = TravelPerk.objects.filter(org__id=org.id).first()
+        travelperk = TravelPerk.objects.filter(org__id=org.id).first()
 
         try:
-            package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/travelperk.zip')
+            package = connector.packages.post(org.managed_user_id, travelperk.folder_id, 'assets/travelperk.zip')
             polling.poll(
                 lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
                 step=5,
                 timeout=50
             )
-            bamboohr.package_id = package['id']
-            bamboohr.save()
+            travelperk.package_id = package['id']
+            travelperk.save()
     
             return Response(
                 data={
@@ -246,6 +257,7 @@ class TravekPerkConfigurationView(generics.ListCreateAPIView):
 
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
+
 
 class RecipeStatusView(generics.UpdateAPIView):
     """

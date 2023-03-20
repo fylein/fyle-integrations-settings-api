@@ -139,3 +139,20 @@ def handle_managed_user_exception(org: Org):
             'Something wrong happened with org_id - %s in Fyle %s',
             org.id, error
         )  
+
+
+def upload_properties(managed_user_id: int, payload):
+    """
+    Funciton for uploading properties to workato
+    """
+
+    try:
+        connector = Workato()
+        connector.properties.post(managed_user_id, payload)
+
+    except Exception:
+        error = traceback.format_exc()
+        logger.error(
+            'Something wrong happened while uploading properties to workato for managed_user_id - %s %s',
+            managed_user_id, error
+        )
