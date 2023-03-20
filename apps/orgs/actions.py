@@ -73,14 +73,9 @@ def create_managed_user_and_set_properties(org: Org):
     workspace_data = {
         'name': org.name,
         'external_id': org.fyle_org_id,
-        'notification_email': 'nilesh.p@fyle.in'
+        'notification_email': settings.FYLE_NOTIFICATION_EMAIL,
+        'origin_url': settings.WORKATO_ORIGIN_URL
     }
-    
-    if 'staging' in org.cluster_domain:
-        workspace_data['name'] = 'Staging - {}'.format(org.name)
-        workspace_data['origin_url'] = 'https://integrations.fyleapps.tech,http://localhost:4200'
-    else:
-        workspace_data['origin_url'] = 'https://integrations.fyleapps.com'
 
     managed_user = connector.managed_users.post(workspace_data)
     if managed_user['id']:
