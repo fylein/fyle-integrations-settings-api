@@ -94,7 +94,6 @@ class PostPackage(generics.CreateAPIView):
 
         try:
             package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/travelperk.zip')
-            print('package', package)
             polling.poll(
                 lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
                 step=5,
