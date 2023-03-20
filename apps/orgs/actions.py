@@ -73,7 +73,7 @@ def create_managed_user_and_set_properties(org: Org):
     workspace_data = {
         'name': org.name,
         'external_id': org.fyle_org_id,
-        'notification_email': settings.FYLE_NOTIFICATION_EMAIL,
+        'notification_email': settings.FYLE_NOTIFICATIONS_URL,
         'origin_url': settings.WORKATO_ORIGIN_URL
     }
 
