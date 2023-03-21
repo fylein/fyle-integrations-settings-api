@@ -215,6 +215,11 @@ def test_sync_employees_view(api_client, mocker, access_token, gusto_environment
         assert response.data['message'] == 'Item Not Found'
         assert response.status_code == 404
 
+    with mock.patch('workato.workato.Recipes.get', side_effect=InternalServerError({'message': 'Internal server error'})):
+        response = api_client.post(url)
+        assert response.data['message'] == 'Error in Syncing Employees in Gusto'
+        assert response.status_code == 500
+
     mocker.patch(
         'workato.workato.Recipes.get',
         return_value=fixture['recipes']
