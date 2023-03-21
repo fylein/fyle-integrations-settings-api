@@ -10,6 +10,7 @@ from tests.fixture import fixture
 from apps.orgs.models import Org, FyleCredential
 from workato import Workato
 from tests.test_workato.common.utils import get_mock_workato
+from apps.gusto.models import Gusto, GustoConfiguration
 
 def pytest_configure():
     os.system('sh ./tests/sql_fixtures/reset_db_fixtures/reset_db.sh')
@@ -117,3 +118,14 @@ def create_auth_token(user: User):
         refresh_token='refresh_token',
         user=user
     )
+
+@pytest.fixture()
+def gusto_environment():
+    gusto = Gusto.objects.create(org = Org.objects.all().first(),
+                         folder_id = "dummy",
+                         package_id = "dummy"
+                         )
+    gusto_conf = GustoConfiguration.objects.create(
+        org = Org.objects.all().first()
+    )
+    
