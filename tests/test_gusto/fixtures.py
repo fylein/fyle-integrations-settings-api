@@ -114,4 +114,13 @@ fixture = {
             }
         ]
     },
+    "connections":{
+        "result": [
+            {
+                "id": 2119652,
+                "name": "Gusto Connection",
+                "authorization_status": "success",
+            }
+        ]
+    }
 }

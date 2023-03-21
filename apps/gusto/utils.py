@@ -1,9 +1,8 @@
 from django.conf import settings
-from workato import Workato
+from apps.orgs.actions import upload_properties
 
 def set_gusto_properties(managed_user_id):
 
-    connector = Workato()
     # Payload for setting up Global Properties in workato to be used
     # By the gusto workato sdk
     properties_payload = {
@@ -13,6 +12,4 @@ def set_gusto_properties(managed_user_id):
             'GUSTO_ENVIRONMENT': settings.GUSTO_ENVIRONMENT
         }
     }
-
-    # Setting Up Properties in Workato, to be used by Gusto sdk
-    connector.properties.post(managed_user_id, properties_payload)
+    upload_properties(managed_user_id, properties_payload)

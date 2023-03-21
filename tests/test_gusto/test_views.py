@@ -54,7 +54,7 @@ def test_post_folder_view(api_client, mocker, access_token, gusto_environment):
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
     
     mocker.patch(
-        'apps.gusto.utils.set_gusto_properties',
+        'workato.workato.Properties.post',
         return_value = None
     )
 
@@ -231,3 +231,46 @@ def test_sync_employees_view(api_client, mocker, access_token, gusto_environment
     response = api_client.post(url)
     assert response.status_code == 200
     assert response.data['name'] == 'GustoSyncRecipe'
+
+@pytest.mark.django_db(databases=['default'])
+def test_gusto_connection(api_client, mocker, access_token, gusto_environment):
+    """
+    Test Creating Gusto Connection In Workato
+    """
+    
+    url = reverse('gusto_fyle_connection',
+        kwargs={
+            'org_id':1,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
+        response = api_client.post(url)
+        assert response.data['message'] == 'something wrong happened'
+        assert response.status_code == 400
+
+    mocker.patch(
+        'workato.workato.Connections.get',
+        return_value={'result': [{}]}
+    )
+    
+    response = api_client.post(url, format='json')
+    assert response.status_code == 400
+    assert response.data['message'] == 'Error Creating Gusto Connection in Recipe'
+
+    mocker.patch(
+        'workato.workato.Connections.get',
+        return_value=fixture['connections']
+    )
+
+    mocker.patch(
+        'workato.workato.Connections.put',
+        return_value={'message': 'success', 'authorization_status': 'success'}
+    )
+
+
+    response = api_client.post(url, format='json')
+    
+    assert response.status_code == 200
+    assert dict_compare_keys(response, fixture['gusto']) == [], 'gusto diff in keys'
