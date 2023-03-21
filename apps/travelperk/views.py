@@ -242,3 +242,46 @@ class RecipeStatusView(generics.UpdateAPIView):
             data=TravelPerkConfigurationSerializer(configuration).data,
             status=status.HTTP_200_OK
         )
+
+
+class TravelperkConnection(generics.ListCreateAPIView):
+    """
+    Api Call to make Travelperk Connection in workato
+    """
+
+    def post(self, request, *args, **kwargs):
+
+        org = Org.objects.get(id=kwargs['org_id'])
+        travelperk = TravelPerk.objects.get(org_id=org.id)
+        connector = Workato()
+        try:
+
+            # Creating travelperk Connection In Workato
+            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
+            connection_id = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')['id']
+
+            travelperk.travelperk_connection_id = connection_id
+            travelperk.save()
+
+            return Response(
+                data={'message': {'connection_id': connection_id}},
+                status=status.HTTP_200_OK
+            )
+
+        except BadRequestError as exception:
+            logger.error(
+                'Error while creating Travelperk Connection in Workato with org_id - %s in Fyle %s',
+                org.id, exception.message
+            )
+            return Response(
+                data=exception.message,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except Exception:
+            return Response(
+                data={
+                    'message': 'Error Creating Travelperk Connection in Recipe'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
