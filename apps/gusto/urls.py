@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import PostFolder, PostPackage, GustoConfigurationView, SyncEmployeesView, GustoView, GustoConnection
+from .views import PostFolder, PostPackage, GustoConfigurationView, SyncEmployeesView, GustoView, GustoConnection, RecipeStatusView
 
 urlpatterns = [
     path('', GustoView.as_view(), name="gusto"),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('configuration/', GustoConfigurationView.as_view(), name='gusto_configuration'),
     path('refresh_employees/', SyncEmployeesView.as_view(), name='gusto_sync_employees'),
     path('gusto_connection/', GustoConnection.as_view(), name='gusto_fyle_connection'),
+    path('recipe_status/', RecipeStatusView.as_view(), name='gusto_recipe_status')
 ]

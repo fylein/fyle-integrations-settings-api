@@ -279,3 +279,29 @@ def test_gusto_connection(api_client, mocker, access_token, gusto_environment):
     
     assert response.status_code == 200
     assert dict_compare_keys(response, fixture['gusto']) == [], 'gusto diff in keys'
+
+@pytest.mark.django_db(databases=['default'])
+def test_recipe_status_view(api_client, mocker, access_token, gusto_environment):
+    """
+    Test Get of Gusto
+    """
+    url = reverse('gusto_recipe_status',
+        kwargs={
+                'org_id': 1,
+            }
+    )
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    mocker.patch(
+        'workato.workato.Recipes.post',
+        return_value={'message': 'success'}
+    )
+
+    response = api_client.put(url, data = {
+        'recipe_status' : False
+    })
+    assert response.status_code == 200
+
+    response = json.loads(response.content)
+    assert dict_compare_keys(response, fixture['configurations']) == [], 'orgs GET diff in keys'

@@ -253,10 +253,33 @@ class GustoConnection(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         except Exception as ex:
-            print(ex)
             return Response(
                 data={
                     'message': 'Error Creating Gusto Connection in Recipe'
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+
+class RecipeStatusView(generics.UpdateAPIView):
+    """
+    Update View For Changing Recipe Status
+    """
+    def update(self, request, *args, **kwargs):
+
+        connector = Workato()
+        recipe_status = request.data.get('recipe_status')
+
+        configuration: GustoConfiguration = GustoConfiguration.objects.get(org__id=kwargs['org_id'])
+        configuration.recipe_status = recipe_status
+        configuration.save()
+
+        if recipe_status == False:
+            connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
+        else:
+            connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
+
+        return Response(
+            data=GustoConfigurationSerializer(configuration).data,
+            status=status.HTTP_200_OK
+        )
