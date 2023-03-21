@@ -1,7 +1,7 @@
 from django.conf import settings
 from apps.orgs.actions import upload_properties
 
-def set_gusto_properties(managed_user_id):
+def set_gusto_properties(managed_user_id: str):
 
     # Payload for setting up Global Properties in workato to be used
     # By the gusto workato sdk

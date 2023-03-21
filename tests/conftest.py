@@ -121,11 +121,11 @@ def create_auth_token(user: User):
 
 @pytest.fixture()
 def gusto_environment():
-    gusto = Gusto.objects.create(org = Org.objects.all().first(),
-                         folder_id = "dummy",
-                         package_id = "dummy"
-                         )
+    gusto = Gusto.objects.create(
+        org = Org.objects.all().first(),
+        folder_id = "dummy",
+        package_id = "dummy"
+    )
     gusto_conf = GustoConfiguration.objects.create(
         org = Org.objects.all().first()
     )
-    

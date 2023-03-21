@@ -190,8 +190,6 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], payload)
             connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
-            sleep(5)
-            connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'stop')
 
             return Response(
                 data=sync_recipe,
