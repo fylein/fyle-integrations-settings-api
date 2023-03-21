@@ -233,7 +233,7 @@ class RecipeStatusView(generics.UpdateAPIView):
         configuration.is_recipe_enabled = recipe_status
         configuration.save()
 
-        if recipe_status == 'False':
+        if recipe_status == False:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
         else:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
