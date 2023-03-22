@@ -3,8 +3,6 @@ import traceback
 import logging
 import json
 
-
-from time import sleep
 from django.conf import settings
 
 from rest_framework.response import Response
@@ -18,6 +16,7 @@ from apps.orgs.models import Org
 from apps.gusto.models import Gusto, GustoConfiguration
 from apps.gusto.serializers import GustoSerializer, GustoConfigurationSerializer
 from apps.gusto.utils import set_gusto_properties
+from apps.names import *
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -171,7 +170,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
         try:
             recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
-            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "GustoSyncRecipe")
+            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == GUSTO['recipe'])
             code = json.loads(sync_recipe['code'])
             admin_emails = [
                 {
@@ -231,7 +230,7 @@ class GustoConnection(generics.ListCreateAPIView):
 
             # Creating gusto Connection In Workato
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            connection_id  = next(connection for connection in connections if connection['name'] == 'Gusto Connection')['id']
+            connection_id  = next(connection for connection in connections if connection['name'] == GUSTO['connection'])['id']
 
             gusto.connection_id = connection_id
             gusto.save()

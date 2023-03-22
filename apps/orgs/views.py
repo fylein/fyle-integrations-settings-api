@@ -17,7 +17,7 @@ from apps.orgs.actions import get_admin_employees, create_connection_in_workato,
         create_managed_user_and_set_properties
 from apps.orgs.actions import get_admin_employees, handle_managed_user_exception
 from .utils import get_signed_api_key
-
+from apps.names import *
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -143,7 +143,7 @@ class FyleConnection(generics.CreateAPIView):
             }
 
             # Creating Fyle Connection In Workato
-            connection = create_connection_in_workato('Fyle Common Connection', org.managed_user_id, data)
+            connection = create_connection_in_workato(COMMON_CONNECTIONS['fyle'], org.managed_user_id, data)
     
             if connection['authorization_status'] == 'success':
                 org.is_fyle_connected = True
@@ -198,7 +198,7 @@ class SendgridConnection(generics.CreateAPIView):
             }
 
             # Creating Fyle Sendgrid Connection
-            connection = create_connection_in_workato('Sendgrid Common Connection', org.managed_user_id, data)
+            connection = create_connection_in_workato(COMMON_CONNECTIONS['sendgrid'], org.managed_user_id, data)
 
             if connection['authorization_status'] == 'success':
                 org.is_sendgrid_connected = True
