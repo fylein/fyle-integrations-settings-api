@@ -228,14 +228,9 @@ def test_sync_employees_view(api_client, mocker, access_token, gusto_environment
         'workato.workato.Recipes.post',
         return_value={'message': 'success'}
     )
-    mocker.patch(
-        'apps.gusto.views.sleep',
-        return_value=None
-    )
-
     response = api_client.post(url)
     assert response.status_code == 200
-    assert response.data['name'] == 'GustoSyncRecipe'
+    assert response.data['name'] == 'Gusto Sync Recipe'
 
 @pytest.mark.django_db(databases=['default'])
 def test_gusto_connection(api_client, mocker, access_token, gusto_environment):

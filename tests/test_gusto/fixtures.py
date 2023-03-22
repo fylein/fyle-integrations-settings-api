@@ -24,7 +24,7 @@ fixture = {
             {
                 "id": 6368872,
                 "user_id": 1131770,
-                "name": "GustoSyncRecipe",
+                "name": "Gusto Sync Recipe",
                 "created_at": "2023-03-09T05:03:02.552-08:00",
                 "updated_at": "2023-03-09T05:03:02.781-08:00",
                 "copy_count": 1,
