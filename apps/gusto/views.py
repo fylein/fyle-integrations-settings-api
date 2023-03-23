@@ -177,9 +177,8 @@ class SyncEmployeesView(generics.UpdateAPIView):
                  'email': admin['email'],
                 } for admin in config.emails_selected
             ]
-
-            code['block'][5]['block'][1]['input']['personalizations']['to'] = admin_emails
-            code['block'][5]['block'][1]['input']['from']['email'] = settings.SENDGRID_EMAIL
+            code['block'][6]['block'][1]['input']['personalizations']['to'] = admin_emails
+            code['block'][6]['block'][1]['input']['from']['email'] = settings.SENDGRID_EMAIL
             sync_recipe['code'] = json.dumps(code)
             payload = {
                 "recipe": {
