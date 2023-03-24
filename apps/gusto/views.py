@@ -266,10 +266,15 @@ class RecipeStatusView(generics.UpdateAPIView):
         connector = Workato()
         recipe_status = request.data.get('recipe_status')
         try:
-            configuration: GustoConfiguration = GustoConfiguration.objects.get(org__id=kwargs['org_id'])
-            configuration.recipe_status = recipe_status
-            configuration.save()
-
+            try:
+                configuration: GustoConfiguration = GustoConfiguration.objects.get(org__id=kwargs['org_id'])
+                configuration.recipe_status = recipe_status
+                configuration.save()
+            except GustoConfiguration.DoesNotExist:
+                configuration = GustoConfiguration.objects.create(
+                    org = Org.objects.get(id = kwargs['org_id']), 
+                    recipe_status = recipe_status,
+                )
             if recipe_status == False:
                 connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
             else:
@@ -279,10 +284,6 @@ class RecipeStatusView(generics.UpdateAPIView):
                 data=GustoConfigurationSerializer(configuration).data,
                 status=status.HTTP_200_OK
             )
-        except GustoConfiguration.DoesNotExist:
-            return Response({
-                'message': 'Gusto Configuration is not available.'
-            }, status = status.HTTP_404_NOT_FOUND)
         except Exception as ex:
             error = traceback.format_exc()
             logger.error(error)
