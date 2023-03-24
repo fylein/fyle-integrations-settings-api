@@ -265,28 +265,30 @@ class RecipeStatusView(generics.UpdateAPIView):
 
         connector = Workato()
         recipe_status = request.data.get('recipe_status')
-        try:
-            try:
-                configuration: GustoConfiguration = GustoConfiguration.objects.get(org__id=kwargs['org_id'])
-                configuration.recipe_status = recipe_status
-                configuration.save()
-            except GustoConfiguration.DoesNotExist:
-                configuration = GustoConfiguration.objects.create(
-                    org = Org.objects.get(id = kwargs['org_id']), 
-                    recipe_status = recipe_status,
-                )
-            if recipe_status == False:
-                connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
-            else:
-                connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
+        action = 'start' if recipe_status else 'stop'
 
-            return Response(
-                data=GustoConfigurationSerializer(configuration).data,
-                status=status.HTTP_200_OK
+        try:
+            configuration: GustoConfiguration = GustoConfiguration.objects.get(org__id=kwargs['org_id'])
+            configuration.recipe_status = recipe_status
+            configuration.save()
+        except GustoConfiguration.DoesNotExist:
+            configuration = GustoConfiguration.objects.create(
+                org = Org.objects.get(id = kwargs['org_id']), 
+                recipe_status = recipe_status,
             )
-        except Exception as ex:
+ 
+        try:
+            connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, action)
+        except Exception:
             error = traceback.format_exc()
             logger.error(error)
-            return Response({
-                'message': error
-            }, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(data={
+                    'message': f'Could not perform the action on recipe.'
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        return Response(
+            data=GustoConfigurationSerializer(configuration).data,
+            status=status.HTTP_200_OK
+        )
