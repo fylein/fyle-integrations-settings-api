@@ -28,6 +28,6 @@ class Connections(ApiBase):
 
     def post(self, managed_user_id, connection_id):
         """
-        Disconnect a Connection in BambooHe
+        Disconnect a Connection in Workato
         """
         return self._post_request(Connections.POST_CONNECTION.format(managed_user_id, connection_id))

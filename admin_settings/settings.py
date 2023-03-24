@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.bamboohr',
     'apps.orgs',
-    'apps.travelperk'
+    'apps.travelperk',
+    'apps.gusto'
 ]
 
 MIDDLEWARE = [
@@ -219,6 +220,10 @@ SENDGRID_EMAIL = os.environ.get('SENDGRID_EMAIL')
 BASE_URI = os.environ.get('BASE_URI')
 WK_JWT_PRIVATE_KEY = os.environ.get('WK_JWT_PRIVATE_KEY')
 WK_API_KEY = os.environ.get('WK_API_KEY')
+
+GUSTO_CLIENT_ID = os.environ.get('GUSTO_CLIENT_ID')
+GUSTO_CLIENT_SECRET = os.environ.get('GUSTO_CLIENT_SECRET')
+GUSTO_ENVIRONMENT = os.environ.get('GUSTO_ENVIRONMENT')
 TRAVELPERK_CLIENT_ID = os.environ.get('TRAVELPERK_CLIENT_ID')
 TRAVELPERK_CLIENT_SECRET = os.environ.get('TRAVELPERK_CLIENT_SECRET')
 TRAVELPERK_AUTH_URL = os.environ.get('TRAVELPERK_AUTH_URL')

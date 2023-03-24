@@ -29,7 +29,6 @@ services:
       APP_WK_ORIGIN: https://app.workato.com
       WK_API_PLATFORM_KEY: ""
       WK_PARTNER_EMAIL: ""
-      FYLE_REFRESH_TOKEN: ""
   db:
     image: "postgres:latest"
     environment: 
