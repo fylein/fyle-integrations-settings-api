@@ -265,15 +265,13 @@ class RecipeStatusView(generics.UpdateAPIView):
 
         connector = Workato()
         recipe_status = request.data.get('recipe_status')
+        action = 'start' if recipe_status else 'stop'
         try:
             configuration: GustoConfiguration = GustoConfiguration.objects.get(org__id=kwargs['org_id'])
             configuration.recipe_status = recipe_status
             configuration.save()
 
-            if recipe_status == False:
-                connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
-            else:
-                connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
+            connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, action)
 
             return Response(
                 data=GustoConfigurationSerializer(configuration).data,
