@@ -30,7 +30,7 @@ services:
       WK_API_PLATFORM_KEY: ""
       WK_PARTNER_EMAIL: ""
   db:
-    image: "postgres:latest"
+    image: "postgres:15"
     environment: 
       POSTGRES_DB: dummy
       POSTGRES_USER: postgres
