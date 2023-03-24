@@ -281,7 +281,7 @@ class RecipeStatusView(generics.UpdateAPIView):
             )
         except GustoConfiguration.DoesNotExist:
             return Response({
-                'message': 'Gusto Configuration is not added for this org yet.'
+                'message': 'Gusto Configuration is not available.'
             }, status = status.HTTP_404_NOT_FOUND)
         except Exception as ex:
             error = traceback.format_exc()
