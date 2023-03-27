@@ -18,6 +18,7 @@ from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
+from apps.names import BAMBOO_HR
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -146,7 +147,7 @@ class BambooHrConnection(generics.CreateAPIView):
         try:
             
             # creating bamboo connection for cron job that will look for new employee in bamboohr
-            bamboo_connection = create_connection_in_workato('BambooHR Connection', org.managed_user_id, request.data)
+            bamboo_connection = create_connection_in_workato(BAMBOO_HR['connections'][0], org.managed_user_id, request.data)
             
             # if the connection if successfull we will go on to create the second bamboohr connection
             # that is used for the complete sync recipe in bamboohr
@@ -159,7 +160,7 @@ class BambooHrConnection(generics.CreateAPIView):
                         "basic_password": "x"
                     }
                 }
-                bamboo_sync_connection = create_connection_in_workato('BambooHR Sync Connection', org.managed_user_id, connection_payload)
+                bamboo_sync_connection = create_connection_in_workato(BAMBOO_HR['connections'][1], org.managed_user_id, connection_payload)
                 bamboohr.api_token = request.data['input']['api_token']
                 bamboohr.sub_domain = request.data['input']['subdomain']
                 bamboohr.save()
@@ -233,8 +234,8 @@ class DisconnectView(generics.CreateAPIView):
 
         try:
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == 'BambooHR Connection')
-            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == 'BambooHR Sync Connection')
+            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == BAMBOO_HR['connections'][0])
+            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == BAMBOO_HR['connections'][1])
 
             configuration.recipe_status = False
             configuration.save()
@@ -294,7 +295,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
         try:
             recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
-            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == "Bamboo HR Sync")
+            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == BAMBOO_HR['recipe'])
             code = json.loads(sync_recipe['code'])
 
             admin_emails = [

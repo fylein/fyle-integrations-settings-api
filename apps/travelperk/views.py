@@ -10,7 +10,7 @@ from rest_framework.views import status
 from workato import Workato
 from workato.exceptions import *
 
-
+from apps.names import TRAVELPERK
 from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
@@ -161,7 +161,7 @@ class AwsS3Connection(generics.CreateAPIView):
             }
 
             # Creating Fyle Connection In Workato
-            connection = create_connection_in_workato('S3 Connection', org.managed_user_id, data)
+            connection = create_connection_in_workato(TRAVELPERK['s3'], org.managed_user_id, data)
 
             if connection['authorization_status'] == 'success':
                 travelperk.is_s3_connected = True
@@ -258,7 +258,7 @@ class TravelperkConnection(generics.ListCreateAPIView):
 
             # Creating travelperk Connection In Workato
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            connection_id = next(connection for connection in connections if connection['name'] == 'TravelPerk Connection')['id']
+            connection_id = next(connection for connection in connections if connection['name'] == TRAVELPERK['connection'])['id']
 
             travelperk.travelperk_connection_id = connection_id
             travelperk.save()
