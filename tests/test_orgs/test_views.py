@@ -71,13 +71,13 @@ def test_new_org_put_view(api_client, mocker, access_token):
     assert response.status_code == 200
 
 @pytest.mark.django_db(databases=['default'])
-def test_create_managed_user_in_workato(api_client, mocker, access_token):
+def test_create_managed_user_in_workato(api_client, mocker, access_token, org_environment):
     """
     Test Create of Workato Workspace
     """
     url = reverse('workato-workspace',
         kwargs={
-            'org_id': 16,
+            'org_id': org_environment,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -113,20 +113,31 @@ def test_create_managed_user_in_workato(api_client, mocker, access_token):
         return_value={'message': 'success'}
     )
 
-
+    mocker.patch(
+        'workato.workato.Folders.post',
+        return_value={'id': '1'}
+    )
+    mocker.patch(
+        'workato.workato.Packages.post',
+        return_value={'message': 'success', 'id': 1}
+    )
+    mocker.patch(
+        'workato.workato.Packages.get',
+        return_value={'status': 'completed'}
+    )
     response = api_client.put(url)
     
     assert response.status_code == 200
     assert response.data == fixture['managed_user']
 
 @pytest.mark.django_db(databases=['default'])
-def test_fyle_connection(api_client, mocker, access_token):
+def test_fyle_connection(api_client, mocker, access_token, org_environment):
     """
     Test Creating Fyle Connection In Workato
     """
     url = reverse('fyle-connection',
         kwargs={
-            'org_id': 17,
+            'org_id': org_environment,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -169,14 +180,14 @@ def test_fyle_connection(api_client, mocker, access_token):
     assert response.data == {'message': 'success', 'authorization_status': 'success'}
 
 @pytest.mark.django_db(databases=['default'])
-def test_sendgrid_connection(api_client, mocker, access_token):
+def test_sendgrid_connection(api_client, mocker, access_token, org_environment):
     """
     Test Creating Sendgrid Connection In Workato
     """
 
     url = reverse('sendgrid',
         kwargs={
-            'org_id':18,
+            'org_id':org_environment,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))

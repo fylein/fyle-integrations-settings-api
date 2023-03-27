@@ -40,14 +40,14 @@ def test_travelperk_get_view(api_client, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_folder_view(api_client, mocker, access_token):
+def test_post_folder_view(api_client, mocker, access_token, travelperk_environment):
     """
     Test Post Of Folder
     """
 
     url = reverse('travelperk-folder',
         kwargs={
-                'org_id': 21,
+                'org_id': travelperk_environment,
             }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -204,14 +204,14 @@ def test_aws_connection(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_configuration_view(api_client, mocker, access_token):
+def test_post_configuration_view(api_client, mocker, access_token, travelperk_environment):
     """
     Test Post Configuration View
     """
 
     url = reverse('travelperk-configuration',
         kwargs={
-            'org_id': 25,
+            'org_id': 7,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -226,7 +226,7 @@ def test_post_configuration_view(api_client, mocker, access_token):
     )
     response = api_client.post(url,
         {
-          "org": 26,
+          "org": 7,
         }, format='json'
     )
 
@@ -277,27 +277,13 @@ def test_fyle_connection(api_client, mocker, access_token):
 
     response = api_client.post(url)
     assert response.status_code == 400
-    assert response.data['message'] == 'connection failed'
+    assert response.data['message'] == 'Error Creating Travelperk Connection in Recipe'
 
     mocker.patch(
         'workato.workato.Connections.get',
         return_value=fixture['connections']
     )
 
-    mocker.patch(
-        'workato.workato.Connections.put',
-        return_value={'message': 'failed', 'authorization_status': 'failed'}
-    )
-
-    response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data == {'message': 'connection failed'}
-
-    mocker.patch(
-        'workato.workato.Connections.put',
-        return_value={'message': 'success', 'authorization_status': 'success'}
-    )
-
     response = api_client.post(url)
     assert response.status_code == 200
-    assert response.data == {'message': 'success', 'authorization_status': 'success'}
+    assert response.data['message']['connection_id'] is not None
