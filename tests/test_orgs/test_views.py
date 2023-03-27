@@ -9,6 +9,8 @@ from tests.helper import dict_compare_keys
 from .fixtures import fixture
 
 from workato.exceptions import *
+from django.conf import settings
+import jwt
 
 
 @pytest.mark.django_db(databases=['default'])
@@ -249,3 +251,28 @@ def test_admin_view(api_client, mocker, access_token):
     response = api_client.get(url)
     assert response.status_code == 200
     assert response.data == [{ "email": "abc@ac.com", "name": "abc"}]
+
+@pytest.mark.django_db(databases=['default'])
+def test_generate_token(api_client, mocker, access_token):
+    url = reverse(
+        'generate-token',
+        kwargs={
+            'org_id': 1
+        }
+    )
+    expected_token = "encoded_token"
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+
+    response = api_client.get(url, data={})
+    assert response.status_code == 400
+
+    mocker.patch(
+        'jwt.encode',
+        return_value = expected_token
+    )
+    response = api_client.get(url, data={
+        'managed_user_id': 'test-id'
+    })
+    assert response.status_code == 200
+    assert response.data == {'token': expected_token}

@@ -260,7 +260,8 @@ class GenerateToken(generics.RetrieveAPIView):
                 status=status.HTTP_200_OK
             )
         except Exception as e:
-            logger.error('Error while generating token %s', e.__dict__)
+            error = traceback.format_exc()
+            logger.error('Error while generating token %s', error)
             return Response(
                 data={
                     'message': 'Error Creating the Token'
