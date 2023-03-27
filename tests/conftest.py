@@ -150,15 +150,6 @@ def org_environment():
 
 @pytest.fixture()
 def travelperk_environment():
-
-    # Required to test post configuration view
-    try:
-        TravelPerk.objects.filter(
-            org = Org.objects.get(id=7)
-        ).delete()
-    except Exception as ex:
-        pass
-    
     org = Org.objects.all().first()
     travelperk = TravelPerk.objects.update_or_create(
         org = org

@@ -204,7 +204,7 @@ def test_aws_connection(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_configuration_view(api_client, mocker, access_token, travelperk_environment):
+def test_post_configuration_view(api_client, mocker, access_token, org_environment):
     """
     Test Post Configuration View
     """
@@ -226,7 +226,7 @@ def test_post_configuration_view(api_client, mocker, access_token, travelperk_en
     )
     response = api_client.post(url,
         {
-          "org": 7,
+          "org": org_environment,
         }, format='json'
     )
 
