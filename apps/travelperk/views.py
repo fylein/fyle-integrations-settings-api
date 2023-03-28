@@ -278,7 +278,9 @@ class TravelperkConnection(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        except Exception:
+        except Exception as exception:
+            error = traceback.format_exc()
+            logger.error(error)
             return Response(
                 data={
                     'message': 'Error Creating Travelperk Connection in Recipe'

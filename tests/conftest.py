@@ -11,6 +11,8 @@ from apps.orgs.models import Org, FyleCredential
 from workato import Workato
 from tests.test_workato.common.utils import get_mock_workato
 from apps.gusto.models import Gusto, GustoConfiguration
+from apps.orgs.models import Org, FyleCredential
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
 
 def pytest_configure():
     os.system('sh ./tests/sql_fixtures/reset_db_fixtures/reset_db.sh')
@@ -129,3 +131,20 @@ def gusto_environment():
     gusto_conf = GustoConfiguration.objects.create(
         org = Org.objects.all().first()
     )
+
+@pytest.fixture()
+def get_org_id():
+    # create an org
+    org = Org.objects.create(
+        name = 'Test org',
+        fyle_org_id = 'orTwovfDpEYc',
+        managed_user_id = '890744',
+        cluster_domain='https://fake-cluster-domain.com',
+    )
+    # create fyle credentials for it
+    fyle_creds = FyleCredential.objects.create(
+        refresh_token = 'fake-refresh-token',
+        org = org
+    )
+    return org.id
+

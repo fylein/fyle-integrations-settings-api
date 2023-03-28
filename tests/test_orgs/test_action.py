@@ -18,11 +18,11 @@ def test_handle_managed_user_exception(mocker, access_token):
         return_value={'result': [{'id': 1234}]}
     )
 
-    org = Org.objects.get(id=10)
+    org = Org.objects.get(id=1)
     handle_managed_user_exception(org)
     
-    org = Org.objects.get(id=10)
-    bamboo = BambooHr.objects.get(org_id=10)
+    org = Org.objects.get(id=1)
+    bamboo = BambooHr.objects.get(org_id=1)
 
 
     assert org.managed_user_id == '123'

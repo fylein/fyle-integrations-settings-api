@@ -1,5 +1,5 @@
 
-import json
+import json, os
 import pytest
 from unittest import mock
 
@@ -9,6 +9,8 @@ from tests.helper import dict_compare_keys
 from .fixtures import fixture
 
 from workato.exceptions import *
+from django.conf import settings
+import jwt
 
 
 @pytest.mark.django_db(databases=['default'])
@@ -71,13 +73,13 @@ def test_new_org_put_view(api_client, mocker, access_token):
     assert response.status_code == 200
 
 @pytest.mark.django_db(databases=['default'])
-def test_create_managed_user_in_workato(api_client, mocker, access_token):
+def test_create_managed_user_in_workato(api_client, mocker, access_token, get_org_id):
     """
     Test Create of Workato Workspace
     """
     url = reverse('workato-workspace',
         kwargs={
-            'org_id': 16,
+            'org_id': get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -113,20 +115,31 @@ def test_create_managed_user_in_workato(api_client, mocker, access_token):
         return_value={'message': 'success'}
     )
 
-
+    mocker.patch(
+        'workato.workato.Folders.post',
+        return_value={'id': '1'}
+    )
+    mocker.patch(
+        'workato.workato.Packages.post',
+        return_value={'message': 'success', 'id': 1}
+    )
+    mocker.patch(
+        'workato.workato.Packages.get',
+        return_value={'status': 'completed'}
+    )
     response = api_client.put(url)
     
     assert response.status_code == 200
     assert response.data == fixture['managed_user']
 
 @pytest.mark.django_db(databases=['default'])
-def test_fyle_connection(api_client, mocker, access_token):
+def test_fyle_connection(api_client, mocker, access_token, get_org_id):
     """
     Test Creating Fyle Connection In Workato
     """
     url = reverse('fyle-connection',
         kwargs={
-            'org_id': 17,
+            'org_id': get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -169,14 +182,14 @@ def test_fyle_connection(api_client, mocker, access_token):
     assert response.data == {'message': 'success', 'authorization_status': 'success'}
 
 @pytest.mark.django_db(databases=['default'])
-def test_sendgrid_connection(api_client, mocker, access_token):
+def test_sendgrid_connection(api_client, mocker, access_token, get_org_id):
     """
     Test Creating Sendgrid Connection In Workato
     """
 
     url = reverse('sendgrid',
         kwargs={
-            'org_id':18,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -238,3 +251,27 @@ def test_admin_view(api_client, mocker, access_token):
     response = api_client.get(url)
     assert response.status_code == 200
     assert response.data == [{ "email": "abc@ac.com", "name": "abc"}]
+
+@pytest.mark.django_db(databases=['default'])
+def test_generate_token(api_client, mocker, access_token):
+    url = reverse(
+        'generate-token',
+        kwargs={
+            'org_id': 1
+        }
+    )
+    expected_token = "encoded_token"
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    print(os.environ.items())
+    response = api_client.get(url, data={})
+    assert response.status_code == 400
+
+    mocker.patch(
+        'jwt.encode',
+        return_value = expected_token
+    )
+    response = api_client.get(url, data={
+        'managed_user_id': 'test-id'
+    })
+    assert response.status_code == 200
+    assert response.data == {'token': expected_token}

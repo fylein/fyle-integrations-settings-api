@@ -24,6 +24,7 @@ fixture = {
             {"id": 14,"authorization_status": "success", "name": "BambooHR Sync Connection"},
             {"id": 15,"authorization_status": "success", "name": "Fyle Common Connection"}, 
             {"id": 16,"authorization_status": "success", "name": "S3 Connection"},
+            {"id": 17,"authorization_status": "success", "name": "TravelPerk Connection"},
         ] 
     },
     "recipes":  {

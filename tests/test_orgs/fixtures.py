@@ -27,6 +27,16 @@ fixture = {
             "id":15,
             "authorization_status":"success",
             "name":"Fyle Connection"
+         },
+         {
+            "id":16,
+            "authorization_status":"success",
+            "name":"Fyle Common Connection"
+         },
+         {
+            "id":17,
+            "authorization_status":"success",
+            "name":"Sendgrid Common Connection"
          }
       ]
    },
