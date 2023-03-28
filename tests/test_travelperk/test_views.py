@@ -40,14 +40,14 @@ def test_travelperk_get_view(api_client, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_folder_view(api_client, mocker, access_token, travelperk_environment):
+def test_post_folder_view(api_client, mocker, access_token, get_travelperk_org_id):
     """
     Test Post Of Folder
     """
 
     url = reverse('travelperk-folder',
         kwargs={
-                'org_id': travelperk_environment,
+                'org_id': get_travelperk_org_id,
             }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -204,7 +204,7 @@ def test_aws_connection(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_configuration_view(api_client, mocker, access_token, org_environment):
+def test_post_configuration_view(api_client, mocker, access_token, get_org_id):
     """
     Test Post Configuration View
     """
@@ -226,7 +226,7 @@ def test_post_configuration_view(api_client, mocker, access_token, org_environme
     )
     response = api_client.post(url,
         {
-          "org": org_environment,
+          "org": get_org_id,
         }, format='json'
     )
 
@@ -286,4 +286,4 @@ def test_fyle_connection(api_client, mocker, access_token):
 
     response = api_client.post(url)
     assert response.status_code == 200
-    assert response.data['message']['connection_id'] is not None
+    assert response.data['message']['connection_id'] == 17

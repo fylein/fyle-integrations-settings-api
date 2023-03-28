@@ -1,5 +1,5 @@
 
-import json
+import json, os
 import pytest
 from unittest import mock
 
@@ -73,13 +73,13 @@ def test_new_org_put_view(api_client, mocker, access_token):
     assert response.status_code == 200
 
 @pytest.mark.django_db(databases=['default'])
-def test_create_managed_user_in_workato(api_client, mocker, access_token, org_environment):
+def test_create_managed_user_in_workato(api_client, mocker, access_token, get_org_id):
     """
     Test Create of Workato Workspace
     """
     url = reverse('workato-workspace',
         kwargs={
-            'org_id': org_environment,
+            'org_id': get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -133,13 +133,13 @@ def test_create_managed_user_in_workato(api_client, mocker, access_token, org_en
     assert response.data == fixture['managed_user']
 
 @pytest.mark.django_db(databases=['default'])
-def test_fyle_connection(api_client, mocker, access_token, org_environment):
+def test_fyle_connection(api_client, mocker, access_token, get_org_id):
     """
     Test Creating Fyle Connection In Workato
     """
     url = reverse('fyle-connection',
         kwargs={
-            'org_id': org_environment,
+            'org_id': get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -182,14 +182,14 @@ def test_fyle_connection(api_client, mocker, access_token, org_environment):
     assert response.data == {'message': 'success', 'authorization_status': 'success'}
 
 @pytest.mark.django_db(databases=['default'])
-def test_sendgrid_connection(api_client, mocker, access_token, org_environment):
+def test_sendgrid_connection(api_client, mocker, access_token, get_org_id):
     """
     Test Creating Sendgrid Connection In Workato
     """
 
     url = reverse('sendgrid',
         kwargs={
-            'org_id':org_environment,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -262,8 +262,7 @@ def test_generate_token(api_client, mocker, access_token):
     )
     expected_token = "encoded_token"
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-    
-
+    print(os.environ.items())
     response = api_client.get(url, data={})
     assert response.status_code == 400
 

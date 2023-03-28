@@ -133,7 +133,7 @@ def gusto_environment():
     )
 
 @pytest.fixture()
-def org_environment():
+def get_org_id():
     # create an org
     org = Org.objects.create(
         name = 'Test org',
@@ -149,7 +149,7 @@ def org_environment():
     return org.id
 
 @pytest.fixture()
-def travelperk_environment():
+def get_travelperk_org_id():
     org = Org.objects.all().first()
     travelperk = TravelPerk.objects.update_or_create(
         org = org
