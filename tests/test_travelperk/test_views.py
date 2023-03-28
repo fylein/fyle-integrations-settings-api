@@ -40,14 +40,14 @@ def test_travelperk_get_view(api_client, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_folder_view(api_client, mocker, access_token, get_travelperk_org_id):
+def test_post_folder_view(api_client, mocker, access_token, get_org_id):
     """
     Test Post Of Folder
     """
 
     url = reverse('travelperk-folder',
         kwargs={
-                'org_id': get_travelperk_org_id,
+                'org_id': get_org_id,
             }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))

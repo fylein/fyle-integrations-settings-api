@@ -148,13 +148,3 @@ def get_org_id():
     )
     return org.id
 
-@pytest.fixture()
-def get_travelperk_org_id():
-    org = Org.objects.all().first()
-    travelperk = TravelPerk.objects.update_or_create(
-        org = org
-    )
-    travelperk_conf = TravelPerkConfiguration.objects.update_or_create(
-        org = org
-    )
-    return org.id
