@@ -74,7 +74,8 @@ def create_managed_user_and_set_properties(org: Org):
         'name': org.name,
         'external_id': org.fyle_org_id,
         'notification_email': settings.FYLE_NOTIFICATIONS_EMAIL,
-        'origin_url': settings.WORKATO_ORIGIN_URL
+        'origin_url': settings.WORKATO_ORIGIN_URL,
+        'frame_ancestors': settings.WORKATO_FRAME_ANCESTORS_URL
     }
 
     managed_user = connector.managed_users.post(workspace_data)
