@@ -147,7 +147,7 @@ class BambooHrConnection(generics.CreateAPIView):
         try:
             
             # creating bamboo connection for cron job that will look for new employee in bamboohr
-            bamboo_connection = create_connection_in_workato(BAMBOO_HR['connections'][0], org.managed_user_id, request.data)
+            bamboo_connection = create_connection_in_workato(org.id, BAMBOO_HR['connections'][0], org.managed_user_id, request.data)
             
             # if the connection if successfull we will go on to create the second bamboohr connection
             # that is used for the complete sync recipe in bamboohr
@@ -160,7 +160,7 @@ class BambooHrConnection(generics.CreateAPIView):
                         "basic_password": "x"
                     }
                 }
-                bamboo_sync_connection = create_connection_in_workato(BAMBOO_HR['connections'][1], org.managed_user_id, connection_payload)
+                bamboo_sync_connection = create_connection_in_workato(org.id, BAMBOO_HR['connections'][1], org.managed_user_id, connection_payload)
                 bamboohr.api_token = request.data['input']['api_token']
                 bamboohr.sub_domain = request.data['input']['subdomain']
                 bamboohr.save()

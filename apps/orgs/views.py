@@ -9,7 +9,6 @@ from rest_framework import generics
 from django.contrib.auth import get_user_model
 from django.conf import settings
 
-
 from workato.exceptions import *
 from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User
@@ -79,52 +78,19 @@ class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
 
     def update(self, request, *args, **kwargs):
 
-        try:
-            org = Org.objects.get(id=kwargs['org_id'])
-            managed_user = create_managed_user_and_set_properties(org)
+        org = Org.objects.get(id=kwargs['org_id'])
+        managed_user = create_managed_user_and_set_properties(kwargs['org_id'], org)
 
+        if 'id' in managed_user:
             return Response(
                 managed_user,
                 status=status.HTTP_200_OK
             )
 
-        except BadRequestError as exception:
-            logger.error(
-                'Error while creating Workato Workspace org_id - %s in Fyle %s',
-                kwargs['org_id'], exception.message
-            )
-
-            if 'message' in exception.message and 'external has already been taken' in exception.message['message'].lower():
-                handle_managed_user_exception(org)
-                return Response(
-                    data={'message': 'Workspace already exists'},
-                    status=status.HTTP_201_CREATED
-                )
-
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        except InternalServerError as exception:
-            logger.error(
-                'Error while creating Workato Workspace org_id - %s in Fyle %s',
-                kwargs['org_id'], exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Creating Workato Workspace'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data={'message': 'Managed User Not Created'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class FyleConnection(generics.CreateAPIView):
@@ -134,52 +100,30 @@ class FyleConnection(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
 
-        try:
-            org = Org.objects.get(id=kwargs['org_id'])
-            data={
-                    "input": {
-                        "key": "***"
-                    }
-            }
 
-            # Creating Fyle Connection In Workato
-            connection = create_connection_in_workato(COMMON_CONNECTIONS['fyle'], org.managed_user_id, data)
-    
-            if connection['authorization_status'] == 'success':
-                org.is_fyle_connected = True
-                org.save()
+        org = Org.objects.get(id=kwargs['org_id'])
+        data={
+                "input": {
+                    "key": "***"
+                }
+        }
 
-                return Response(
-                   connection,
-                   status=status.HTTP_200_OK
-                )
+        # Creating Fyle Connection In Workato COMMON_CONNECTIONS['fyle']
+        connection = create_connection_in_workato(org.id, 'FYLE', org.managed_user_id, data)
+
+        if 'authorization_status' in connection and connection['authorization_status'] == 'success':
+            org.is_fyle_connected = True
+            org.save()
 
             return Response(
-                data={'message': 'connection failed'},
-                status=status.HTTP_400_BAD_REQUEST
+                connection,
+                status=status.HTTP_200_OK
             )
 
-        except BadRequestError as exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            logger.error(
-                'Error while creating Fyle Connection in Workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error Creating Fyle Connection in Recipe'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data={'message': 'connection failed'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class SendgridConnection(generics.CreateAPIView):
@@ -189,50 +133,29 @@ class SendgridConnection(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
 
-        try:
-            org = Org.objects.get(id=kwargs['org_id'])
-            data = {
-                "input": {
-                    "api_key": settings.SENDGRID_API_KEY
-                }
+        org = Org.objects.get(id=kwargs['org_id'])
+        data = {
+            "input": {
+                "api_key": settings.SENDGRID_API_KEY
             }
+        }
 
-            # Creating Fyle Sendgrid Connection
-            connection = create_connection_in_workato(COMMON_CONNECTIONS['sendgrid'], org.managed_user_id, data)
+        # Creating Fyle Sendgrid Connection
+        connection = create_connection_in_workato(org.id, COMMON_CONNECTIONS['sendgrid'], org.managed_user_id, data)
 
-            if connection['authorization_status'] == 'success':
-                org.is_sendgrid_connected = True
-                org.save()
-
-                return Response(
-                   connection,
-                   status=status.HTTP_200_OK
-                )
+        if 'authorization_status' in connection and connection['authorization_status'] == 'success':
+            org.is_sendgrid_connected = True
+            org.save()
 
             return Response(
-                data={'message': 'connection failed'},
-                status=status.HTTP_400_BAD_REQUEST
+                connection,
+                status=status.HTTP_200_OK
             )
 
-        except BadRequestError as exception:
-            logger.error(
-                'Error while creating Sendgrid Connection org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error Creating Sendgrid Connection in Recipe'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data={'message': 'connection failed'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class WorkspaceAdminsView(generics.ListAPIView):

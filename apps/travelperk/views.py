@@ -161,7 +161,7 @@ class AwsS3Connection(generics.CreateAPIView):
             }
 
             # Creating Fyle Connection In Workato
-            connection = create_connection_in_workato(TRAVELPERK['s3'], org.managed_user_id, data)
+            connection = create_connection_in_workato(org.id, TRAVELPERK['s3'], org.managed_user_id, data)
 
             if connection['authorization_status'] == 'success':
                 travelperk.is_s3_connected = True
