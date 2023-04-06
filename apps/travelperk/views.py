@@ -152,48 +152,30 @@ class AwsS3Connection(generics.CreateAPIView):
 
         org = Org.objects.get(id=kwargs['org_id'])
         travelperk = TravelPerk.objects.get(org_id=org.id)
-        try:
-        
-            data={
-                "input": {
-                    "key": "***"
-                }
+
+        data={
+            "input": {
+                "key": "***"
             }
+        }
 
-            # Creating Fyle Connection In Workato
-            connection = create_connection_in_workato(org.id, TRAVELPERK['s3'], org.managed_user_id, data)
+        # Creating Fyle Connection In Workato
+        connection = create_connection_in_workato(org.id, TRAVELPERK['s3'], org.managed_user_id, data)
 
-            if connection['authorization_status'] == 'success':
-                travelperk.is_s3_connected = True
-                travelperk.save()
-
-                return Response(
-                   connection,
-                   status=status.HTTP_200_OK
-                )
+        if 'authorization_status' in connection and connection['authorization_status'] == 'success':
+            travelperk.is_s3_connected = True
+            travelperk.save()
 
             return Response(
-                data={'message': 'connection failed'},
-                status=status.HTTP_400_BAD_REQUEST
+                connection,
+                status=status.HTTP_200_OK
             )
 
-        except BadRequestError as exception:
-            logger.error(
-                'Error while creating AWS Connection in Workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data={'message': 'connection failed'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-        except Exception:
-            return Response(
-                data={
-                    'message': 'Error Creating AWS Connection in Recipe'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
 class TravekPerkConfigurationView(generics.ListCreateAPIView):
 

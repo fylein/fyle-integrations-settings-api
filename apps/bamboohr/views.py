@@ -144,56 +144,35 @@ class BambooHrConnection(generics.CreateAPIView):
         org = Org.objects.filter(id=kwargs['org_id']).first()
         bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
-        try:
-            
-            # creating bamboo connection for cron job that will look for new employee in bamboohr
-            bamboo_connection = create_connection_in_workato(org.id, BAMBOO_HR['connections'][0], org.managed_user_id, request.data)
-            
-            # if the connection if successfull we will go on to create the second bamboohr connection
-            # that is used for the complete sync recipe in bamboohr
-            if bamboo_connection['authorization_status'] == 'success':
-                connection_payload = {
-                    "input": {
-                        "ssl_params": "false",
-                        "auth_type": "basic",
-                        "basic_user": request.data['input']['api_token'],
-                        "basic_password": "x"
-                    }
+        # creating bamboo connection for cron job that will look for new employee in bamboohr
+        bamboo_connection = create_connection_in_workato(org.id, BAMBOO_HR['connections'][0], org.managed_user_id, request.data)
+        
+        # if the connection if successfull we will go on to create the second bamboohr connection
+        # that is used for the complete sync recipe in bamboohr
+        if 'authorization_status' in bamboo_connection and bamboo_connection['authorization_status'] == 'success':
+            connection_payload = {
+                "input": {
+                    "ssl_params": "false",
+                    "auth_type": "basic",
+                    "basic_user": request.data['input']['api_token'],
+                    "basic_password": "x"
                 }
-                bamboo_sync_connection = create_connection_in_workato(org.id, BAMBOO_HR['connections'][1], org.managed_user_id, connection_payload)
-                bamboohr.api_token = request.data['input']['api_token']
-                bamboohr.sub_domain = request.data['input']['subdomain']
-                bamboohr.save()
-
-                return Response(
-                    data=bamboo_sync_connection,
-                    status=status.HTTP_200_OK
-                )
+            }
+            bamboo_sync_connection = create_connection_in_workato(org.id, BAMBOO_HR['connections'][1], org.managed_user_id, connection_payload)
+            bamboohr.api_token = request.data['input']['api_token']
+            bamboohr.sub_domain = request.data['input']['subdomain']
+            bamboohr.save()
 
             return Response(
-                data={'message': 'connection failed'},
-                status=status.HTTP_400_BAD_REQUEST
+                data=bamboo_sync_connection,
+                status=status.HTTP_200_OK
             )
 
-        except BadRequestError as exception:
-            logger.error(
-                'Error while creating Bamboo Hr Connection org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data={'message': 'connection failed'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error Creating Bamboo HR Connection in Recipe'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
 class BambooHrConfigurationView(generics.ListCreateAPIView):
 

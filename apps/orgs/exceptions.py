@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
 
-def handle_exception(task_name):
+def handle_workato_exception(task_name):
     def decorator(func):
         def new_fn(org_id: int, *args):
             error = {
@@ -24,7 +24,7 @@ def handle_exception(task_name):
             except UnAuthorizedError as exception:
                 error['message'] = exception.message
                 error['response'] = exception.response
-                logger.error(error)
+                logger.info(error)
                 return JsonResponse(error, status=401)
 
             except NotFoundItemError as exception:

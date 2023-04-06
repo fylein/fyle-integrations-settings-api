@@ -1,9 +1,8 @@
 
 import logging
-import traceback
 import polling
 
-from apps.orgs.exceptions import handle_exception
+from apps.orgs.exceptions import handle_workato_exception
 from fyle_rest_auth.models import AuthToken
 from django.conf import settings
 
@@ -45,7 +44,7 @@ def get_admin_employees(org_id, user):
     return admin_employees
     
 
-@handle_exception(task_name='Create Connection in Workato')
+@handle_workato_exception(task_name='Create Connection in Workato')
 def create_connection_in_workato(org_id, connection_name, managed_user_id, data):
     connector = Workato()
 
@@ -64,7 +63,7 @@ def create_connection_in_workato(org_id, connection_name, managed_user_id, data)
     return connection
 
 
-@handle_exception(task_name='Create Managed User and Set Properties')
+@handle_workato_exception(task_name='Create Managed User and Set Properties')
 def create_managed_user_and_set_properties(org_id, org: Org):
 
     # Function for Creating a Managed user in Workato
@@ -116,7 +115,7 @@ def create_managed_user_and_set_properties(org_id, org: Org):
     return managed_user
 
 
-@handle_exception(task_name='Handle Managed User Exception')
+@handle_workato_exception(task_name='Handle Managed User Exception')
 def handle_managed_user_exception(org: Org):
 
     connector = Workato()
@@ -139,7 +138,7 @@ def handle_managed_user_exception(org: Org):
             )
 
 
-@handle_exception(task_name='Upload Properties')
+@handle_workato_exception(task_name='Upload Properties')
 def upload_properties(managed_user_id: int, payload):
     """
     Funciton for uploading properties to workato
