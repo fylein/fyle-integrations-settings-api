@@ -15,10 +15,6 @@ from apps.orgs.models import Org, FyleCredential
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 
-def pytest_configure():
-    os.system('sh ./tests/sql_fixtures/reset_db_fixtures/reset_db.sh')
-
-
 @pytest.fixture
 def api_client():
     return APIClient()
