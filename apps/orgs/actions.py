@@ -46,7 +46,6 @@ def get_admin_employees(org_id, user):
 
 @handle_workato_exception(task_name='Create Connection in Workato')
 def create_connection_in_workato(org_id, connection_name, managed_user_id, data):
-    print("DIL DE NU MADA", org_id, connection_name, managed_user_id, data)
     connector = Workato()
 
     # Getting all the connection and filtering out the connection by 
