@@ -167,7 +167,7 @@ class BambooHrConnection(generics.CreateAPIView):
                 data=bamboo_sync_connection,
                 status=status.HTTP_200_OK
             )
-
+        return bamboo_connection
         return Response(
             data={'message': 'connection failed'},
             status=status.HTTP_400_BAD_REQUEST

@@ -1,8 +1,7 @@
 import logging
 import traceback
 
-from django.http import JsonResponse
-
+from rest_framework.response import Response
 from workato.exceptions import UnAuthorizedError, BadRequestError, NotFoundItemError, InternalServerError
 
 logger = logging.getLogger(__name__)
@@ -25,32 +24,32 @@ def handle_workato_exception(task_name):
                 error['message'] = exception.message
                 error['response'] = exception.response
                 logger.info(error)
-                return JsonResponse(error, status=401)
+                return Response(error, status=401)
 
             except NotFoundItemError as exception:
                 error['message'] = exception.message
                 error['response'] = exception.response
                 logger.error(error)
-                return JsonResponse(error, status=404)
+                return Response(error, status=404)
 
             except BadRequestError as exception:
                 error['message'] = exception.message
                 error['response'] = exception.response
                 logger.error(error)
-                return JsonResponse(error, status=400)
+                return Response(error, status=400)
 
             except InternalServerError as exception:
                 error['message'] = exception.message
                 error['response'] = exception.response
                 logger.error(error)
-                return JsonResponse(error, status=500)
+                return Response(error, status=500)
 
             except Exception:
                 response = traceback.format_exc()
                 error['message'] = 'Something went wrong'
                 error['response'] = response
                 logger.error(error)
-                return JsonResponse(error, status=500)
+                return Response(error, status=500)
 
         return new_fn
 

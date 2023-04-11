@@ -15,10 +15,10 @@ fixture = {
            "recipe_id": None,
            "recipe_data": None,
            "recipe_status": False,
-           "additional_email_options":{
+           "additional_email_options":[{
               "name":"Nilsh",
               "email":"dfoisdfoh@gmail.com"
-           },
+           }],
            "emails_selected":[
               "ni12lesh[amt1212@gmail.in",
               "ashwin.t@fyle.in"

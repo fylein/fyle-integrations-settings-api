@@ -10,13 +10,13 @@ from .fixtures import fixture
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_gusto_get_view(api_client, mocker, access_token, gusto_environment):
+def test_gusto_get_view(api_client, mocker, access_token, get_org_id, get_gusto_id):
     """
     Test Get of Gusto
     """
     url = reverse('gusto',
         kwargs={
-                'org_id': 1,
+                'org_id': get_org_id,
             }
     )
 
@@ -41,14 +41,14 @@ def test_gusto_get_view(api_client, mocker, access_token, gusto_environment):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_folder_view(api_client, mocker, access_token, gusto_environment):
+def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_gusto_id):
     """
     Test Post Of Folder
     """
 
     url = reverse('gusto_folder',
         kwargs={
-                'org_id': 1,
+                'org_id': get_org_id,
             }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -85,14 +85,14 @@ def test_post_folder_view(api_client, mocker, access_token, gusto_environment):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_package(api_client, mocker, access_token, gusto_environment):
+def test_post_package(api_client, mocker, access_token, get_org_id, get_gusto_id):
     """
     Test Posting Package in Workato
     """
     
     url = reverse('gusto_package',
         kwargs={
-            'org_id': 1
+            'org_id': get_org_id
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -126,14 +126,14 @@ def test_post_package(api_client, mocker, access_token, gusto_environment):
     assert response.data['message'] == 'package uploaded successfully'
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_configuration_view(api_client, mocker, access_token, gusto_environment):
+def test_post_configuration_view(api_client, mocker, access_token, get_org_id, get_gusto_id):
     """
     Test Post Configuration View
     """
 
     url = reverse('gusto_configuration',
         kwargs={
-            'org_id': 1,
+            'org_id': get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -147,7 +147,7 @@ def test_post_configuration_view(api_client, mocker, access_token, gusto_environ
         return_value={'message': 'success'}
     )
     response = api_client.post(url, {
-            "org": 1,
+            "org": get_org_id,
             "additional_email_options": {},
             "emails_selected": [{
             "name": "Ashwin",
@@ -166,14 +166,14 @@ def test_post_configuration_view(api_client, mocker, access_token, gusto_environ
     ]
 
 @pytest.mark.django_db(databases=['default'])
-def test_get_configuration_view(api_client, mocker, access_token, gusto_environment):
+def test_get_configuration_view(api_client, mocker, access_token, get_org_id, get_gusto_id):
     """
     Test Get Configuration View
     """
 
     url = reverse('gusto_configuration',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -198,14 +198,14 @@ def test_get_configuration_view(api_client, mocker, access_token, gusto_environm
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_sync_employees_view(api_client, mocker, access_token, gusto_environment):
+def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_gusto_id):
     """
     Test Sync Of Employees In Workato
     """
 
     url = reverse('gusto_sync_employees',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -233,14 +233,14 @@ def test_sync_employees_view(api_client, mocker, access_token, gusto_environment
     assert response.data['name'] == 'Gusto Sync Recipe'
 
 @pytest.mark.django_db(databases=['default'])
-def test_gusto_connection(api_client, mocker, access_token, gusto_environment):
+def test_gusto_connection(api_client, mocker, access_token, get_org_id, get_gusto_id):
     """
     Test Creating Gusto Connection In Workato
     """
     
     url = reverse('gusto_fyle_connection',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -276,13 +276,13 @@ def test_gusto_connection(api_client, mocker, access_token, gusto_environment):
     assert dict_compare_keys(response, fixture['gusto']) == [], 'gusto diff in keys'
 
 @pytest.mark.django_db(databases=['default'])
-def test_recipe_status_view(api_client, mocker, access_token, gusto_environment):
+def test_recipe_status_view(api_client, mocker, access_token, get_org_id, get_gusto_id):
     """
     Test Get of Gusto
     """
     url = reverse('gusto_recipe_status',
         kwargs={
-                'org_id': 1,
+                'org_id': get_org_id,
             }
     )
 

@@ -9,13 +9,13 @@ from tests.helper import dict_compare_keys
 from .fixtures import fixture
 
 @pytest.mark.django_db(databases=['default'])
-def test_travelperk_get_view(api_client, access_token):
+def test_travelperk_get_view(api_client, access_token, get_org_id, get_travelperk_id):
     """
     Test Get of Travelperk
     """
     url = reverse('travelperk',
         kwargs={
-                'org_id': 1,
+                'org_id': get_org_id,
             }
     )
 
@@ -40,7 +40,7 @@ def test_travelperk_get_view(api_client, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_folder_view(api_client, mocker, access_token, get_org_id):
+def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_travelperk_id):
     """
     Test Post Of Folder
     """
@@ -84,14 +84,14 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_package(api_client, mocker, access_token):
+def test_post_package(api_client, mocker, access_token, get_org_id, get_travelperk_id):
     """
     Test Posting Package in Workato
     """
     
     url = reverse('travelperk-package',
         kwargs={
-            'org_id': 1
+            'org_id': get_org_id
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -126,19 +126,19 @@ def test_post_package(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_get_configuration_view(api_client, mocker, access_token):
+def test_get_configuration_view(api_client, mocker, access_token, get_org_id, get_travelperk_id):
     """
     Test Get Configuration View
     """
 
     url = reverse('travelperk-configuration',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    response = api_client.get(url, {'org_id': '1'})
+    response = api_client.get(url, {'org_id': str(get_org_id)})
     assert response.status_code == 200
 
     response = json.loads(response.content)
@@ -152,21 +152,21 @@ def test_get_configuration_view(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_aws_connection(api_client, mocker, access_token):
+def test_aws_connection(api_client, mocker, access_token, get_org_id, get_travelperk_id):
     """
     Test Creating AWS S3 Connection In Workato
     """
 
     url = reverse('s3-connection',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
     with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
+        assert response.data['message'] == {'message': 'something wrong happened'}
         assert response.status_code == 400
 
     mocker.patch(
@@ -175,8 +175,8 @@ def test_aws_connection(api_client, mocker, access_token):
     )
 
     response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error Creating AWS Connection in Recipe'
+    assert response.status_code == 500
+    assert response.data['message'] == 'Something went wrong'
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -189,8 +189,8 @@ def test_aws_connection(api_client, mocker, access_token):
     )
 
     response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data == {'message': 'connection failed'}
+    assert response.status_code == 500
+    assert response.data == {'message': 'failed', 'authorization_status': 'failed'}
 
     mocker.patch(
         'workato.workato.Connections.put',
@@ -211,7 +211,7 @@ def test_post_configuration_view(api_client, mocker, access_token, get_org_id):
 
     url = reverse('travelperk-configuration',
         kwargs={
-            'org_id': 7,
+            'org_id': get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -234,11 +234,11 @@ def test_post_configuration_view(api_client, mocker, access_token, get_org_id):
     assert response.data['recipe_id'] == '3545113'
 
 @pytest.mark.django_db(databases=['default'])
-def test_recipe_status_view(api_client, access_token, mocker):
+def test_recipe_status_view(api_client, access_token, mocker, get_org_id, get_travelperk_id):
 
     url = reverse('recipe-status-view',
         kwargs={
-            'org_id': 1,
+            'org_id': get_org_id,
         }
     )    
 
@@ -254,13 +254,13 @@ def test_recipe_status_view(api_client, access_token, mocker):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_fyle_connection(api_client, mocker, access_token):
+def test_fyle_connection(api_client, mocker, access_token, get_org_id, get_travelperk_id):
     """
     Test Creating Fyle Connection In Workato
     """
     url = reverse('fyle-travelperk-connection',
         kwargs={
-            'org_id': 1,
+            'org_id': get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))

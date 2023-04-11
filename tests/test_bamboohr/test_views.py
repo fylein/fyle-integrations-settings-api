@@ -9,14 +9,14 @@ from tests.helper import dict_compare_keys
 from .fixtures import fixture
 
 @pytest.mark.django_db(databases=['default'])
-def test_bamboohr_get_view(api_client, mocker, access_token):
+def test_bamboohr_get_view(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
     """
     Test Get of Orgs
     """
 
     url = reverse('bamboohr',
         kwargs={
-                'org_id': 1,
+                'org_id': get_org_id,
             }
     )
 
@@ -41,14 +41,14 @@ def test_bamboohr_get_view(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_folder_view(api_client, mocker, access_token):
+def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
     """
     Test Post Of Folder
     """
 
     url = reverse('folder',
         kwargs={
-                'org_id': 1,
+                'org_id': get_org_id,
             }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -80,14 +80,14 @@ def test_post_folder_view(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_package(api_client, mocker, access_token):
+def test_post_package(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
     """
     Test Posting Package in Workato
     """
     
     url = reverse('package',
         kwargs={
-            'org_id': 1
+            'org_id': get_org_id
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -122,21 +122,21 @@ def test_post_package(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_bamboohr_connection(api_client, mocker, access_token):
+def test_bamboohr_connection(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
     """
     Test Creating Bamboohr Connection In Workato
     """
     
     url = reverse('bamboo-connection',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
     with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
+        assert response.data['message'] == {'message': 'something wrong happened'}
         assert response.status_code == 400
 
     mocker.patch(
@@ -152,8 +152,8 @@ def test_bamboohr_connection(api_client, mocker, access_token):
     }
     
     response = api_client.post(url, data, format='json')
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error Creating Bamboo HR Connection in Recipe'
+    assert response.status_code == 500
+    assert response.data['message'] == 'Something went wrong'
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -173,14 +173,14 @@ def test_bamboohr_connection(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_post_configuration_view(api_client, mocker, access_token):
+def test_post_configuration_view(api_client, mocker, access_token, get_org_id):
     """
     Test Post Configuration View
     """
 
     url = reverse('configuration',
         kwargs={
-            'org_id': 6,
+            'org_id': get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -195,7 +195,7 @@ def test_post_configuration_view(api_client, mocker, access_token):
     )
     response = api_client.post(url,
         {
-            "org": 6,
+            "org": get_org_id,
             "additional_email_options": {},
             "emails_selected": [
                 {
@@ -212,19 +212,19 @@ def test_post_configuration_view(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_get_configuration_view(api_client, mocker, access_token):
+def test_get_configuration_view(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
     """
     Test Get Configuration View
     """
 
     url = reverse('configuration',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    response = api_client.get(url, {'org_id': '1'})
+    response = api_client.get(url, {'org_id': str(get_org_id)})
     assert response.status_code == 200
 
     response = json.loads(response.content)
@@ -238,14 +238,14 @@ def test_get_configuration_view(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_sync_employees_view(api_client, mocker, access_token):
+def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
     """
     Test Sync Of Employees In Workato
     """
 
     url = reverse('sync-employees',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -274,14 +274,14 @@ def test_sync_employees_view(api_client, mocker, access_token):
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_disconnect_view(api_client, mocker, access_token):
+def test_disconnect_view(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
     """
     Test Start and Stop Of Recipes In Workato
     """
 
     url = reverse('disconnect',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))

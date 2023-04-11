@@ -6,7 +6,7 @@ from apps.bamboohr.models import BambooHr
 from apps.orgs.actions import handle_managed_user_exception
 
 @pytest.mark.django_db(databases=['default'])
-def test_handle_managed_user_exception(mocker, access_token):
+def test_handle_managed_user_exception(mocker, access_token, get_org_id, get_bamboohr_id):
     
     mocker.patch(
         'workato.workato.ManagedUser.get_by_id',
@@ -18,11 +18,11 @@ def test_handle_managed_user_exception(mocker, access_token):
         return_value={'result': [{'id': 1234}]}
     )
 
-    org = Org.objects.get(id=1)
+    org = Org.objects.get(id=get_org_id)
     handle_managed_user_exception(org)
     
-    org = Org.objects.get(id=1)
-    bamboo = BambooHr.objects.get(org_id=1)
+    org = Org.objects.get(id=get_org_id)
+    bamboo = BambooHr.objects.filter(org=org).first()
 
 
     assert org.managed_user_id == '123'

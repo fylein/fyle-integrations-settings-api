@@ -86,7 +86,8 @@ class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
                 managed_user,
                 status=status.HTTP_200_OK
             )
-
+        return managed_user
+    
         return Response(
             data={'message': 'Managed User Not Created'},
             status=status.HTTP_400_BAD_REQUEST
@@ -109,7 +110,7 @@ class FyleConnection(generics.CreateAPIView):
         }
 
         # Creating Fyle Connection In Workato COMMON_CONNECTIONS['fyle']
-        connection = create_connection_in_workato(org.id, 'FYLE', org.managed_user_id, data)
+        connection = create_connection_in_workato(org.id, COMMON_CONNECTIONS['fyle'], org.managed_user_id, data)
 
         if 'authorization_status' in connection and connection['authorization_status'] == 'success':
             org.is_fyle_connected = True
@@ -119,7 +120,13 @@ class FyleConnection(generics.CreateAPIView):
                 connection,
                 status=status.HTTP_200_OK
             )
-
+        elif  'authorization_status' in connection:
+            return Response(
+                connection,
+                status = status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        return connection
         return Response(
             data={'message': 'connection failed'},
             status=status.HTTP_400_BAD_REQUEST
@@ -152,6 +159,13 @@ class SendgridConnection(generics.CreateAPIView):
                 status=status.HTTP_200_OK
             )
 
+        elif 'authorization_status' in connection:
+            return Response(
+                connection,
+                status = 500
+            )
+        
+        return connection
         return Response(
             data={'message': 'connection failed'},
             status=status.HTTP_400_BAD_REQUEST

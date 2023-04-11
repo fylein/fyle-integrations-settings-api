@@ -170,7 +170,11 @@ class AwsS3Connection(generics.CreateAPIView):
                 connection,
                 status=status.HTTP_200_OK
             )
-
+    
+        elif 'authorization_status' in connection:
+            return Response(connection, status = 500)
+        
+        return connection
         return Response(
             data={'message': 'connection failed'},
             status=status.HTTP_400_BAD_REQUEST
