@@ -168,10 +168,6 @@ class BambooHrConnection(generics.CreateAPIView):
                 status=status.HTTP_200_OK
             )
         return bamboo_connection
-        return Response(
-            data={'message': 'connection failed'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
 
 
 class BambooHrConfigurationView(generics.ListCreateAPIView):

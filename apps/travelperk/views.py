@@ -175,10 +175,6 @@ class AwsS3Connection(generics.CreateAPIView):
             return Response(connection, status = 500)
         
         return connection
-        return Response(
-            data={'message': 'connection failed'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
 
 
 class TravekPerkConfigurationView(generics.ListCreateAPIView):

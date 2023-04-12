@@ -127,10 +127,6 @@ class FyleConnection(generics.CreateAPIView):
             )
         
         return connection
-        return Response(
-            data={'message': 'connection failed'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
 
 
 class SendgridConnection(generics.CreateAPIView):
@@ -166,10 +162,6 @@ class SendgridConnection(generics.CreateAPIView):
             )
         
         return connection
-        return Response(
-            data={'message': 'connection failed'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
 
 
 class WorkspaceAdminsView(generics.ListAPIView):
