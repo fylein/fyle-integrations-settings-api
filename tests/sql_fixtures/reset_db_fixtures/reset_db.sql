@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.6 (Homebrew)
--- Dumped by pg_dump version 14.6 (Homebrew)
+-- Dumped from database version 14.7 (Debian 14.7-1.pgdg110+1)
+-- Dumped by pg_dump version 15.2 (Debian 15.2-1.pgdg100+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -15,6 +15,15 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+ALTER SCHEMA public OWNER TO postgres;
 
 SET default_tablespace = '';
 
@@ -402,6 +411,84 @@ ALTER SEQUENCE public.fyle_rest_auth_authtokens_id_seq OWNED BY public.auth_toke
 
 
 --
+-- Name: gusto; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.gusto (
+    id integer NOT NULL,
+    connection_id character varying(100),
+    folder_id character varying(255),
+    package_id character varying(255),
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
+    org_id integer NOT NULL
+);
+
+
+ALTER TABLE public.gusto OWNER TO postgres;
+
+--
+-- Name: gusto_configurations; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.gusto_configurations (
+    id integer NOT NULL,
+    recipe_id character varying(255),
+    recipe_data text,
+    recipe_status boolean,
+    additional_email_options jsonb,
+    emails_selected jsonb,
+    org_id integer NOT NULL
+);
+
+
+ALTER TABLE public.gusto_configurations OWNER TO postgres;
+
+--
+-- Name: gusto_configurations_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.gusto_configurations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.gusto_configurations_id_seq OWNER TO postgres;
+
+--
+-- Name: gusto_configurations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.gusto_configurations_id_seq OWNED BY public.gusto_configurations.id;
+
+
+--
+-- Name: gusto_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.gusto_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.gusto_id_seq OWNER TO postgres;
+
+--
+-- Name: gusto_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.gusto_id_seq OWNED BY public.gusto.id;
+
+
+--
 -- Name: orgs; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -414,7 +501,9 @@ CREATE TABLE public.orgs (
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     is_fyle_connected boolean,
-    is_sendgrid_connected boolean
+    is_sendgrid_connected boolean,
+    allow_gusto boolean NOT NULL,
+    allow_travelperk boolean NOT NULL
 );
 
 
@@ -485,7 +574,6 @@ CREATE TABLE public.travelperk (
     id integer NOT NULL,
     folder_id character varying(255),
     package_id character varying(255),
-    is_fyle_connected boolean,
     is_s3_connected boolean,
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
@@ -667,6 +755,20 @@ ALTER TABLE ONLY public.fyle_credentials ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: gusto id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.gusto ALTER COLUMN id SET DEFAULT nextval('public.gusto_id_seq'::regclass);
+
+
+--
+-- Name: gusto_configurations id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.gusto_configurations ALTER COLUMN id SET DEFAULT nextval('public.gusto_configurations_id_seq'::regclass);
+
+
+--
 -- Name: orgs id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -778,6 +880,14 @@ COPY public.auth_permission (id, name, content_type_id, codename) FROM stdin;
 54	Can change travel perk configuration	13	change_travelperkconfiguration
 55	Can delete travel perk configuration	13	delete_travelperkconfiguration
 56	Can view travel perk configuration	13	view_travelperkconfiguration
+57	Can add gusto configuration	14	add_gustoconfiguration
+58	Can change gusto configuration	14	change_gustoconfiguration
+59	Can delete gusto configuration	14	delete_gustoconfiguration
+60	Can view gusto configuration	14	view_gustoconfiguration
+61	Can add gusto	15	add_gusto
+62	Can change gusto	15	change_gusto
+63	Can delete gusto	15	delete_gusto
+64	Can view gusto	15	view_gusto
 \.
 
 
@@ -794,7 +904,7 @@ COPY public.auth_tokens (id, refresh_token, user_id) FROM stdin;
 --
 
 COPY public.bamboohr (id, folder_id, package_id, api_token, sub_domain, created_at, updated_at, org_id) FROM stdin;
-1	163	112	dummy	dummy	2022-12-06 14:42:38.724679+05:30	2022-12-06 14:43:33.008685+05:30	1
+1	163	112	dummy	dummy	2022-12-06 09:12:38.724679+00	2022-12-06 09:13:33.008685+00	1
 \.
 
 
@@ -833,6 +943,8 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 9	bamboohr	bamboohrconfiguration
 12	travelperk	travelperk
 13	travelperk	travelperkconfiguration
+14	gusto	gustoconfiguration
+15	gusto	gusto
 \.
 
 
@@ -841,39 +953,42 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 --
 
 COPY public.django_migrations (id, app, name, applied) FROM stdin;
-1	users	0001_initial	2022-12-06 14:32:18.022273+05:30
-2	contenttypes	0001_initial	2022-12-06 14:32:18.034756+05:30
-3	admin	0001_initial	2022-12-06 14:32:18.048041+05:30
-4	admin	0002_logentry_remove_auto_add	2022-12-06 14:32:18.065884+05:30
-5	admin	0003_logentry_add_action_flag_choices	2022-12-06 14:32:18.069645+05:30
-6	contenttypes	0002_remove_content_type_name	2022-12-06 14:32:18.081797+05:30
-7	auth	0001_initial	2022-12-06 14:32:18.10736+05:30
-8	auth	0002_alter_permission_name_max_length	2022-12-06 14:32:18.134234+05:30
-9	auth	0003_alter_user_email_max_length	2022-12-06 14:32:18.138514+05:30
-10	auth	0004_alter_user_username_opts	2022-12-06 14:32:18.142935+05:30
-11	auth	0005_alter_user_last_login_null	2022-12-06 14:32:18.148892+05:30
-12	auth	0006_require_contenttypes_0002	2022-12-06 14:32:18.151058+05:30
-13	auth	0007_alter_validators_add_error_messages	2022-12-06 14:32:18.155629+05:30
-14	auth	0008_alter_user_username_max_length	2022-12-06 14:32:18.16014+05:30
-15	auth	0009_alter_user_last_name_max_length	2022-12-06 14:32:18.164688+05:30
-16	auth	0010_alter_group_name_max_length	2022-12-06 14:32:18.174758+05:30
-17	auth	0011_update_proxy_permissions	2022-12-06 14:32:18.180157+05:30
-18	auth	0012_alter_user_first_name_max_length	2022-12-06 14:32:18.184402+05:30
-19	orgs	0001_initial	2022-12-06 14:32:18.215468+05:30
-20	bamboohr	0001_initial	2022-12-06 14:32:18.246728+05:30
-21	bamboohr	0002_configuration	2022-12-06 14:32:18.264679+05:30
-22	fyle_rest_auth	0001_initial	2022-12-06 14:32:18.28398+05:30
-23	fyle_rest_auth	0002_auto_20200101_1205	2022-12-06 14:32:18.346245+05:30
-24	fyle_rest_auth	0003_auto_20200107_0921	2022-12-06 14:32:18.363352+05:30
-25	fyle_rest_auth	0004_auto_20200107_1345	2022-12-06 14:32:18.37859+05:30
-26	fyle_rest_auth	0005_remove_authtoken_access_token	2022-12-06 14:32:18.383442+05:30
-27	fyle_rest_auth	0006_auto_20201221_0849	2022-12-06 14:32:18.388297+05:30
-28	sessions	0001_initial	2022-12-06 14:32:18.39665+05:30
-29	bamboohr	0003_auto_20221212_1052	2022-12-19 17:31:54.513271+05:30
-30	orgs	0002_auto_20221219_1044	2022-12-19 17:31:54.528076+05:30
-31	bamboohr	0004_auto_20221220_0935	2022-12-21 01:31:46.786736+05:30
-32	travelperk	0001_initial	2023-01-23 15:54:48.169439+05:30
-33	travelperk	0002_travelperk_travelperk_connection_id	2023-03-16 13:40:10.326912+05:30
+1	users	0001_initial	2022-12-06 09:02:18.022273+00
+2	contenttypes	0001_initial	2022-12-06 09:02:18.034756+00
+3	admin	0001_initial	2022-12-06 09:02:18.048041+00
+4	admin	0002_logentry_remove_auto_add	2022-12-06 09:02:18.065884+00
+5	admin	0003_logentry_add_action_flag_choices	2022-12-06 09:02:18.069645+00
+6	contenttypes	0002_remove_content_type_name	2022-12-06 09:02:18.081797+00
+7	auth	0001_initial	2022-12-06 09:02:18.10736+00
+8	auth	0002_alter_permission_name_max_length	2022-12-06 09:02:18.134234+00
+9	auth	0003_alter_user_email_max_length	2022-12-06 09:02:18.138514+00
+10	auth	0004_alter_user_username_opts	2022-12-06 09:02:18.142935+00
+11	auth	0005_alter_user_last_login_null	2022-12-06 09:02:18.148892+00
+12	auth	0006_require_contenttypes_0002	2022-12-06 09:02:18.151058+00
+13	auth	0007_alter_validators_add_error_messages	2022-12-06 09:02:18.155629+00
+14	auth	0008_alter_user_username_max_length	2022-12-06 09:02:18.16014+00
+15	auth	0009_alter_user_last_name_max_length	2022-12-06 09:02:18.164688+00
+16	auth	0010_alter_group_name_max_length	2022-12-06 09:02:18.174758+00
+17	auth	0011_update_proxy_permissions	2022-12-06 09:02:18.180157+00
+18	auth	0012_alter_user_first_name_max_length	2022-12-06 09:02:18.184402+00
+19	orgs	0001_initial	2022-12-06 09:02:18.215468+00
+20	bamboohr	0001_initial	2022-12-06 09:02:18.246728+00
+21	bamboohr	0002_configuration	2022-12-06 09:02:18.264679+00
+22	fyle_rest_auth	0001_initial	2022-12-06 09:02:18.28398+00
+23	fyle_rest_auth	0002_auto_20200101_1205	2022-12-06 09:02:18.346245+00
+24	fyle_rest_auth	0003_auto_20200107_0921	2022-12-06 09:02:18.363352+00
+25	fyle_rest_auth	0004_auto_20200107_1345	2022-12-06 09:02:18.37859+00
+26	fyle_rest_auth	0005_remove_authtoken_access_token	2022-12-06 09:02:18.383442+00
+27	fyle_rest_auth	0006_auto_20201221_0849	2022-12-06 09:02:18.388297+00
+28	sessions	0001_initial	2022-12-06 09:02:18.39665+00
+29	bamboohr	0003_auto_20221212_1052	2022-12-19 12:01:54.513271+00
+30	orgs	0002_auto_20221219_1044	2022-12-19 12:01:54.528076+00
+31	bamboohr	0004_auto_20221220_0935	2022-12-20 20:01:46.786736+00
+32	travelperk	0001_initial	2023-01-23 10:24:48.169439+00
+33	travelperk	0002_travelperk_travelperk_connection_id	2023-03-16 08:10:10.326912+00
+34	gusto	0001_initial	2023-04-13 19:14:49.430122+00
+35	orgs	0003_auto_20230413_1833	2023-04-13 19:14:49.528802+00
+36	travelperk	0003_remove_travelperk_is_fyle_connected	2023-04-13 19:14:49.593957+00
 \.
 
 
@@ -894,11 +1009,27 @@ COPY public.fyle_credentials (id, refresh_token, created_at, updated_at, org_id)
 
 
 --
+-- Data for Name: gusto; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.gusto (id, connection_id, folder_id, package_id, created_at, updated_at, org_id) FROM stdin;
+\.
+
+
+--
+-- Data for Name: gusto_configurations; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.gusto_configurations (id, recipe_id, recipe_data, recipe_status, additional_email_options, emails_selected, org_id) FROM stdin;
+\.
+
+
+--
 -- Data for Name: orgs; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.orgs (id, name, fyle_org_id, managed_user_id, cluster_domain, created_at, updated_at, is_fyle_connected, is_sendgrid_connected) FROM stdin;
-1	Fyle For NetSuite Projects Customers	orf7jLXaJ6SY	12312	https://staging.fyle.tech	2022-12-06 14:37:20.620757+05:30	2022-12-06 14:38:17.03424+05:30	\N	\N
+COPY public.orgs (id, name, fyle_org_id, managed_user_id, cluster_domain, created_at, updated_at, is_fyle_connected, is_sendgrid_connected, allow_gusto, allow_travelperk) FROM stdin;
+1	Fyle For NetSuite Projects Customers	orf7jLXaJ6SY	12312	https://staging.fyle.tech	2022-12-06 09:07:20.620757+00	2022-12-06 09:08:17.03424+00	\N	\N	f	f
 \.
 
 
@@ -915,8 +1046,8 @@ COPY public.orgs_user (id, org_id, user_id) FROM stdin;
 -- Data for Name: travelperk; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.travelperk (id, folder_id, package_id, is_fyle_connected, is_s3_connected, created_at, updated_at, org_id, travelperk_connection_id) FROM stdin;
-8	162	111	\N	\N	2022-12-06 14:42:38.724679+05:30	2022-12-06 14:43:33.008685+05:30	1	\N
+COPY public.travelperk (id, folder_id, package_id, is_s3_connected, created_at, updated_at, org_id, travelperk_connection_id) FROM stdin;
+8	162	111	\N	2022-12-06 09:12:38.724679+00	2022-12-06 09:13:33.008685+00	1	\N
 \.
 
 
@@ -956,7 +1087,7 @@ SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.auth_permission_id_seq', 56, true);
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 64, true);
 
 
 --
@@ -984,14 +1115,14 @@ SELECT pg_catalog.setval('public.django_admin_log_id_seq', 1, false);
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_content_type_id_seq', 13, true);
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 15, true);
 
 
 --
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 33, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 36, true);
 
 
 --
@@ -1006,6 +1137,20 @@ SELECT pg_catalog.setval('public.fyle_credentials_id_seq', 1, true);
 --
 
 SELECT pg_catalog.setval('public.fyle_rest_auth_authtokens_id_seq', 1, true);
+
+
+--
+-- Name: gusto_configurations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.gusto_configurations_id_seq', 1, false);
+
+
+--
+-- Name: gusto_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.gusto_id_seq', 1, false);
 
 
 --
@@ -1193,6 +1338,38 @@ ALTER TABLE ONLY public.auth_tokens
 
 ALTER TABLE ONLY public.auth_tokens
     ADD CONSTRAINT fyle_rest_auth_authtokens_user_id_3b4bd82e_uniq UNIQUE (user_id);
+
+
+--
+-- Name: gusto_configurations gusto_configurations_org_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.gusto_configurations
+    ADD CONSTRAINT gusto_configurations_org_id_key UNIQUE (org_id);
+
+
+--
+-- Name: gusto_configurations gusto_configurations_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.gusto_configurations
+    ADD CONSTRAINT gusto_configurations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: gusto gusto_org_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.gusto
+    ADD CONSTRAINT gusto_org_id_key UNIQUE (org_id);
+
+
+--
+-- Name: gusto gusto_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.gusto
+    ADD CONSTRAINT gusto_pkey PRIMARY KEY (id);
 
 
 --
@@ -1432,6 +1609,22 @@ ALTER TABLE ONLY public.auth_tokens
 
 
 --
+-- Name: gusto_configurations gusto_configurations_org_id_3bf9491b_fk_orgs_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.gusto_configurations
+    ADD CONSTRAINT gusto_configurations_org_id_3bf9491b_fk_orgs_id FOREIGN KEY (org_id) REFERENCES public.orgs(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: gusto gusto_org_id_980c9628_fk_orgs_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.gusto
+    ADD CONSTRAINT gusto_org_id_980c9628_fk_orgs_id FOREIGN KEY (org_id) REFERENCES public.orgs(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
 -- Name: orgs_user orgs_user_org_id_b1e1cc06_fk_orgs_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1464,6 +1657,13 @@ ALTER TABLE ONLY public.travelperk
 
 
 --
--- PostgreSQL database dump complete
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
 --
 
+REVOKE USAGE ON SCHEMA public FROM PUBLIC;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
