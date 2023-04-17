@@ -167,6 +167,11 @@ class BambooHrConnection(generics.CreateAPIView):
                 data=bamboo_sync_connection,
                 status=status.HTTP_200_OK
             )
+        elif 'authorization_status' in bamboo_connection:
+            return Response(
+                bamboo_connection,
+                status = status.HTTP_400_BAD_REQUEST
+            )
         return bamboo_connection
 
 
