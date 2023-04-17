@@ -236,7 +236,7 @@ class RecipeStatusView(generics.UpdateAPIView):
 
         if recipe_status == False:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
-            connector.connections.post(configuration.org.managed_user_id, travelperk.connection_id)
+            connector.connections.post(configuration.org.managed_user_id, travelperk.travelperk_connection_id)
         else:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
 
