@@ -16,6 +16,8 @@ import sys
 
 import dj_database_url
 
+from .sentry import Sentry
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -234,6 +236,9 @@ WORKATO_FRAME_ANCESTORS_URL = os.environ.get('WORKATO_FRAME_ANCESTORS_URL')
 FYLE_NOTIFICATIONS_EMAIL = os.environ.get('FYLE_NOTIFICATIONS_EMAIL')
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+# Sentry
+Sentry.init()
 
 CORS_ALLOW_HEADERS = [
     'sentry-trace',
