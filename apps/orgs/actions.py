@@ -147,3 +147,22 @@ def upload_properties(managed_user_id: int, payload):
     connector = Workato()
     properties = connector.properties.post(managed_user_id, payload)
     return properties
+
+@handle_workato_exception(task_name = 'Post Folder in Workato')
+def post_folder(org_id, folder_name):
+    connector = Workato()
+    org = Org.objects.filter(id=org_id).first()
+    folder = connector.folders.post(org.managed_user_id, folder_name)
+    return folder
+
+@handle_workato_exception(task_name = 'Post Package in Workato')
+def post_package(org_id, folder_id, package_path):
+    connector = Workato()
+    org = Org.objects.filter(id=org_id).first()
+    package = connector.packages.post(org.managed_user_id, folder_id, package_path)
+    polling.poll(
+        lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
+        step=5,
+        timeout=50
+    )
+    return package

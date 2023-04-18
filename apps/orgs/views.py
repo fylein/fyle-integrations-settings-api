@@ -1,7 +1,5 @@
 
 import logging
-import traceback
-
 
 from rest_framework.response import Response
 from rest_framework.views import status
@@ -14,7 +12,7 @@ from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User
 from apps.orgs.actions import get_admin_employees, create_connection_in_workato, \
         create_managed_user_and_set_properties
-from apps.orgs.actions import get_admin_employees, handle_managed_user_exception
+from apps.orgs.actions import get_admin_employees
 from .utils import get_signed_api_key
 from apps.names import *
 
@@ -83,15 +81,11 @@ class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
 
         if 'id' in managed_user:
             return Response(
-                managed_user,
+                data=managed_user,
                 status=status.HTTP_200_OK
             )
+        
         return managed_user
-    
-        return Response(
-            data={'message': 'Managed User Not Created'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
 
 
 class FyleConnection(generics.CreateAPIView):
@@ -117,12 +111,12 @@ class FyleConnection(generics.CreateAPIView):
             org.save()
 
             return Response(
-                connection,
+                data=connection,
                 status=status.HTTP_200_OK
             )
         elif  'authorization_status' in connection:
             return Response(
-                connection,
+                data=connection,
                 status = status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
@@ -151,14 +145,14 @@ class SendgridConnection(generics.CreateAPIView):
             org.save()
 
             return Response(
-                connection,
+                data=connection,
                 status=status.HTTP_200_OK
             )
 
         elif 'authorization_status' in connection:
             return Response(
-                connection,
-                status = 500
+                data=connection,
+                status = status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         
         return connection
@@ -181,19 +175,9 @@ class WorkspaceAdminsView(generics.ListAPIView):
 
 class GenerateToken(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
-        try:
-            managed_user_id = self.request.query_params.get('managed_user_id')
-            token = get_signed_api_key(managed_user_id)
-            return Response(
-                data={'token':token},
-                status=status.HTTP_200_OK
-            )
-        except Exception as e:
-            error = traceback.format_exc()
-            logger.error('Error while generating token %s', error)
-            return Response(
-                data={
-                    'message': 'Error Creating the Token'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        managed_user_id = self.request.query_params.get('managed_user_id')
+        token = get_signed_api_key(managed_user_id)
+        return Response(
+            data={'token':token},
+            status=status.HTTP_200_OK
+        )

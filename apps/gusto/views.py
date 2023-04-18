@@ -13,6 +13,7 @@ from rest_framework import generics
 from workato import Workato
 from workato.exceptions import *
 from apps.orgs.models import Org
+from apps.orgs.actions import post_folder, post_package
 from apps.gusto.models import Gusto, GustoConfiguration
 from apps.gusto.serializers import GustoSerializer, GustoConfigurationSerializer
 from apps.gusto.utils import set_gusto_properties
@@ -45,44 +46,24 @@ class PostFolder(generics.CreateAPIView):
     serializer_class = GustoSerializer
 
     def post(self, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
-        try:
-            set_gusto_properties(org.managed_user_id)
+        set_gusto_properties(org.managed_user_id)
+        folder = post_folder(
+            org_id = kwargs['org_id'],
+            folder_name='Gusto'
+        )
+        gusto, _ = Gusto.objects.update_or_create(
+            org=org,
+            defaults={
+                'folder_id': folder['id']
+            }
+        )
 
-            folder = connector.folders.post(org.managed_user_id, 'Gusto')
-            gusto, _ = Gusto.objects.update_or_create(
-                org=org,
-                defaults={
-                    'folder_id': folder['id']
-                }
-            )
-
-            return Response(
-                data=GustoSerializer(gusto).data,
-                status=status.HTTP_200_OK
-            )
-
-        except BadRequestError as exception:
-            logger.error(
-                'Error while posting folder to workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Creating Folder'
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        return Response(
+            data=GustoSerializer(gusto).data,
+            status=status.HTTP_200_OK
+        )
 
 class PostPackage(generics.CreateAPIView):
     """
@@ -90,50 +71,23 @@ class PostPackage(generics.CreateAPIView):
     """
 
     def post(self, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
         gusto = Gusto.objects.filter(org__id=org.id).first()
 
-        try:
-            package = connector.packages.post(org.managed_user_id, gusto.folder_id, 'assets/gusto.zip')
-            
-            # post package is an async request, polling to get the status of the package
-            polling.poll(
-                lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
-                step=5,
-                timeout=50
-            )
-            gusto.package_id = package['id']
-            gusto.save()
-    
-            return Response(
-                data={
-                    'message': 'package uploaded successfully',
-                },
-                status=status.HTTP_200_OK
-            )
+        package = post_package(
+            org_id=kwargs['org_id'],
+            folder_id=gusto.folder_id,
+            package_path='assets/gusto.zip'
+        )
+        gusto.package_id = package['id']
+        gusto.save()
 
-        except BadRequestError as exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            logger.error(
-                'Error while posting Gusto package to workato for org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Uploading Package'
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        return Response(
+            data={
+                'message': 'package uploaded successfully',
+            },
+            status=status.HTTP_200_OK
+        )
 
 class GustoConfigurationView(generics.ListCreateAPIView):
 

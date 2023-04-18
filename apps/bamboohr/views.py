@@ -15,7 +15,7 @@ from rest_framework import generics
 from workato import Workato
 from workato.exceptions import *
 from apps.orgs.models import Org
-from apps.orgs.actions import create_connection_in_workato
+from apps.orgs.actions import create_connection_in_workato, post_folder, post_package
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
 from apps.names import BAMBOO_HR
@@ -47,42 +47,23 @@ class PostFolder(generics.CreateAPIView):
     serializer_class = BambooHrSerializer
 
     def post(self, request, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
-        try:
-            folder = connector.folders.post(org.managed_user_id, 'Bamboo HR')
-            bamboohr, _ = BambooHr.objects.update_or_create(
-                org=org,
-                defaults={
-                    'folder_id': folder['id']
-                }
-            )
+        folder = post_folder(
+            org_id=kwargs['org_id'],
+            folder_name='Bamboo HR'
+        )
+        bamboohr, _ = BambooHr.objects.update_or_create(
+            org=org,
+            defaults={
+                'folder_id': folder['id']
+            }
+        )
 
-            return Response(
-                data=BambooHrSerializer(bamboohr).data,
-                status=status.HTTP_200_OK
-            )
-
-        except BadRequestError as exception:
-            logger.error(
-                'Error while posting folder to workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Creating Folder'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data=BambooHrSerializer(bamboohr).data,
+            status=status.HTTP_200_OK
+        )
 
 class PostPackage(generics.CreateAPIView):
     """
@@ -90,50 +71,24 @@ class PostPackage(generics.CreateAPIView):
     """
 
     def post(self, request, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
         bamboohr = BambooHr.objects.filter(org__id=org.id).first()
 
-        try:
-            package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/bamboohr_package.zip')
-            
-            # post package is an async request, polling to get the status of the package
-            polling.poll(
-                lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
-                step=5,
-                timeout=50
-            )
-            bamboohr.package_id = package['id']
-            bamboohr.save()
-    
-            return Response(
-                data={
-                    'message': 'package uploaded successfully',
-                },
-                status=status.HTTP_200_OK
-            )
+        package = post_package(
+            org_id=kwargs['org_id'],
+            folder_id=bamboohr.folder_id,
+            package_path='assets/bamboohr_package.zip'
+        )
+        bamboohr.package_id = package['id']
+        bamboohr.save()
 
-        except BadRequestError as exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            logger.error(
-                'Error while posting bamboo package to workato for org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data={
+                'message': 'package uploaded successfully',
+            },
+            status=status.HTTP_200_OK
+        )
 
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Uploading Package'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
 class BambooHrConnection(generics.CreateAPIView):
     """
