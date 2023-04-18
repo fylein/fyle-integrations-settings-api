@@ -211,12 +211,14 @@ class RecipeStatusView(generics.UpdateAPIView):
         connector = Workato()
         recipe_status = request.data.get('recipe_status')
 
+        travelperk: TravelPerk = TravelPerk.objects.get(org__id=kwargs['org_id'])
         configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.get(org__id=kwargs['org_id'])
         configuration.is_recipe_enabled = recipe_status
         configuration.save()
 
         if recipe_status == False:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
+            connector.connections.post(configuration.org.managed_user_id, travelperk.travelperk_connection_id)
         else:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
 
