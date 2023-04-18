@@ -1,1 +1,1 @@
-CREATE DATABASE admin_settings;
+CREATE DATABASE integrations_settings_db;

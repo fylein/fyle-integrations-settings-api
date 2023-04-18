@@ -11,7 +11,7 @@ from .fixtures import fixture
 from workato.exceptions import *
 from django.conf import settings
 import jwt
-
+from rest_framework.response import Response
 
 @pytest.mark.django_db(databases=['default'])
 def test_ready_view(api_client, mocker, access_token):
@@ -85,15 +85,21 @@ def test_create_managed_user_in_workato(api_client, mocker, access_token, get_or
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
     
     
-    with mock.patch('apps.orgs.views.create_managed_user_and_set_properties', side_effect=BadRequestError({'message': 'something wrong happened'})):
-        response = api_client.put(url)
-        assert response.data['message'] == 'something wrong happened'
-        assert response.status_code == 400
+    mocker.patch(
+        'workato.workato.ManagedUser.post', 
+        side_effect=BadRequestError({'message': 'something wrong happened'}),
+    )
+    response = api_client.put(url)
+    assert response.data['message'] == {'message': 'something wrong happened'}
+    assert response.status_code == 400
 
-    with mock.patch('apps.orgs.views.create_managed_user_and_set_properties', side_effect=InternalServerError({'message': 'internal server error'})):
-        response = api_client.put(url)
-        assert response.data['message'] == 'internal server error'
-        assert response.status_code == 500
+    mocker.patch(
+        'workato.workato.ManagedUser.post', 
+        side_effect=InternalServerError({'message': 'internal server error'})
+    )
+    response = api_client.put(url)
+    assert response.data['message'] == {'message': 'internal server error'}
+    assert response.status_code == 500
     
     mocker.patch(
         'workato.workato.ManagedUser.post',
@@ -102,8 +108,8 @@ def test_create_managed_user_in_workato(api_client, mocker, access_token, get_or
 
     response = api_client.put(url)
 
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error in Creating Workato Workspace'
+    assert response.status_code == 500
+    assert response.data['message'] == 'Something went wrong'
     
     mocker.patch(
         'workato.workato.ManagedUser.post',
@@ -144,10 +150,13 @@ def test_fyle_connection(api_client, mocker, access_token, get_org_id):
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
-        response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
-        assert response.status_code == 400
+    mocker.patch(
+        'workato.workato.Connections.get', 
+        side_effect=BadRequestError({'message': 'something wrong happened'})
+    )
+    response = api_client.post(url)
+    assert response.data['message'] == {'message': 'something wrong happened'}
+    assert response.status_code == 400
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -155,8 +164,8 @@ def test_fyle_connection(api_client, mocker, access_token, get_org_id):
     )
     
     response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error Creating Fyle Connection in Recipe'
+    assert response.status_code == 500
+    assert response.data['message'] == 'Something went wrong'
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -169,8 +178,8 @@ def test_fyle_connection(api_client, mocker, access_token, get_org_id):
     )
 
     response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data == {'message': 'connection failed'}
+    assert response.status_code == 500
+    assert response.data['message'] == 'failed'
 
     mocker.patch(
         'workato.workato.Connections.put',
@@ -194,10 +203,14 @@ def test_sendgrid_connection(api_client, mocker, access_token, get_org_id):
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
-        response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
-        assert response.status_code == 400
+    mocker.patch(
+        'workato.workato.Connections.get', 
+        side_effect=BadRequestError({'message': 'something wrong happened'})
+    )
+
+    response = api_client.post(url)
+    assert response.data['message'] == {'message': 'something wrong happened'}
+    assert response.status_code == 400
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -205,8 +218,8 @@ def test_sendgrid_connection(api_client, mocker, access_token, get_org_id):
     )
 
     response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error Creating Sendgrid Connection in Recipe'
+    assert response.status_code == 500
+    assert response.data['message'] == 'Something went wrong'
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -219,8 +232,8 @@ def test_sendgrid_connection(api_client, mocker, access_token, get_org_id):
     )
 
     response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data == {'message': 'connection failed'}
+    assert response.status_code == 500
+    assert response.data ==  {'authorization_status': 'failed', 'message': 'failed'}
 
     mocker.patch(
         'workato.workato.Connections.put',
@@ -233,13 +246,13 @@ def test_sendgrid_connection(api_client, mocker, access_token, get_org_id):
     assert response.data == {'message': 'success', 'authorization_status': 'success'}
 
 @pytest.mark.django_db(databases=['default'])
-def test_admin_view(api_client, mocker, access_token):
+def test_admin_view(api_client, mocker, access_token, get_org_id):
     """
     Test Admin View
     """
     url = reverse('admin-view',
         kwargs={
-            'org_id':1,
+            'org_id':get_org_id,
         }
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -253,11 +266,11 @@ def test_admin_view(api_client, mocker, access_token):
     assert response.data == [{ "email": "abc@ac.com", "name": "abc"}]
 
 @pytest.mark.django_db(databases=['default'])
-def test_generate_token(api_client, mocker, access_token):
+def test_generate_token(api_client, mocker, access_token, get_org_id):
     url = reverse(
         'generate-token',
         kwargs={
-            'org_id': 1
+            'org_id': get_org_id
         }
     )
     expected_token = "encoded_token"

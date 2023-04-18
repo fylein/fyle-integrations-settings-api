@@ -1,8 +1,8 @@
 
 import logging
-import traceback
 import polling
 
+from apps.orgs.exceptions import handle_workato_exception
 from fyle_rest_auth.models import AuthToken
 from django.conf import settings
 
@@ -44,7 +44,8 @@ def get_admin_employees(org_id, user):
     return admin_employees
     
 
-def create_connection_in_workato(connection_name, managed_user_id, data):
+@handle_workato_exception(task_name='Create Connection in Workato')
+def create_connection_in_workato(org_id, connection_name, managed_user_id, data):
     connector = Workato()
 
     # Getting all the connection and filtering out the connection by 
@@ -62,7 +63,8 @@ def create_connection_in_workato(connection_name, managed_user_id, data):
     return connection
 
 
-def create_managed_user_and_set_properties(org: Org):
+@handle_workato_exception(task_name='Create Managed User and Set Properties')
+def create_managed_user_and_set_properties(org_id, org: Org):
 
     # Function for Creating a Managed user in Workato
     connector = Workato()
@@ -113,61 +115,35 @@ def create_managed_user_and_set_properties(org: Org):
     return managed_user
 
 
+@handle_workato_exception(task_name='Handle Managed User Exception')
 def handle_managed_user_exception(org: Org):
 
-    try:
-        connector = Workato()
-        managed_user = connector.managed_users.get_by_id(org_id=org.fyle_org_id)
-        if managed_user:
-            org, _ = Org.objects.update_or_create(
-                fyle_org_id=org.fyle_org_id,
+    connector = Workato()
+    managed_user = connector.managed_users.get_by_id(org_id=org.fyle_org_id)
+    if managed_user:
+        org, _ = Org.objects.update_or_create(
+            fyle_org_id=org.fyle_org_id,
+            defaults={
+                'managed_user_id': managed_user['id']
+            }
+        )
+
+        folder = connector.folders.get(managed_user_id=managed_user['id'])['result']
+        if len(folder) > 0:
+            BambooHr.objects.update_or_create(
+                org_id=org.id,
                 defaults={
-                    'managed_user_id': managed_user['id']
+                    'folder_id': folder[0]['id']
                 }
             )
 
-            folder = connector.folders.get(managed_user_id=managed_user['id'])['result']
-            if len(folder) > 0:
-                BambooHr.objects.update_or_create(
-                    org_id=org.id,
-                    defaults={
-                        'folder_id': folder[0]['id']
-                    }
-                )
 
-    except NotFoundItemError as exception:
-        logger.info(
-            'Managed user id not found in Workato - %s',
-            exception.message
-        )  
-
-    except InternalServerError as exception:
-        logger.info(
-            'Error while creating Workato Workspace org_id - %s in Fyle %s',
-            org.id, exception.message
-        )  
-
-    except Exception:
-        error = traceback.format_exc()
-        logger.error(
-            'Something wrong happened with org_id - %s in Fyle %s',
-            org.id, error
-        )  
-
-
+@handle_workato_exception(task_name='Upload Properties')
 def upload_properties(managed_user_id: int, payload):
     """
     Funciton for uploading properties to workato
     """
 
-    try:
-        connector = Workato()
-        properties = connector.properties.post(managed_user_id, payload)
-        return properties
-
-    except Exception:
-        error = traceback.format_exc()
-        logger.error(
-            'Something wrong happened while uploading properties to workato for managed_user_id - %s %s',
-            managed_user_id, error
-        )
+    connector = Workato()
+    properties = connector.properties.post(managed_user_id, payload)
+    return properties
