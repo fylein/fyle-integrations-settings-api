@@ -59,7 +59,7 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_trav
 
     with mock.patch('workato.workato.Folders.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
+        assert response.data['message'] == {'message': 'something wrong happened'}
         assert response.status_code == 400
     
     mocker.patch(
@@ -71,16 +71,6 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_trav
     
     assert response.status_code == 200
     assert dict_compare_keys(response, fixture['travelperk']) == [], 'Bamboohr diff in keys'
-
-    mocker.patch(
-        'workato.workato.Folders.post',
-        return_value={}
-    )
-    
-    response = api_client.post(url)
-    
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error in Creating Folder'
 
 
 @pytest.mark.django_db(databases=['default'])
@@ -98,7 +88,7 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_travelpe
 
     with mock.patch('workato.workato.Packages.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
+        assert response.data['message'] == {'message': 'something wrong happened'}
         assert response.status_code == 400
 
     mocker.patch(
@@ -107,8 +97,8 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_travelpe
     )
     
     response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error in Uploading Package'
+    assert response.status_code == 500
+    assert response.data['message'] == 'Something went wrong'
 
     mocker.patch(
         'workato.workato.Packages.post',

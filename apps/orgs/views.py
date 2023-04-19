@@ -177,7 +177,9 @@ class GenerateToken(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         managed_user_id = self.request.query_params.get('managed_user_id')
         token = get_signed_api_key(managed_user_id)
-        return Response(
-            data={'token':token},
-            status=status.HTTP_200_OK
-        )
+        if isinstance(token, str):
+            return Response(
+                data={'token':token},
+                status=status.HTTP_200_OK
+            )
+        return token

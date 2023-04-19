@@ -15,6 +15,18 @@ from apps.orgs.models import Org, FyleCredential
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 
+
+@pytest.fixture(scope='session')
+def django_db_setup():
+    settings.DATABASES['default'] =  {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'admin_settings',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'db',
+        'PORT':5432,
+    }
+
 @pytest.fixture
 def api_client():
     return APIClient()

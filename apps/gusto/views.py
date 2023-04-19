@@ -53,6 +53,10 @@ class PostFolder(generics.CreateAPIView):
             org_id = kwargs['org_id'],
             folder_name='Gusto'
         )
+
+        if isinstance(folder, Response):
+            return folder
+        
         gusto, _ = Gusto.objects.update_or_create(
             org=org,
             defaults={
@@ -79,6 +83,10 @@ class PostPackage(generics.CreateAPIView):
             folder_id=gusto.folder_id,
             package_path='assets/gusto.zip'
         )
+
+        if isinstance(package, Response):
+            return package
+        
         gusto.package_id = package['id']
         gusto.save()
 

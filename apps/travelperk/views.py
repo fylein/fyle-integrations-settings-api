@@ -61,6 +61,9 @@ class PostFolder(generics.CreateAPIView):
             folder_name='Travelperk'
         )
 
+        if isinstance(folder, Response):
+            return folder
+        
         travelperk, _ = TravelPerk.objects.update_or_create(
             org=org,
             defaults={
@@ -87,9 +90,11 @@ class PostPackage(generics.CreateAPIView):
             folder_id=travelperk.folder_id,
             package_path='assets/travelperk.zip'
         )
+        if isinstance(package, Response):
+            return package
+        
         travelperk.package_id = package['id']
         travelperk.save()
-
         return Response(
             data={
                 'message': 'package uploaded successfully'

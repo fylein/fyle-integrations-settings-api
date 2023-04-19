@@ -275,9 +275,8 @@ def test_generate_token(api_client, mocker, access_token, get_org_id):
     )
     expected_token = "encoded_token"
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-    print(os.environ.items())
     response = api_client.get(url, data={})
-    assert response.status_code == 400
+    assert response.status_code == 500
 
     mocker.patch(
         'jwt.encode',

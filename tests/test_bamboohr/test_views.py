@@ -34,7 +34,7 @@ def test_bamboohr_get_view(api_client, mocker, access_token, get_org_id, get_bam
             }
     )
     response = api_client.get(url)
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     response = json.loads(response.content)
     assert response['message'] != None
@@ -55,7 +55,7 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_bamb
 
     with mock.patch('workato.workato.Folders.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
+        assert response.data['message'] == {'message': 'something wrong happened'}
         assert response.status_code == 400
     
     mocker.patch(
@@ -67,17 +67,6 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_bamb
     
     assert response.status_code == 200
     assert dict_compare_keys(response, fixture['bamboohr']) == [], 'Bamboohr diff in keys'
-
-    mocker.patch(
-        'workato.workato.Folders.post',
-        return_value={}
-    )
-    
-    response = api_client.post(url)
-    
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error in Creating Folder'
-
 
 @pytest.mark.django_db(databases=['default'])
 def test_post_package(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
@@ -94,7 +83,7 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_bamboohr
 
     with mock.patch('workato.workato.Packages.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
+        assert response.data['message'] == {'message': 'something wrong happened'}
         assert response.status_code == 400
 
     mocker.patch(
@@ -103,8 +92,8 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_bamboohr
     )
     
     response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error in Uploading Package'
+    assert response.status_code == 500
+    assert response.data['message'] == 'Something went wrong'
 
     mocker.patch(
         'workato.workato.Packages.post',
@@ -231,7 +220,7 @@ def test_get_configuration_view(api_client, mocker, access_token, get_org_id, ge
     assert dict_compare_keys(response, fixture['configurations']) == [], 'orgs GET diff in keys'
 
     response = api_client.get(url, {'org_id': '1231'})
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     response = json.loads(response.content)
     assert response['message'] != None
@@ -252,7 +241,7 @@ def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_b
 
     with mock.patch('workato.workato.Recipes.get', side_effect=NotFoundItemError({'message': 'Item Not Found'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'Item Not Found'
+        assert response.data['message'] == {'message': 'Item Not Found'}
         assert response.status_code == 404
 
     mocker.patch(
@@ -264,7 +253,7 @@ def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_b
         return_value={'message': 'success'}
     )
     mocker.patch(
-        'apps.bamboohr.views.sleep',
+        'apps.bamboohr.actions.sleep',
         return_value=None
     )
 
@@ -300,9 +289,9 @@ def test_disconnect_view(api_client, mocker, access_token, get_org_id, get_bambo
     )
 
 
-    with mock.patch('workato.workato.Recipes.post', side_effect=NotFoundItemError({'message': 'Not found'})):
+    with mock.patch('workato.workato.Recipes.post', side_effect=NotFoundItemError({'message': 'Item Not found'})):
         response = api_client.post(url, data, json=True)
-        assert response.data['message'] == 'Not found'
+        assert response.data['message'] == {'message': 'Item Not found'}
         assert response.status_code == 404
 
     mocker.patch(

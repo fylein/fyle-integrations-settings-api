@@ -40,6 +40,7 @@ def disconnect_bamboohr(org_id, configuration:BambooHrConfiguration, bamboohr: B
 @handle_workato_exception(task_name = 'Sync Employees of BambooHR')
 def sync_employees(org_id, config: BambooHrConfiguration):
     org = Org.objects.get(id = org_id)
+    connector = Workato()
     recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
     sync_recipe = next(recipe for recipe in recipes if recipe['name'] == BAMBOO_HR['recipe'])
     code = json.loads(sync_recipe['code'])
@@ -59,7 +60,6 @@ def sync_employees(org_id, config: BambooHrConfiguration):
             "folder_id": str(sync_recipe['folder_id'])
         }
     }
-    connector = Workato()
     connector.recipes.post(org.managed_user_id, sync_recipe['id'], payload)
     connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
     sleep(5)

@@ -45,6 +45,10 @@ class PostFolder(generics.CreateAPIView):
             org_id=kwargs['org_id'],
             folder_name='Bamboo HR'
         )
+
+        if isinstance(folder, Response):
+            return folder
+        
         bamboohr, _ = BambooHr.objects.update_or_create(
             org=org,
             defaults={
@@ -71,6 +75,10 @@ class PostPackage(generics.CreateAPIView):
             folder_id=bamboohr.folder_id,
             package_path='assets/bamboohr_package.zip'
         )
+
+        if isinstance(package, Response):
+            return package
+        
         bamboohr.package_id = package['id']
         bamboohr.save()
 
@@ -80,7 +88,6 @@ class PostPackage(generics.CreateAPIView):
             },
             status=status.HTTP_200_OK
         )
-
 
 class BambooHrConnection(generics.CreateAPIView):
     """
@@ -159,6 +166,9 @@ class DisconnectView(generics.CreateAPIView):
 
             connection = disconnect_bamboohr(kwargs['org_id'], configuration, bamboohr)
 
+            if isinstance(connection, Response):
+                return connection
+            
             return Response(
                 data=connection,
                 status=status.HTTP_200_OK
@@ -188,6 +198,10 @@ class SyncEmployeesView(generics.UpdateAPIView):
         try:
             config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
             sync_recipe = sync_employees(kwargs['org_id'], config)
+
+            if isinstance(sync_recipe, Response):
+                return sync_recipe
+            
             return Response(
                 data=sync_recipe,
                 status=status.HTTP_200_OK
