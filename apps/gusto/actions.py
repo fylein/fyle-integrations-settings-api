@@ -1,5 +1,4 @@
 import json
-from time import sleep
 from workato import Workato
 
 from django.conf import settings

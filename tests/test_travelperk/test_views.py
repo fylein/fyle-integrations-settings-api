@@ -257,7 +257,7 @@ def test_fyle_connection(api_client, mocker, access_token, get_org_id, get_trave
 
     with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
+        assert response.data['message'] == {'message': 'something wrong happened'}
         assert response.status_code == 400
 
     mocker.patch(
@@ -266,8 +266,8 @@ def test_fyle_connection(api_client, mocker, access_token, get_org_id, get_trave
     )
 
     response = api_client.post(url)
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error Creating Travelperk Connection in Recipe'
+    assert response.status_code == 500
+    assert response.data['message'] == 'Something went wrong'
 
     mocker.patch(
         'workato.workato.Connections.get',

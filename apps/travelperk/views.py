@@ -15,7 +15,7 @@ from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties, post_folder, post_package
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
-
+from apps.travelperk.actions import connect_travelperk
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -194,40 +194,12 @@ class TravelperkConnection(generics.ListCreateAPIView):
     """
 
     def post(self, request, *args, **kwargs):
+        connection_id = connect_travelperk(kwargs['org_id'])
 
-        org = Org.objects.get(id=kwargs['org_id'])
-        travelperk = TravelPerk.objects.get(org_id=org.id)
-        connector = Workato()
-        try:
-
-            # Creating travelperk Connection In Workato
-            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            connection_id = next(connection for connection in connections if connection['name'] == TRAVELPERK['connection'])['id']
-
-            travelperk.travelperk_connection_id = connection_id
-            travelperk.save()
-
-            return Response(
-                data={'message': {'connection_id': connection_id}},
-                status=status.HTTP_200_OK
-            )
-
-        except BadRequestError as exception:
-            logger.error(
-                'Error while creating Travelperk Connection in Workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        except Exception as exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error Creating Travelperk Connection in Recipe'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if isinstance(connection_id, Response):
+            return connection_id
+        
+        return Response(
+            data={'message': {'connection_id': connection_id}},
+            status=status.HTTP_200_OK
+        )
