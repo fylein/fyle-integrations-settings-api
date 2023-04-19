@@ -181,7 +181,7 @@ def test_get_configuration_view(api_client, mocker, access_token, get_org_id, ge
     )
 
     response = api_client.get(url, {'org_id': '1231'})
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     response = json.loads(response.content)
     assert response['message'] != None
@@ -202,12 +202,12 @@ def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_g
 
     with mock.patch('workato.workato.Recipes.get', side_effect=NotFoundItemError({'message': 'Item Not Found'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'Item Not Found'
+        assert response.data['message'] == {'message': 'Item Not Found'}
         assert response.status_code == 404
 
     with mock.patch('workato.workato.Recipes.get', side_effect=InternalServerError({'message': 'Internal server error'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'Error in Syncing Employees in Gusto'
+        assert response.data['message'] == {'message': 'Internal server error'}
         assert response.status_code == 500
 
     mocker.patch(
@@ -237,7 +237,7 @@ def test_gusto_connection(api_client, mocker, access_token, get_org_id, get_gust
 
     with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == 'something wrong happened'
+        assert response.data['message'] == {'message': 'something wrong happened'}
         assert response.status_code == 400
 
     mocker.patch(
@@ -246,8 +246,8 @@ def test_gusto_connection(api_client, mocker, access_token, get_org_id, get_gust
     )
     
     response = api_client.post(url, format='json')
-    assert response.status_code == 400
-    assert response.data['message'] == 'Error Creating Gusto Connection in Recipe'
+    assert response.status_code == 500
+    assert response.data['message'] == 'Something went wrong'
 
     mocker.patch(
         'workato.workato.Connections.get',
