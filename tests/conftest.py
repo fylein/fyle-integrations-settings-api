@@ -20,12 +20,13 @@ from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 def django_db_setup():
     settings.DATABASES['default'] =  {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'admin_settings',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'db',
-        'PORT':5432,
+        'NAME': os.environ['DB_NAME'],
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PASSWORD'],
+        'HOST': os.environ['DB_HOST'],
+        'PORT': os.environ['DB_PORT'],
     }
+    os.system('python3 manage.py migrate')
 
 @pytest.fixture
 def api_client():
