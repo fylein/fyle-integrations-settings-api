@@ -62,7 +62,7 @@ class OrgsView(generics.RetrieveUpdateAPIView):
         except Org.DoesNotExist:
             return Response(
                 data={'message': 'Org Not Found'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
     def get_object(self):
@@ -79,13 +79,15 @@ class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
         org = Org.objects.get(id=kwargs['org_id'])
         managed_user = create_managed_user_and_set_properties(kwargs['org_id'], org)
 
-        if 'id' in managed_user:
-            return Response(
-                data=managed_user,
-                status=status.HTTP_200_OK
-            )
+        # in case of an error response
+        if isinstance(managed_user, Response):
+            return managed_user
         
-        return managed_user
+        return Response(
+            data=managed_user,
+            status=status.HTTP_200_OK
+        )
+        
 
 
 class FyleConnection(generics.CreateAPIView):
@@ -106,21 +108,20 @@ class FyleConnection(generics.CreateAPIView):
         # Creating Fyle Connection In Workato COMMON_CONNECTIONS['fyle']
         connection = create_connection_in_workato(org.id, COMMON_CONNECTIONS['fyle'], org.managed_user_id, data)
 
+        # in case of an error response
+        if isinstance(connection, Response):
+            return connection
+        
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         if 'authorization_status' in connection and connection['authorization_status'] == 'success':
             org.is_fyle_connected = True
             org.save()
+            status_code = status.HTTP_200_OK
 
-            return Response(
-                data=connection,
-                status=status.HTTP_200_OK
-            )
-        elif  'authorization_status' in connection:
-            return Response(
-                data=connection,
-                status = status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        
-        return connection
+        return Response(
+            data=connection,
+            status=status_code
+        )
 
 
 class SendgridConnection(generics.CreateAPIView):
@@ -140,22 +141,20 @@ class SendgridConnection(generics.CreateAPIView):
         # Creating Fyle Sendgrid Connection
         connection = create_connection_in_workato(org.id, COMMON_CONNECTIONS['sendgrid'], org.managed_user_id, data)
 
+        # in case of an error response
+        if isinstance(connection, Response):
+            return connection
+        
+        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         if 'authorization_status' in connection and connection['authorization_status'] == 'success':
             org.is_sendgrid_connected = True
             org.save()
+            status_code = status.HTTP_200_OK
 
-            return Response(
-                data=connection,
-                status=status.HTTP_200_OK
-            )
-
-        elif 'authorization_status' in connection:
-            return Response(
-                data=connection,
-                status = status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        
-        return connection
+        return Response(
+            data=connection,
+            status=status_code
+        )
 
 
 class WorkspaceAdminsView(generics.ListAPIView):
@@ -177,9 +176,12 @@ class GenerateToken(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         managed_user_id = self.request.query_params.get('managed_user_id')
         token = get_signed_api_key(managed_user_id)
-        if isinstance(token, str):
-            return Response(
-                data={'token':token},
-                status=status.HTTP_200_OK
-            )
-        return token
+
+        # in case of an error response
+        if isinstance(token, Response):
+            return token
+        
+        return Response(
+            data={'token':token},
+            status=status.HTTP_200_OK
+        )

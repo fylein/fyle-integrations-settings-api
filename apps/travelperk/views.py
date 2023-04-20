@@ -1,6 +1,4 @@
 import logging
-import traceback
-import polling
 from django.conf import settings
 from rest_framework import generics
 from rest_framework.response import Response
@@ -34,7 +32,7 @@ class TravelperkView(generics.ListAPIView):
         except TravelPerk.DoesNotExist:
             return Response(
                 data={'message': 'Travelperk Not Found'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
 class PostFolder(generics.CreateAPIView):
@@ -61,6 +59,7 @@ class PostFolder(generics.CreateAPIView):
             folder_name='Travelperk'
         )
 
+        # case of an error Response
         if isinstance(folder, Response):
             return folder
         
@@ -90,6 +89,8 @@ class PostPackage(generics.CreateAPIView):
             folder_id=travelperk.folder_id,
             package_path='assets/travelperk.zip'
         )
+        
+        # in case of an error response
         if isinstance(package, Response):
             return package
         
@@ -132,7 +133,7 @@ class AwsS3Connection(generics.CreateAPIView):
             )
     
         elif 'authorization_status' in connection:
-            return Response(connection, status = 500)
+            return Response(connection, status = status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return connection
 
@@ -155,7 +156,7 @@ class TravekPerkConfigurationView(generics.ListCreateAPIView):
         except TravelPerkConfiguration.DoesNotExist:
             return Response(
                 data={'message': 'Configuration does not exist for this Workspace'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
     def get_object(self, *args, **kwargs):
@@ -196,6 +197,7 @@ class TravelperkConnection(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         connection_id = connect_travelperk(kwargs['org_id'])
 
+        # case of an error Response
         if isinstance(connection_id, Response):
             return connection_id
         

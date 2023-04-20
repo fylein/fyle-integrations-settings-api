@@ -14,7 +14,7 @@ def test_bamboohr_get_view(api_client, mocker, access_token, get_org_id, get_bam
     Test Get of Orgs
     """
 
-    url = reverse('bamboohr',
+    url = reverse('bamboohr:bamboohr',
         kwargs={
                 'org_id': get_org_id,
             }
@@ -28,7 +28,7 @@ def test_bamboohr_get_view(api_client, mocker, access_token, get_org_id, get_bam
     response = json.loads(response.content)
     assert dict_compare_keys(response, fixture['bamboohr']) == [], 'orgs GET diff in keys'
 
-    url = reverse('bamboohr',
+    url = reverse('bamboohr:bamboohr',
         kwargs={
                 'org_id': 123,
             }
@@ -46,7 +46,7 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_bamb
     Test Post Of Folder
     """
 
-    url = reverse('folder',
+    url = reverse('bamboohr:folder',
         kwargs={
                 'org_id': get_org_id,
             }
@@ -74,7 +74,7 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_bamboohr
     Test Posting Package in Workato
     """
     
-    url = reverse('package',
+    url = reverse('bamboohr:package',
         kwargs={
             'org_id': get_org_id
         }
@@ -116,7 +116,7 @@ def test_bamboohr_connection(api_client, mocker, access_token, get_org_id, get_b
     Test Creating Bamboohr Connection In Workato
     """
     
-    url = reverse('bamboo-connection',
+    url = reverse('bamboohr:connection',
         kwargs={
             'org_id':get_org_id,
         }
@@ -167,7 +167,7 @@ def test_post_configuration_view(api_client, mocker, access_token, get_org_id):
     Test Post Configuration View
     """
 
-    url = reverse('configuration',
+    url = reverse('bamboohr:configuration',
         kwargs={
             'org_id': get_org_id,
         }
@@ -206,7 +206,7 @@ def test_get_configuration_view(api_client, mocker, access_token, get_org_id, ge
     Test Get Configuration View
     """
 
-    url = reverse('configuration',
+    url = reverse('bamboohr:configuration',
         kwargs={
             'org_id':get_org_id,
         }
@@ -232,7 +232,7 @@ def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_b
     Test Sync Of Employees In Workato
     """
 
-    url = reverse('sync-employees',
+    url = reverse('bamboohr:sync-employees',
         kwargs={
             'org_id':get_org_id,
         }
@@ -268,7 +268,7 @@ def test_disconnect_view(api_client, mocker, access_token, get_org_id, get_bambo
     Test Start and Stop Of Recipes In Workato
     """
 
-    url = reverse('disconnect',
+    url = reverse('bamboohr:disconnect',
         kwargs={
             'org_id':get_org_id,
         }

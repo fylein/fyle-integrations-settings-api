@@ -46,6 +46,7 @@ class PostFolder(generics.CreateAPIView):
             folder_name='Bamboo HR'
         )
 
+        # in case of an error response
         if isinstance(folder, Response):
             return folder
         
@@ -76,6 +77,7 @@ class PostPackage(generics.CreateAPIView):
             package_path='assets/bamboohr_package.zip'
         )
 
+        # in case of an error response
         if isinstance(package, Response):
             return package
         
@@ -166,6 +168,7 @@ class DisconnectView(generics.CreateAPIView):
 
             connection = disconnect_bamboohr(kwargs['org_id'], configuration, bamboohr)
 
+            # in case of an error response
             if isinstance(connection, Response):
                 return connection
             
@@ -199,6 +202,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
             config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
             sync_recipe = sync_employees(kwargs['org_id'], config)
 
+            # in case of an error response
             if isinstance(sync_recipe, Response):
                 return sync_recipe
             

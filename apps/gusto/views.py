@@ -50,6 +50,7 @@ class PostFolder(generics.CreateAPIView):
             folder_name='Gusto'
         )
 
+        # in case of an error response
         if isinstance(folder, Response):
             return folder
         
@@ -79,7 +80,7 @@ class PostPackage(generics.CreateAPIView):
             folder_id=gusto.folder_id,
             package_path='assets/gusto.zip'
         )
-
+        # in case of an error response
         if isinstance(package, Response):
             return package
         
@@ -123,6 +124,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
     def post(self, *args, **kwargs):
         sync_recipe = sync_employees(kwargs['org_id'])
 
+        # in case of an error response
         if isinstance(sync_recipe, Response):
             return sync_recipe
         
@@ -140,6 +142,7 @@ class GustoConnection(generics.ListCreateAPIView):
 
         connection_id = create_gusto_connection(kwargs['org_id'])
 
+        # in case of an error response
         if isinstance(connection_id, Response):
             return connection_id
         

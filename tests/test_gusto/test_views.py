@@ -14,7 +14,7 @@ def test_gusto_get_view(api_client, mocker, access_token, get_org_id, get_gusto_
     """
     Test Get of Gusto
     """
-    url = reverse('gusto',
+    url = reverse('gusto:gusto',
         kwargs={
                 'org_id': get_org_id,
             }
@@ -28,7 +28,7 @@ def test_gusto_get_view(api_client, mocker, access_token, get_org_id, get_gusto_
     response = json.loads(response.content)
     assert dict_compare_keys(response, fixture['gusto']) == [], 'orgs GET diff in keys'
 
-    url = reverse('gusto',
+    url = reverse('gusto:gusto',
         kwargs={
                 'org_id': 123,
             }
@@ -46,7 +46,7 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_gust
     Test Post Of Folder
     """
 
-    url = reverse('gusto_folder',
+    url = reverse('gusto:folder',
         kwargs={
                 'org_id': get_org_id,
             }
@@ -80,7 +80,7 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_gusto_id
     Test Posting Package in Workato
     """
     
-    url = reverse('gusto_package',
+    url = reverse('gusto:package',
         kwargs={
             'org_id': get_org_id
         }
@@ -121,7 +121,7 @@ def test_post_configuration_view(api_client, mocker, access_token, get_org_id, g
     Test Post Configuration View
     """
 
-    url = reverse('gusto_configuration',
+    url = reverse('gusto:configuration',
         kwargs={
             'org_id': get_org_id,
         }
@@ -161,7 +161,7 @@ def test_get_configuration_view(api_client, mocker, access_token, get_org_id, ge
     Test Get Configuration View
     """
 
-    url = reverse('gusto_configuration',
+    url = reverse('gusto:configuration',
         kwargs={
             'org_id':get_org_id,
         }
@@ -174,7 +174,7 @@ def test_get_configuration_view(api_client, mocker, access_token, get_org_id, ge
     response = json.loads(response.content)
     assert dict_compare_keys(response, fixture['configurations']) == [], 'orgs GET diff in keys'
 
-    url = reverse('gusto_configuration',
+    url = reverse('gusto:configuration',
         kwargs={
             'org_id':1231,
         }
@@ -193,7 +193,7 @@ def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_g
     Test Sync Of Employees In Workato
     """
 
-    url = reverse('gusto_sync_employees',
+    url = reverse('gusto:sync_employees',
         kwargs={
             'org_id':get_org_id,
         }
@@ -228,7 +228,7 @@ def test_gusto_connection(api_client, mocker, access_token, get_org_id, get_gust
     Test Creating Gusto Connection In Workato
     """
     
-    url = reverse('gusto_fyle_connection',
+    url = reverse('gusto:fyle_connection',
         kwargs={
             'org_id':get_org_id,
         }
@@ -270,7 +270,7 @@ def test_recipe_status_view(api_client, mocker, access_token, get_org_id, get_gu
     """
     Test Get of Gusto
     """
-    url = reverse('gusto_recipe_status',
+    url = reverse('gusto:recipe_status',
         kwargs={
                 'org_id': get_org_id,
             }
