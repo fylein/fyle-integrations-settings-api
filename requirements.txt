@@ -48,3 +48,4 @@ polling==0.3.2
 
 # Requests
 requests==2.25.0
+sentry-sdk==1.19.1
