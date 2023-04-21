@@ -28,9 +28,9 @@ class TravelPerkConfigurationSerializer(serializers.ModelSerializer):
         recipes = connector.recipes.get(managed_user_id)['result']
 
         travelperk_configuration, _ = TravelPerkConfiguration.objects.update_or_create(
-            org_id=org,
-            recipe_id=recipes[0]['id'],
             defaults={
+                'org_id':org,
+                'recipe_id':recipes[0]['id'],
                 'recipe_data': recipes[0]['code'],
                 'is_recipe_enabled': True
             }
