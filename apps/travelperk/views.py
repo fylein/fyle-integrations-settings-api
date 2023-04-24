@@ -6,7 +6,6 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
 
-
 from workato import Workato
 from workato.exceptions import *
 
@@ -15,6 +14,8 @@ from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
+
+from .helpers import get_refresh_token_using_auth_code
 
 
 logger = logging.getLogger(__name__)
@@ -269,5 +270,27 @@ class TravelperkConnection(generics.ListCreateAPIView):
                 data={
                     'message': 'Error Creating Travelperk Connection in Recipe'
                 },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+class ConnectTravelperkView(generics.CreateAPIView):
+    """
+    Api Call to make Travelperk Connection in workato
+    """
+
+    def post(self, request, *args, **kwargs):
+        try:
+            refresh_token = get_refresh_token_using_auth_code(request.data.get('code'))
+            print('refresh_token', refresh_token)
+
+            return Response(
+                status=status.HTTP_200_OK
+            )
+        except Exception as exception:
+            error = traceback.format_exc()
+            logger.error(error)
+
+            return Response(
+                data='Something went wrong while connecting to travelperk',
                 status=status.HTTP_400_BAD_REQUEST
             )
