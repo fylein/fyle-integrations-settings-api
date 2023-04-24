@@ -23,6 +23,8 @@ def get_refresh_token_using_auth_code(code: str):
         }
     )
 
+    print(settings.TRAVELPERK_TOKEN_URL, code, settings.TRAVELPERK_CLIENT_ID, settings.TRAVELPERK_CLIENT_SECRET, settings.TRAVELPERK_REDIRECT_URI)
+
     print('response.text',response.text, type(response.text))
     api_response = json.loads(response.text)
 
