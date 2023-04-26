@@ -15,20 +15,19 @@ def disconnect_bamboohr(org_id, configuration:BambooHrConfiguration, bamboohr: B
 
     connector = Workato()
     connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-    bamboo_connection_1 = next(connection for connection in connections if connection['name'] == BAMBOO_HR['connections'][0])
-    bamboo_connection_2 = next(connection for connection in connections if connection['name'] == BAMBOO_HR['connections'][1])
+    bamboo_connection = next(connection for connection in connections if connection['name'] == BAMBOO_HR['connections'][0])
+    bamboo_sync_connection = next(connection for connection in connections if connection['name'] == BAMBOO_HR['connections'][1])
 
     configuration.recipe_status = False
     configuration.save()
 
     connection = connector.connections.post(
         managed_user_id=org.managed_user_id,
-        connection_id=bamboo_connection_1['id'],
-
+        connection_id=bamboo_connection['id'],
     )
     connector.connections.post(
         managed_user_id=org.managed_user_id,
-        connection_id=bamboo_connection_2['id'],
+        connection_id=bamboo_sync_connection['id'],
     )
 
     bamboohr.api_token = None
