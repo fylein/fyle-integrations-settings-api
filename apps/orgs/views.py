@@ -12,7 +12,6 @@ from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User
 from apps.orgs.actions import get_admin_employees, create_connection_in_workato, \
         create_managed_user_and_set_properties
-from apps.orgs.actions import get_admin_employees
 from .utils import get_signed_api_key
 from apps.names import *
 

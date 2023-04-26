@@ -13,7 +13,7 @@ from workato.exceptions import *
 from apps.users.helpers import PlatformConnector
 from apps.orgs.models import Org, FyleCredential
 from apps.bamboohr.models import BambooHr
-
+from apps.names import BAMBOO_HR
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -166,3 +166,11 @@ def post_package(org_id, folder_id, package_path):
         timeout=50
     )
     return package
+
+@handle_workato_exception(task_name = 'Post Package in Workato')
+def get_recipe_running_status(org_id):
+    connector = Workato()
+    org = Org.objects.filter(fyle_org_id=org_id).first()
+    recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
+    sync_recipe = next(recipe for recipe in recipes if recipe['name'] == BAMBOO_HR['recipe'])
+    return sync_recipe.get('running', False)
