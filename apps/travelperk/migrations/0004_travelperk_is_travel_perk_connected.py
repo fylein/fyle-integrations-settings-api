@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='travelperk',
-            name='is_travel_perk_connected',
+            name='is_travelperk_connected',
             field=models.BooleanField(help_text='If Travelperk Is Connected', null=True),
         ),
     ]
