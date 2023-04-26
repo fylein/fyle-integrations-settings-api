@@ -283,6 +283,15 @@ class ConnectTravelperkView(generics.CreateAPIView):
             refresh_token = get_refresh_token_using_auth_code(request.data.get('code'))
             print('refresh_token', refresh_token)
 
+            properties_payload = {
+                'properties': {
+                    'TRAVELPERK_REFRESH_TOKEN': refresh_token
+                }
+            }
+
+            upload_properties(request.data.get('managed_user_id'), properties_payload)
+
+
             return Response(
                 status=status.HTTP_200_OK
             )
