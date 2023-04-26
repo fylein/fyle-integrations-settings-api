@@ -280,6 +280,9 @@ class ConnectTravelperkView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
+            org = Org.objects.get(id=kwargs['org_id'])
+            travelperk = TravelPerk.objects.get(org_id=org.id)
+
             refresh_token = get_refresh_token_using_auth_code(request.data.get('code'))
             print('refresh_token', refresh_token)
 
@@ -289,12 +292,28 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 }
             }
 
-            upload_properties(request.data.get('managed_user_id'), properties_payload)
+            data = {
+                "input": {
+                    "key": "***"
+                }
+            }
 
+            upload_properties(org.managed_user_id, properties_payload)
+
+            travelperk_connection = create_connection_in_workato(org.id, TRAVELPERK['connection'], org.managed_user_id, data)
+            if 'authorization_status' in travelperk_connection and travelperk_connection['authorization_status'] == 'success':
+                travelperk.is_connected = True
+                travelperk.save()
+                return Response(
+                    data=travelperk_connection,
+                    status=status.HTTP_200_OK
+                )
 
             return Response(
-                status=status.HTTP_200_OK
+                data='Something went wrong while connecting to travelperk',
+                status=status.HTTP_400_BAD_REQUEST
             )
+
         except Exception as exception:
             error = traceback.format_exc()
             logger.error(error)
