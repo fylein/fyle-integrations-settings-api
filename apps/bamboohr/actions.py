@@ -1,7 +1,7 @@
 import json
 import polling
 from workato import Workato
-
+from time import sleep
 from django.conf import settings
 
 from apps.orgs.models import Org
@@ -66,10 +66,6 @@ def sync_employees(org_id, config: BambooHrConfiguration):
     }
     connector.recipes.post(org.managed_user_id, sync_recipe['id'], payload)
     connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
-    polling.poll(
-        lambda: get_recipe_running_status(org.fyle_org_id, sync_recipe['lifetime_task_count'])==True,
-        step=5,
-        timeout=50
-    )
+    sleep(5)
     connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'stop')
     return sync_recipe

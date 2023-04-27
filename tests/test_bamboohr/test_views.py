@@ -253,7 +253,7 @@ def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_b
         return_value={'message': 'success'}
     )
     mocker.patch(
-        'apps.bamboohr.actions.polling.poll',
+        'apps.bamboohr.actions.sleep',
         return_value=None
     )
     response = api_client.post(url)
