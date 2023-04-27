@@ -50,8 +50,12 @@ def sync_employees(org_id, config: BambooHrConfiguration):
             'email': admin['email'],
         } for admin in config.emails_selected
     ]
+    bamboo_hr_domain = BambooHr.objects.get(org=org).sub_domain
     code['block'][6]['block'][1]['input']['personalizations']['to'] = admin_emails
     code['block'][6]['block'][1]['input']['from']['email'] = settings.SENDGRID_EMAIL
+    code['block'][0]['input']['request']['url'] = (
+        f"https://api.bamboohr.com/api/gateway.php/{bamboo_hr_domain}/v1/reports/custom?format=JSON&onlyCurrent=false"
+    )
     sync_recipe['code'] = json.dumps(code)
     payload = {
         "recipe": {
@@ -63,7 +67,7 @@ def sync_employees(org_id, config: BambooHrConfiguration):
     connector.recipes.post(org.managed_user_id, sync_recipe['id'], payload)
     connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
     polling.poll(
-        lambda: get_recipe_running_status(org.fyle_org_id),
+        lambda: get_recipe_running_status(org.fyle_org_id, sync_recipe['lifetime_task_count'])==True,
         step=5,
         timeout=50
     )

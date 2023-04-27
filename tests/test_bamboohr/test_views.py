@@ -252,7 +252,10 @@ def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_b
         'workato.workato.Recipes.post',
         return_value={'message': 'success'}
     )
-
+    mocker.patch(
+        'apps.bamboohr.actions.polling.poll',
+        return_value=None
+    )
     response = api_client.post(url)
     assert response.status_code == 200
     assert response.data['name'] == 'Bamboo HR Sync'
