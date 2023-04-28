@@ -220,7 +220,7 @@ class RecipeStatusView(generics.UpdateAPIView):
         if recipe_status == False:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
             connector.connections.post(configuration.org.managed_user_id, travelperk.travelperk_connection_id)
-            travelperk.is_travelperk_connected = False
+            travelperk.is_travel_perk_connected = False
             travelperk.save()
         else:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
@@ -246,7 +246,9 @@ class TravelperkConnection(generics.ListCreateAPIView):
             # Creating travelperk Connection In Workato
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
             connection_id = next(connection for connection in connections if connection['name'] == TRAVELPERK['connection'])['id']
-
+            
+            print('connections', connections)
+            print(TRAVELPERK['connection'])
             travelperk.travelperk_connection_id = connection_id
             travelperk.save()
 
@@ -282,11 +284,11 @@ class ConnectTravelperkView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
+            connector = Workato()
             org = Org.objects.get(id=kwargs['org_id'])
             travelperk = TravelPerk.objects.get(org_id=org.id)
 
             refresh_token = get_refresh_token_using_auth_code(request.data.get('code'))
-            print('refresh_token', refresh_token)
 
             properties_payload = {
                 'properties': {
@@ -306,6 +308,18 @@ class ConnectTravelperkView(generics.CreateAPIView):
             if 'authorization_status' in travelperk_connection and travelperk_connection['authorization_status'] == 'success':
                 travelperk.is_connected = True
                 travelperk.save()
+                
+                recipes = connector.recipes.get(org.managed_user_id)['result']
+                travelperk_configuration, _ =  TravelPerkConfiguration.objects.update_or_create(
+                    org_id=org.id,
+                    recipe_id=recipes[0]['id'],
+                    defaults={
+                        'recipe_data': recipes[0]['code'],
+                        'is_recipe_enabled': True
+                    }
+                )
+                start = connector.recipes.post(org.managed_user_id, travelperk_configuration.recipe_id, None, 'start')
+                print('start', start)
                 return Response(
                     data=travelperk_connection,
                     status=status.HTTP_200_OK
