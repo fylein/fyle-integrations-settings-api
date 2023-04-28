@@ -254,6 +254,39 @@ def test_recipe_status_view(api_client, access_token, mocker, get_org_id, get_tr
 
 
 @pytest.mark.django_db(databases=['default'])
+def test_travelperk_connect_view(api_client, mocker, access_token, get_org_id, get_travelperk_id):
+    """
+    Test Creating Travelperk Connection using custom auth
+    """
+    
+    url = reverse('connect-travelperk',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+
+    mocker.patch(
+        'apps.travelperk.helpers.get_refresh_token_using_auth_code',
+        return_value={'randomrefreshtoken'}
+    )
+
+    mocker.patch(
+        'apps.orgs.actions.upload_properties',
+        return_value={}
+    )
+
+    mocker.patch(
+        'apps.orgs.actions.create_connection_in_workato',
+        return_value={'authorization_status': 'success'}
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    response = api_client.post(url)
+    assert response.status_code == 200
+    assert response.data['authorization_status'] == 'success'
+
+
+@pytest.mark.django_db(databases=['default'])
 def test_fyle_connection(api_client, mocker, access_token, get_org_id, get_travelperk_id):
     """
     Test Creating Fyle Connection In Workato
