@@ -9,6 +9,7 @@ from apps.orgs.exceptions import handle_workato_exception
 from apps.orgs.actions import get_recipe_running_status
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.names import BAMBOO_HR
+from apps.bamboohr.sql.queries import *
 
 @handle_workato_exception(task_name = 'Disconnect BambooHR')
 def disconnect_bamboohr(org_id, configuration:BambooHrConfiguration, bamboohr: BambooHr):
@@ -44,7 +45,8 @@ def sync_employees(org_id, config: BambooHrConfiguration):
     recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
     sync_recipe = next(recipe for recipe in recipes if recipe['name'] == BAMBOO_HR['recipe'])
     code = json.loads(sync_recipe['code'])
-
+    code['block'][5]['input']['sql'] = EMPLOYEE_EMAIL_NOT_NULL
+    code['block'][7]['input']['sql'] = EMPLOYEE_DETAILS_QUERY
     admin_emails = [
         {
             'email': admin['email'],
