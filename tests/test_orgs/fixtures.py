@@ -45,6 +45,8 @@ fixture = {
       "name":"Anagha Org",
       "fyle_org_id":"orHVw3ikkCxJ",
       "managed_user_id":"2",
+      "allow_travelperk": True,
+      "allow_gusto": True,
       "is_fyle_connected":"true",
       "is_sendgrid_connected":"false",
       "cluster_domain":"https://staging.fyle.tech",
