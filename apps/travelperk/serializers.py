@@ -17,7 +17,7 @@ class TravelperkSerializer(serializers.ModelSerializer):
 class TravelPerkConfigurationSerializer(serializers.ModelSerializer):
     """
     Serializer For Travelperk Configurations
-    """    
+    """
 
     org = serializers.CharField()
 

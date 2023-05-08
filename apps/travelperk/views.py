@@ -220,7 +220,7 @@ class RecipeStatusView(generics.UpdateAPIView):
         if recipe_status == False:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
             connector.connections.post(configuration.org.managed_user_id, travelperk.travelperk_connection_id)
-            travelperk.is_travel_perk_connected = False
+            travelperk.is_travelperk_connected = False
             travelperk.save()
         else:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
@@ -247,8 +247,6 @@ class TravelperkConnection(generics.ListCreateAPIView):
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
             connection_id = next(connection for connection in connections if connection['name'] == TRAVELPERK['connection'])['id']
             
-            print('connections', connections)
-            print(TRAVELPERK['connection'])
             travelperk.travelperk_connection_id = connection_id
             travelperk.save()
 
@@ -318,8 +316,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
                         'is_recipe_enabled': True
                     }
                 )
-                start = connector.recipes.post(org.managed_user_id, travelperk_configuration.recipe_id, None, 'start')
-                print('start', start)
+                connector.recipes.post(org.managed_user_id, travelperk_configuration.recipe_id, None, 'start')
                 return Response(
                     data=travelperk_connection,
                     status=status.HTTP_200_OK
