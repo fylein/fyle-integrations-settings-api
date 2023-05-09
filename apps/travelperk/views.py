@@ -6,7 +6,6 @@ from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
 
-
 from workato import Workato
 from workato.exceptions import *
 
@@ -15,6 +14,8 @@ from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
+
+from .helpers import get_refresh_token_using_auth_code
 
 
 logger = logging.getLogger(__name__)
@@ -219,6 +220,8 @@ class RecipeStatusView(generics.UpdateAPIView):
         if recipe_status == False:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
             connector.connections.post(configuration.org.managed_user_id, travelperk.travelperk_connection_id)
+            travelperk.is_travelperk_connected = False
+            travelperk.save()
         else:
             connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'start')
 
@@ -243,7 +246,7 @@ class TravelperkConnection(generics.ListCreateAPIView):
             # Creating travelperk Connection In Workato
             connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
             connection_id = next(connection for connection in connections if connection['name'] == TRAVELPERK['connection'])['id']
-
+            
             travelperk.travelperk_connection_id = connection_id
             travelperk.save()
 
@@ -269,5 +272,66 @@ class TravelperkConnection(generics.ListCreateAPIView):
                 data={
                     'message': 'Error Creating Travelperk Connection in Recipe'
                 },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+class ConnectTravelperkView(generics.CreateAPIView):
+    """
+    Api Call to make Travelperk Connection in workato
+    """
+
+    def post(self, request, *args, **kwargs):
+        try:
+            connector = Workato()
+            org = Org.objects.get(id=kwargs['org_id'])
+            travelperk = TravelPerk.objects.get(org_id=org.id)
+
+            refresh_token = get_refresh_token_using_auth_code(request.data.get('code'))
+
+            properties_payload = {
+                'properties': {
+                    'TRAVELPERK_REFRESH_TOKEN': refresh_token
+                }
+            }
+
+            data = {
+                "input": {
+                    "key": "***"
+                }
+            }
+
+            upload_properties(org.managed_user_id, properties_payload)
+
+            travelperk_connection = create_connection_in_workato(org.id, TRAVELPERK['connection'], org.managed_user_id, data)
+            if 'authorization_status' in travelperk_connection and travelperk_connection['authorization_status'] == 'success':
+                travelperk.is_connected = True
+                travelperk.save()
+                
+                recipes = connector.recipes.get(org.managed_user_id)['result']
+                travelperk_configuration, _ =  TravelPerkConfiguration.objects.update_or_create(
+                    org_id=org.id,
+                    recipe_id=recipes[0]['id'],
+                    defaults={
+                        'recipe_data': recipes[0]['code'],
+                        'is_recipe_enabled': True
+                    }
+                )
+                connector.recipes.post(org.managed_user_id, travelperk_configuration.recipe_id, None, 'start')
+                return Response(
+                    data=travelperk_connection,
+                    status=status.HTTP_200_OK
+                )
+
+            return Response(
+                data='Something went wrong while connecting to travelperk',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except Exception as exception:
+            error = traceback.format_exc()
+            logger.error(error)
+
+            return Response(
+                data='Something went wrong while connecting to travelperk',
                 status=status.HTTP_400_BAD_REQUEST
             )
