@@ -13,11 +13,12 @@ from workato.exceptions import *
 from apps.users.helpers import PlatformConnector
 from apps.orgs.models import Org, FyleCredential
 from apps.bamboohr.models import BambooHr
-
+from apps.names import BAMBOO_HR
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
+BAMBOOHR_TASKS_IN_SUCCESS = 11
 
 def get_admin_employees(org_id, user):
 
@@ -147,3 +148,31 @@ def upload_properties(managed_user_id: int, payload):
     connector = Workato()
     properties = connector.properties.post(managed_user_id, payload)
     return properties
+
+@handle_workato_exception(task_name = 'Post Folder in Workato')
+def post_folder(org_id, folder_name):
+    connector = Workato()
+    org = Org.objects.filter(id=org_id).first()
+    folder = connector.folders.post(org.managed_user_id, folder_name)
+    return folder
+
+@handle_workato_exception(task_name = 'Post Package in Workato')
+def post_package(org_id, folder_id, package_path):
+    connector = Workato()
+    org = Org.objects.filter(id=org_id).first()
+    package = connector.packages.post(org.managed_user_id, folder_id, package_path)
+    polling.poll(
+        lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
+        step=5,
+        timeout=50
+    )
+    return package
+
+@handle_workato_exception(task_name = 'Recipe running status')
+def get_recipe_running_status(org_id, task_count):
+    connector = Workato()
+    org = Org.objects.filter(fyle_org_id=org_id).first()
+    recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
+    sync_recipe = next(recipe for recipe in recipes if recipe['name'] == BAMBOO_HR['recipe'])
+    print(sync_recipe)
+    return sync_recipe['lifetime_task_count']>=task_count+BAMBOOHR_TASKS_IN_SUCCESS

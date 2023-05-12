@@ -10,7 +10,7 @@ logger.level = logging.INFO
 
 def handle_workato_exception(task_name):
     def decorator(func):
-        def new_fn(org_id: int, *args):
+        def new_fn(org_id: int, *args, **kwargs):
             error = {
                 'task': task_name,
                 'org_id': org_id,
@@ -19,7 +19,7 @@ def handle_workato_exception(task_name):
             }
 
             try:
-                return func(org_id, *args)
+                return func(org_id, *args, **kwargs)
             except UnAuthorizedError as exception:
                 error['message'] = exception.message
                 error['response'] = exception.response
