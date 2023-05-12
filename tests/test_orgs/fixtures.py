@@ -52,8 +52,6 @@ fixture = {
       "cluster_domain":"https://staging.fyle.tech",
       "created_at":"2022-09-27T09:58:51.483072Z",
       "updated_at":"2022-09-27T09:58:51.483135Z",
-      "allow_travelperk": False,
-      "allow_gusto": False,
       "user":[
          2
       ]

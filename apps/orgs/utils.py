@@ -1,12 +1,9 @@
-import uuid
 from datetime import datetime, timezone
-
-import jwt
-from apps.orgs.exceptions import handle_workato_exception
 from django.conf import settings
+import uuid
+import jwt
 
 
-@handle_workato_exception(task_name='Get Signed API Key')
 def get_signed_api_key(managed_user_id: str) -> str:
     """
     Sign the API key.
