@@ -49,9 +49,9 @@ class BambooHrConfigurationSerializer(serializers.ModelSerializer):
             }
         }
         configuration, _ = BambooHrConfiguration.objects.update_or_create(
+            org_id=org,
+            recipe_id=recipes[0]['id'],
             defaults={
-                'org_id':org,
-                'recipe_id': recipes[0]['id'],
                 'recipe_status': True,
                 'recipe_data': recipes[0]['code'],
                 'additional_email_options': validated_data['additional_email_options'],

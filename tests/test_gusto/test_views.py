@@ -14,7 +14,7 @@ def test_gusto_get_view(api_client, mocker, access_token, get_org_id, get_gusto_
     """
     Test Get of Gusto
     """
-    url = reverse('gusto:gusto',
+    url = reverse('gusto',
         kwargs={
                 'org_id': get_org_id,
             }
@@ -28,7 +28,7 @@ def test_gusto_get_view(api_client, mocker, access_token, get_org_id, get_gusto_
     response = json.loads(response.content)
     assert dict_compare_keys(response, fixture['gusto']) == [], 'orgs GET diff in keys'
 
-    url = reverse('gusto:gusto',
+    url = reverse('gusto',
         kwargs={
                 'org_id': 123,
             }
@@ -46,7 +46,7 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_gust
     Test Post Of Folder
     """
 
-    url = reverse('gusto:folder',
+    url = reverse('gusto_folder',
         kwargs={
                 'org_id': get_org_id,
             }
@@ -60,8 +60,8 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_gust
 
     with mock.patch('workato.workato.Folders.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == {'message': 'something wrong happened'}
-        assert response.status_code == 400
+        assert response.data['message'] == 'something wrong happened'
+        assert response.status_code == 500
     
     mocker.patch(
         'workato.workato.Folders.post',
@@ -73,6 +73,16 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_gust
     assert response.status_code == 200
     assert dict_compare_keys(response, fixture['gusto']) == [], 'gusto diff in keys'
 
+    mocker.patch(
+        'workato.workato.Folders.post',
+        return_value={}
+    )
+    
+    response = api_client.post(url)
+    
+    assert response.status_code == 500
+    assert response.data['message'] == 'Error in Creating Folder'
+
 
 @pytest.mark.django_db(databases=['default'])
 def test_post_package(api_client, mocker, access_token, get_org_id, get_gusto_id):
@@ -80,7 +90,7 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_gusto_id
     Test Posting Package in Workato
     """
     
-    url = reverse('gusto:package',
+    url = reverse('gusto_package',
         kwargs={
             'org_id': get_org_id
         }
@@ -89,8 +99,8 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_gusto_id
 
     with mock.patch('workato.workato.Packages.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == {'message': 'something wrong happened'}
-        assert response.status_code == 400
+        assert response.data['message'] == 'something wrong happened'
+        assert response.status_code == 500
 
     mocker.patch(
         'workato.workato.Packages.post',
@@ -99,7 +109,7 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_gusto_id
     
     response = api_client.post(url)
     assert response.status_code == 500
-    assert response.data['message'] == 'Something went wrong'
+    assert response.data['message'] == 'Error in Uploading Package'
 
     mocker.patch(
         'workato.workato.Packages.post',
@@ -121,7 +131,7 @@ def test_post_configuration_view(api_client, mocker, access_token, get_org_id, g
     Test Post Configuration View
     """
 
-    url = reverse('gusto:configuration',
+    url = reverse('gusto_configuration',
         kwargs={
             'org_id': get_org_id,
         }
@@ -161,7 +171,7 @@ def test_get_configuration_view(api_client, mocker, access_token, get_org_id, ge
     Test Get Configuration View
     """
 
-    url = reverse('gusto:configuration',
+    url = reverse('gusto_configuration',
         kwargs={
             'org_id':get_org_id,
         }
@@ -174,14 +184,14 @@ def test_get_configuration_view(api_client, mocker, access_token, get_org_id, ge
     response = json.loads(response.content)
     assert dict_compare_keys(response, fixture['configurations']) == [], 'orgs GET diff in keys'
 
-    url = reverse('gusto:configuration',
+    url = reverse('gusto_configuration',
         kwargs={
             'org_id':1231,
         }
     )
 
     response = api_client.get(url, {'org_id': '1231'})
-    assert response.status_code == 404
+    assert response.status_code == 400
 
     response = json.loads(response.content)
     assert response['message'] != None
@@ -193,7 +203,7 @@ def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_g
     Test Sync Of Employees In Workato
     """
 
-    url = reverse('gusto:sync_employees',
+    url = reverse('gusto_sync_employees',
         kwargs={
             'org_id':get_org_id,
         }
@@ -202,12 +212,12 @@ def test_sync_employees_view(api_client, mocker, access_token, get_org_id, get_g
 
     with mock.patch('workato.workato.Recipes.get', side_effect=NotFoundItemError({'message': 'Item Not Found'})):
         response = api_client.post(url)
-        assert response.data['message'] == {'message': 'Item Not Found'}
+        assert response.data['message'] == 'Item Not Found'
         assert response.status_code == 404
 
     with mock.patch('workato.workato.Recipes.get', side_effect=InternalServerError({'message': 'Internal server error'})):
         response = api_client.post(url)
-        assert response.data['message'] == {'message': 'Internal server error'}
+        assert response.data['message'] == 'Error in Syncing Employees in Gusto'
         assert response.status_code == 500
 
     mocker.patch(
@@ -228,7 +238,7 @@ def test_gusto_connection(api_client, mocker, access_token, get_org_id, get_gust
     Test Creating Gusto Connection In Workato
     """
     
-    url = reverse('gusto:fyle_connection',
+    url = reverse('gusto_fyle_connection',
         kwargs={
             'org_id':get_org_id,
         }
@@ -237,7 +247,7 @@ def test_gusto_connection(api_client, mocker, access_token, get_org_id, get_gust
 
     with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == {'message': 'something wrong happened'}
+        assert response.data['message'] == 'something wrong happened'
         assert response.status_code == 400
 
     mocker.patch(
@@ -246,8 +256,8 @@ def test_gusto_connection(api_client, mocker, access_token, get_org_id, get_gust
     )
     
     response = api_client.post(url, format='json')
-    assert response.status_code == 500
-    assert response.data['message'] == 'Something went wrong'
+    assert response.status_code == 400
+    assert response.data['message'] == 'Error Creating Gusto Connection in Recipe'
 
     mocker.patch(
         'workato.workato.Connections.get',
@@ -270,7 +280,7 @@ def test_recipe_status_view(api_client, mocker, access_token, get_org_id, get_gu
     """
     Test Get of Gusto
     """
-    url = reverse('gusto:recipe_status',
+    url = reverse('gusto_recipe_status',
         kwargs={
                 'org_id': get_org_id,
             }

@@ -14,9 +14,9 @@ org_app_path = [
 ]
 
 integration_paths = [
-    path('<int:org_id>/bamboohr/', include('apps.bamboohr.urls', namespace = 'bamboohr')),
-    path('<int:org_id>/travelperk/', include('apps.travelperk.urls', namespace = 'travelperk')),
-    path('<int:org_id>/gusto/', include('apps.gusto.urls', namespace = 'gusto'))
+    path('<int:org_id>/bamboohr/', include('apps.bamboohr.urls')),
+    path('<int:org_id>/travelperk/', include('apps.travelperk.urls')),
+    path('<int:org_id>/gusto/', include('apps.gusto.urls'))
 ]
 
 urlpatterns = [*org_app_path, *integration_paths]

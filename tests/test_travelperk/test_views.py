@@ -14,7 +14,7 @@ def test_travelperk_get_view(api_client, access_token, get_org_id, get_travelper
     """
     Test Get of Travelperk
     """
-    url = reverse('travelperk:travelperk',
+    url = reverse('travelperk',
         kwargs={
                 'org_id': get_org_id,
             }
@@ -28,13 +28,13 @@ def test_travelperk_get_view(api_client, access_token, get_org_id, get_travelper
     response = json.loads(response.content)
     assert dict_compare_keys(response, fixture['travelperk']) == [], 'orgs GET diff in keys'
 
-    url = reverse('travelperk:travelperk',
+    url = reverse('travelperk',
         kwargs={
                 'org_id': 123,
             }
     )
     response = api_client.get(url)
-    assert response.status_code == 404
+    assert response.status_code == 400
 
     response = json.loads(response.content)
     assert response['message'] != None
@@ -46,7 +46,7 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_trav
     Test Post Of Folder
     """
 
-    url = reverse('travelperk:folder',
+    url = reverse('travelperk-folder',
         kwargs={
                 'org_id': get_org_id,
             }
@@ -60,7 +60,7 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_trav
 
     with mock.patch('workato.workato.Folders.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == {'message': 'something wrong happened'}
+        assert response.data['message'] == 'something wrong happened'
         assert response.status_code == 400
     
     mocker.patch(
@@ -73,6 +73,16 @@ def test_post_folder_view(api_client, mocker, access_token, get_org_id, get_trav
     assert response.status_code == 200
     assert dict_compare_keys(response, fixture['travelperk']) == [], 'Bamboohr diff in keys'
 
+    mocker.patch(
+        'workato.workato.Folders.post',
+        return_value={}
+    )
+    
+    response = api_client.post(url)
+    
+    assert response.status_code == 400
+    assert response.data['message'] == 'Error in Creating Folder'
+
 
 @pytest.mark.django_db(databases=['default'])
 def test_post_package(api_client, mocker, access_token, get_org_id, get_travelperk_id):
@@ -80,7 +90,7 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_travelpe
     Test Posting Package in Workato
     """
     
-    url = reverse('travelperk:package',
+    url = reverse('travelperk-package',
         kwargs={
             'org_id': get_org_id
         }
@@ -89,7 +99,7 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_travelpe
 
     with mock.patch('workato.workato.Packages.post', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == {'message': 'something wrong happened'}
+        assert response.data['message'] == 'something wrong happened'
         assert response.status_code == 400
 
     mocker.patch(
@@ -98,8 +108,8 @@ def test_post_package(api_client, mocker, access_token, get_org_id, get_travelpe
     )
     
     response = api_client.post(url)
-    assert response.status_code == 500
-    assert response.data['message'] == 'Something went wrong'
+    assert response.status_code == 400
+    assert response.data['message'] == 'Error in Uploading Package'
 
     mocker.patch(
         'workato.workato.Packages.post',
@@ -122,7 +132,7 @@ def test_get_configuration_view(api_client, mocker, access_token, get_org_id, ge
     Test Get Configuration View
     """
 
-    url = reverse('travelperk:configuration',
+    url = reverse('travelperk-configuration',
         kwargs={
             'org_id':get_org_id,
         }
@@ -136,7 +146,7 @@ def test_get_configuration_view(api_client, mocker, access_token, get_org_id, ge
     assert dict_compare_keys(response, fixture['configurations']) == [], 'orgs GET diff in keys'
 
     response = api_client.get(url, {'org_id': '1231'})
-    assert response.status_code == 404
+    assert response.status_code == 400
 
     response = json.loads(response.content)
     assert response['message'] != None
@@ -148,7 +158,7 @@ def test_aws_connection(api_client, mocker, access_token, get_org_id, get_travel
     Test Creating AWS S3 Connection In Workato
     """
 
-    url = reverse('travelperk:s3-connection',
+    url = reverse('s3-connection',
         kwargs={
             'org_id':get_org_id,
         }
@@ -200,7 +210,7 @@ def test_post_configuration_view(api_client, mocker, access_token, get_org_id):
     Test Post Configuration View
     """
 
-    url = reverse('travelperk:configuration',
+    url = reverse('travelperk-configuration',
         kwargs={
             'org_id': get_org_id,
         }
@@ -227,7 +237,7 @@ def test_post_configuration_view(api_client, mocker, access_token, get_org_id):
 @pytest.mark.django_db(databases=['default'])
 def test_recipe_status_view(api_client, access_token, mocker, get_org_id, get_travelperk_id):
 
-    url = reverse('travelperk:recipe-status',
+    url = reverse('recipe-status-view',
         kwargs={
             'org_id': get_org_id,
         }
@@ -277,7 +287,7 @@ def test_fyle_connection(api_client, mocker, access_token, get_org_id, get_trave
     """
     Test Creating Fyle Connection In Workato
     """
-    url = reverse('travelperk:fyle-connection',
+    url = reverse('fyle-travelperk-connection',
         kwargs={
             'org_id': get_org_id,
         }
@@ -286,7 +296,7 @@ def test_fyle_connection(api_client, mocker, access_token, get_org_id, get_trave
 
     with mock.patch('workato.workato.Connections.get', side_effect=BadRequestError({'message': 'something wrong happened'})):
         response = api_client.post(url)
-        assert response.data['message'] == {'message': 'something wrong happened'}
+        assert response.data['message'] == 'something wrong happened'
         assert response.status_code == 400
 
     mocker.patch(
@@ -295,8 +305,8 @@ def test_fyle_connection(api_client, mocker, access_token, get_org_id, get_trave
     )
 
     response = api_client.post(url)
-    assert response.status_code == 500
-    assert response.data['message'] == 'Something went wrong'
+    assert response.status_code == 400
+    assert response.data['message'] == 'Error Creating Travelperk Connection in Recipe'
 
     mocker.patch(
         'workato.workato.Connections.get',
