@@ -2,6 +2,7 @@
 import json
 import pytest
 from unittest import mock
+from unittest.mock import patch
 from django.urls import reverse
 
 from workato.exceptions import *
@@ -241,6 +242,34 @@ def test_recipe_status_view(api_client, access_token, mocker, get_org_id, get_tr
     
     assert response.status_code == 200
     assert response.data['is_recipe_enabled'] == True
+
+
+@pytest.mark.skip(reason="will add tests for this later")
+@pytest.mark.django_db(databases=['default'])
+def test_travelperk_connect_view(api_client, mocker, access_token, get_org_id, get_travelperk):
+    """
+    Test Creating Travelperk Connection using custom auth
+    """
+
+    url = reverse('connect-travelperk',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    mocker.patch(
+        'apps.orgs.actions.upload_properties',
+        return_value={}
+    )
+
+    mocker.patch(
+        'apps.orgs.actions.create_connection_in_workato',
+        return_value={'authorization_status': 'success'}
+    )
+
+    response = api_client.post(url)
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db(databases=['default'])

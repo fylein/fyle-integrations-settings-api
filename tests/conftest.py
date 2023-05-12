@@ -162,12 +162,25 @@ def get_bamboohr_id(mocker, get_org_id):
     )
     return bamboohr.id
 
+
+@pytest.fixture()
+def get_travelperk(get_org_id):
+    travelperk = TravelPerk.objects.create(
+        org = Org.objects.get(id = get_org_id),
+        folder_id = "dummy",
+        package_id = "dummy",
+        is_travelperk_connected = True
+    )
+
+    return travelperk.id
+
 @pytest.fixture()
 def get_travelperk_id(get_org_id):
     travelperk = TravelPerk.objects.create(
         org = Org.objects.get(id = get_org_id),
         folder_id = "dummy",
-        package_id = "dummy"
+        package_id = "dummy",
+        is_travelperk_connected = True
     )
     travelperk_conf = TravelPerkConfiguration.objects.create(
         org = Org.objects.get(id = get_org_id)

@@ -32,6 +32,7 @@ services:
       WK_JWT_PRIVATE_KEY: ""
       WK_API_KEY: ""
       WK_CUSTOMER_ID: ""
+      TRAVELPERK_REDIRECT_URI: https://lolo.fyle.tech
   db:
     image: "postgres:15"
     environment: 
