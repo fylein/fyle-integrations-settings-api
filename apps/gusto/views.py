@@ -1,10 +1,6 @@
 import polling
 import traceback
 import logging
-import json
-
-from django.conf import settings
-
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
@@ -13,9 +9,10 @@ from rest_framework import generics
 from workato import Workato
 from workato.exceptions import *
 from apps.orgs.models import Org
+from apps.orgs.actions import post_folder, post_package
 from apps.gusto.models import Gusto, GustoConfiguration
 from apps.gusto.serializers import GustoSerializer, GustoConfigurationSerializer
-from apps.gusto.utils import set_gusto_properties
+from apps.gusto.actions import set_gusto_properties, create_gusto_connection, sync_employees
 from apps.names import *
 
 logger = logging.getLogger(__name__)
@@ -45,44 +42,29 @@ class PostFolder(generics.CreateAPIView):
     serializer_class = GustoSerializer
 
     def post(self, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
-        try:
-            set_gusto_properties(org.managed_user_id)
+        set_gusto_properties(org.managed_user_id)
+        folder = post_folder(
+            org_id = kwargs['org_id'],
+            folder_name='Gusto'
+        )
 
-            folder = connector.folders.post(org.managed_user_id, 'Gusto')
-            gusto, _ = Gusto.objects.update_or_create(
-                org=org,
-                defaults={
-                    'folder_id': folder['id']
-                }
-            )
+        # in case of an error response
+        if isinstance(folder, Response):
+            return folder
+        
+        gusto, _ = Gusto.objects.update_or_create(
+            org=org,
+            defaults={
+                'folder_id': folder['id']
+            }
+        )
 
-            return Response(
-                data=GustoSerializer(gusto).data,
-                status=status.HTTP_200_OK
-            )
-
-        except BadRequestError as exception:
-            logger.error(
-                'Error while posting folder to workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Creating Folder'
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        return Response(
+            data=GustoSerializer(gusto).data,
+            status=status.HTTP_200_OK
+        )
 
 class PostPackage(generics.CreateAPIView):
     """
@@ -90,50 +72,27 @@ class PostPackage(generics.CreateAPIView):
     """
 
     def post(self, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
         gusto = Gusto.objects.filter(org__id=org.id).first()
 
-        try:
-            package = connector.packages.post(org.managed_user_id, gusto.folder_id, 'assets/gusto.zip')
-            
-            # post package is an async request, polling to get the status of the package
-            polling.poll(
-                lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
-                step=5,
-                timeout=50
-            )
-            gusto.package_id = package['id']
-            gusto.save()
-    
-            return Response(
-                data={
-                    'message': 'package uploaded successfully',
-                },
-                status=status.HTTP_200_OK
-            )
+        package = post_package(
+            org_id=kwargs['org_id'],
+            folder_id=gusto.folder_id,
+            package_path='assets/gusto.zip'
+        )
+        # in case of an error response
+        if isinstance(package, Response):
+            return package
+        
+        gusto.package_id = package['id']
+        gusto.save()
 
-        except BadRequestError as exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            logger.error(
-                'Error while posting Gusto package to workato for org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Uploading Package'
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        return Response(
+            data={
+                'message': 'package uploaded successfully',
+            },
+            status=status.HTTP_200_OK
+        )
 
 class GustoConfigurationView(generics.ListCreateAPIView):
 
@@ -153,7 +112,7 @@ class GustoConfigurationView(generics.ListCreateAPIView):
         except GustoConfiguration.DoesNotExist:
             return Response(
                 data={'message': 'Gusto Configuration does not exist for this Workspace'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
 class SyncEmployeesView(generics.UpdateAPIView):
@@ -163,57 +122,16 @@ class SyncEmployeesView(generics.UpdateAPIView):
     """
 
     def post(self, *args, **kwargs):
-        connector = Workato()
+        sync_recipe = sync_employees(kwargs['org_id'])
+
+        # in case of an error response
+        if isinstance(sync_recipe, Response):
+            return sync_recipe
         
-        org = Org.objects.get(id=kwargs['org_id'])
-        config = GustoConfiguration.objects.get(org__id=kwargs['org_id'])
-
-        try:
-            recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
-            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == GUSTO['recipe'])
-            code = json.loads(sync_recipe['code'])
-            admin_emails = [
-                {
-                 'email': admin['email'],
-                } for admin in config.emails_selected
-            ]
-            code['block'][6]['block'][1]['input']['personalizations']['to'] = admin_emails
-            code['block'][6]['block'][1]['input']['from']['email'] = settings.SENDGRID_EMAIL
-            sync_recipe['code'] = json.dumps(code)
-            payload = {
-                "recipe": {
-                    "code": sync_recipe['code'],
-                }
-            }
-
-            connector.recipes.post(org.managed_user_id, sync_recipe['id'], payload)
-            connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
-
-            return Response(
-                data=sync_recipe,
-                status=status.HTTP_200_OK
-            )
-
-
-        except NotFoundItemError as exception:
-            logger.error(
-                'Recipe with id %s not found in workato with org_id - %s in Fyle %s',
-                config.recipe_id, org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        except Exception as exception:
-            logger.error(
-                'Something unexpected happened in workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data={'message': 'Error in Syncing Employees in Gusto'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        return Response(
+            data=sync_recipe,
+            status=status.HTTP_200_OK
+        )
 
 class GustoConnection(generics.ListCreateAPIView):
     """
@@ -222,40 +140,16 @@ class GustoConnection(generics.ListCreateAPIView):
 
     def post(self, request, *args, **kwargs):
 
-        org = Org.objects.get(id=kwargs['org_id'])
-        gusto = Gusto.objects.get(org_id=org.id)
-        connector = Workato()
-        try:
+        connection_id = create_gusto_connection(kwargs['org_id'])
 
-            # Creating gusto Connection In Workato
-            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            connection_id  = next(connection for connection in connections if connection['name'] == GUSTO['connection'])['id']
-
-            gusto.connection_id = connection_id
-            gusto.save()
-
-            return Response(
-                data={'message': {'connection_id': connection_id}},
-                status=status.HTTP_200_OK
-            )
-
-        except BadRequestError as exception:
-            logger.error(
-                'Error while creating Gusto Connection in Workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception as ex:
-            return Response(
-                data={
-                    'message': 'Error Creating Gusto Connection in Recipe'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # in case of an error response
+        if isinstance(connection_id, Response):
+            return connection_id
         
+        return Response(
+            data={'message': {'connection_id': connection_id}},
+            status=status.HTTP_200_OK
+        )
 
 class RecipeStatusView(generics.UpdateAPIView):
     """

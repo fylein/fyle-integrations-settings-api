@@ -1,23 +1,15 @@
-import polling
-import traceback
 import logging
-import json
-
-
-from time import sleep
-from django.conf import settings
 
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
 
-
-from workato import Workato
 from workato.exceptions import *
 from apps.orgs.models import Org
-from apps.orgs.actions import create_connection_in_workato
+from apps.orgs.actions import create_connection_in_workato, post_folder, post_package
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
+from apps.bamboohr.actions import disconnect_bamboohr, sync_employees
 from apps.names import BAMBOO_HR
 
 logger = logging.getLogger(__name__)
@@ -37,7 +29,7 @@ class BambooHrView(generics.ListAPIView):
         except BambooHr.DoesNotExist:
             return Response(
                 data={'message': 'Bamboo HR Details Not Found'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
 class PostFolder(generics.CreateAPIView):
@@ -47,42 +39,28 @@ class PostFolder(generics.CreateAPIView):
     serializer_class = BambooHrSerializer
 
     def post(self, request, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
-        try:
-            folder = connector.folders.post(org.managed_user_id, 'Bamboo HR')
-            bamboohr, _ = BambooHr.objects.update_or_create(
-                org=org,
-                defaults={
-                    'folder_id': folder['id']
-                }
-            )
+        folder = post_folder(
+            org_id=kwargs['org_id'],
+            folder_name='Bamboo HR'
+        )
 
-            return Response(
-                data=BambooHrSerializer(bamboohr).data,
-                status=status.HTTP_200_OK
-            )
+        # in case of an error response
+        if isinstance(folder, Response):
+            return folder
+        
+        bamboohr, _ = BambooHr.objects.update_or_create(
+            org=org,
+            defaults={
+                'folder_id': folder['id']
+            }
+        )
 
-        except BadRequestError as exception:
-            logger.error(
-                'Error while posting folder to workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Creating Folder'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data=BambooHrSerializer(bamboohr).data,
+            status=status.HTTP_200_OK
+        )
 
 class PostPackage(generics.CreateAPIView):
     """
@@ -90,50 +68,28 @@ class PostPackage(generics.CreateAPIView):
     """
 
     def post(self, request, *args, **kwargs):
-        connector = Workato()
         org = Org.objects.filter(id=kwargs['org_id']).first()
         bamboohr = BambooHr.objects.filter(org__id=org.id).first()
 
-        try:
-            package = connector.packages.post(org.managed_user_id, bamboohr.folder_id, 'assets/bamboohr_package.zip')
-            
-            # post package is an async request, polling to get the status of the package
-            polling.poll(
-                lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
-                step=5,
-                timeout=50
-            )
-            bamboohr.package_id = package['id']
-            bamboohr.save()
-    
-            return Response(
-                data={
-                    'message': 'package uploaded successfully',
-                },
-                status=status.HTTP_200_OK
-            )
+        package = post_package(
+            org_id=kwargs['org_id'],
+            folder_id=bamboohr.folder_id,
+            package_path='assets/bamboohr_package.zip'
+        )
 
-        except BadRequestError as exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            logger.error(
-                'Error while posting bamboo package to workato for org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data=exception.message,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # in case of an error response
+        if isinstance(package, Response):
+            return package
+        
+        bamboohr.package_id = package['id']
+        bamboohr.save()
 
-        except Exception:
-            error = traceback.format_exc()
-            logger.error(error)
-            return Response(
-                data={
-                    'message': 'Error in Uploading Package'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        return Response(
+            data={
+                'message': 'package uploaded successfully',
+            },
+            status=status.HTTP_200_OK
+        )
 
 class BambooHrConnection(generics.CreateAPIView):
     """
@@ -193,7 +149,7 @@ class BambooHrConfigurationView(generics.ListCreateAPIView):
         except BambooHrConfiguration.DoesNotExist:
             return Response(
                 data={'message': 'BambooHr Configuration does not exist for this Workspace'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_404_NOT_FOUND
             )
 
     def get_object(self, *args, **kwargs):
@@ -206,60 +162,33 @@ class DisconnectView(generics.CreateAPIView):
     """
 
     def post(self, request, *args, **kwargs):
-        connector = Workato()
-        
-        org = Org.objects.get(id=kwargs['org_id'])
-        configuration = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
-        bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
-
         try:
-            connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-            bamboo_connection_1 = next(connection for connection in connections if connection['name'] == BAMBOO_HR['connections'][0])
-            bamboo_connection_2 = next(connection for connection in connections if connection['name'] == BAMBOO_HR['connections'][1])
+            configuration = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
+            bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
-            configuration.recipe_status = False
-            configuration.save()
+            connection = disconnect_bamboohr(kwargs['org_id'], configuration, bamboohr)
 
-            connection = connector.connections.post(
-                managed_user_id=org.managed_user_id,
-                connection_id=bamboo_connection_1['id'],
-
-            )
-            connector.connections.post(
-                managed_user_id=org.managed_user_id,
-                connection_id=bamboo_connection_2['id'],
-            )
-
-            bamboohr.api_token = None
-            bamboohr.sub_domain = None
-            bamboohr.save()
-
+            # in case of an error response
+            if isinstance(connection, Response):
+                return connection
+            
             return Response(
                 data=connection,
                 status=status.HTTP_200_OK
             )
-
-        except NotFoundItemError as exception:
-            logger.error(
-                'Recipe with id %s not found in workato with org_id - %s in Fyle %s',
-                configuration.recipe_id, org.id, exception.message
-            )
+        except BambooHr.DoesNotExist:
             return Response(
-                data=exception.message,
+                data = {
+                    'message': 'BambooHR connection does not exists for this org.'
+                },
+                status = status.HTTP_404_NOT_FOUND
+            )
+        except BambooHrConfiguration.DoesNotExist:
+            return Response(
+                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        except Exception as exception:
-            logger.error(
-                'Something unexpected happened in workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data={
-                    'message': 'Error in Starting Or Stopping The Recipe'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
 class SyncEmployeesView(generics.UpdateAPIView):
     
@@ -268,59 +197,21 @@ class SyncEmployeesView(generics.UpdateAPIView):
     """
 
     def post(self, request, *args, **kwargs):
-        connector = Workato()
-        
-        org = Org.objects.get(id=kwargs['org_id'])
-        config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
-
+    
         try:
-            recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
-            sync_recipe = next(recipe for recipe in recipes if recipe['name'] == BAMBOO_HR['recipe'])
-            code = json.loads(sync_recipe['code'])
+            config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
+            sync_recipe = sync_employees(kwargs['org_id'], config)
 
-            admin_emails = [
-                {
-                 'email': admin['email'],
-                } for admin in config.emails_selected
-            ]
-            code['block'][6]['block'][1]['input']['personalizations']['to'] = admin_emails
-            code['block'][6]['block'][1]['input']['from']['email'] = settings.SENDGRID_EMAIL
-            sync_recipe['code'] = json.dumps(code)
-            payload = {
-                "recipe": {
-                    "name": sync_recipe['name'],
-                    "code": sync_recipe['code'],
-                    "folder_id": str(sync_recipe['folder_id'])
-                }
-            }
-
-            connector.recipes.post(org.managed_user_id, sync_recipe['id'], payload)
-            connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'start')
-            sleep(5)
-            connector.recipes.post(org.managed_user_id, sync_recipe['id'], None, 'stop')
-
+            # in case of an error response
+            if isinstance(sync_recipe, Response):
+                return sync_recipe
+            
             return Response(
                 data=sync_recipe,
                 status=status.HTTP_200_OK
             )
-
-
-        except NotFoundItemError as exception:
-            logger.error(
-                'Recipe with id %s not found in workato with org_id - %s in Fyle %s',
-                config.recipe_id, org.id, exception.message
-            )
+        except BambooHrConfiguration.DoesNotExist:
             return Response(
-                data=exception.message,
+                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_404_NOT_FOUND
-            )
-
-        except Exception as exception:
-            logger.error(
-                'Something unexpected happened in workato with org_id - %s in Fyle %s',
-                org.id, exception.message
-            )
-            return Response(
-                data={'message': 'Error in Syncing Employees in BambooHR'},
-                status=status.HTTP_400_BAD_REQUEST
             )
