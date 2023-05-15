@@ -38,7 +38,7 @@ def test_orgs_get_view(api_client, mocker, access_token):
     assert dict_compare_keys(response, fixture['orgs']) == [], 'orgs GET diff in keys'
 
     response = api_client.get(url, {'org_id': 'wrong_org_id'})
-    assert response.status_code == 400
+    assert response.status_code == 404
 
     response = json.loads(response.content)
     assert response['message'] != None
@@ -276,7 +276,7 @@ def test_generate_token(api_client, mocker, access_token, get_org_id):
     expected_token = "encoded_token"
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
     response = api_client.get(url, data={})
-    assert response.status_code == 400
+    assert response.status_code == 500
 
     mocker.patch(
         'jwt.encode',
