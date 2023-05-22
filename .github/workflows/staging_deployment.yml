@@ -22,12 +22,6 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
           IMAGE_NAME: fyle_integration_settings-api
-      - name: Update image version
-        run: |
-          sed -i "s/image-name:.*/image-name:${{ github.sha }}/g" deployment/staging/controller.yml
-          git add deployment/staging/controller.yml
-          git commit -m "Updating Image Tag"
-          git push
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:
