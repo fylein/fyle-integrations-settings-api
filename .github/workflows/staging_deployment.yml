@@ -22,8 +22,7 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
           IMAGE_NAME: fyle_integration_settings-api
-      - uses: actions/checkout@v2
-        name: Update image version
+      - name: Update image version
         run: |
           sed -i "s/image-name:.*/image-name:${{ github.sha }}/g" deployment/staging/controller.yml
           git add deployment/staging/controller.yml
