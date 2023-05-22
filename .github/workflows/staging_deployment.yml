@@ -22,38 +22,14 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
           IMAGE_NAME: fyle_integration_settings-api
-      - name: Deploy to Staging
-        uses: fylein/aws-eks-deploy-action@master
-        env:
-          EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          LOCAL_HOST: ${{ secrets.LOCAL_HOST }}
-          LOCAL_PORT: ${{ secrets.LOCAL_PORT }}
-          REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
-          EKS_KUBECTL_ROLE: ${{ secrets.EKS_KUBECTL_ROLE }}
-          ROLE_SESSION_NAME: ${{ secrets.ROLE_SESSION_NAME }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          KUBERNETES_MANIFEST_FILE_PATH: deployment/staging/controller.yml
-      - name: Create new Sentry release
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: fyle-technologies-private-limi
-          SENTRY_PROJECT: integrations-settings-api
-          SENTRY_DEPLOY_ENVIRONMENT: staging
+      - name: steps:
+      - uses: actions/checkout@v2
+      - name: Update image version
         run: |
-          # Install Sentry CLI
-          curl -sL https://sentry.io/get-cli/ | bash
-
-          # Create new Sentry release
-          export SENTRY_RELEASE=$(sentry-cli releases propose-version)
-          sentry-cli releases new -p $SENTRY_PROJECT $SENTRY_RELEASE
-          sentry-cli releases set-commits --auto $SENTRY_RELEASE
-          sentry-cli releases finalize $SENTRY_RELEASE
-
-          # Create new deploy for this Sentry release
-          sentry-cli releases deploys $SENTRY_RELEASE new -e $SENTRY_DEPLOY_ENVIRONMENT
+          sed -i "s/image-name:.*/image-name:${{ github.sha }}/g" deployment/staging/controller.yml
+          git add index.html
+          git commit -m "Committing changes to index.html"
+          git push
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:
