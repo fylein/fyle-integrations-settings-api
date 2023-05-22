@@ -27,8 +27,8 @@ jobs:
       - name: Update image version
         run: |
           sed -i "s/image-name:.*/image-name:${{ github.sha }}/g" deployment/staging/controller.yml
-          git add index.html
-          git commit -m "Committing changes to index.html"
+          git add deployment/staging/controller.yml
+          git commit -m "Updating Image Tag"
           git push
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
