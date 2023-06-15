@@ -52,3 +52,22 @@ jobs:
           git commit -m "Update image tag"
           git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}@github.com/${{ secrets.STAGING_DEPLOY_REPO }}
           git push origin argo-integrations
+
+      - name: Create new Sentry release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: fyle-technologies-private-limi
+          SENTRY_PROJECT: integrations-settings-api
+          SENTRY_DEPLOY_ENVIRONMENT: staging
+        run: |
+          # Install Sentry CLI
+          curl -sL https://sentry.io/get-cli/ | bash
+
+          # Create new Sentry release
+          export SENTRY_RELEASE=$(sentry-cli releases propose-version)
+          sentry-cli releases new -p $SENTRY_PROJECT $SENTRY_RELEASE
+          sentry-cli releases set-commits --auto $SENTRY_RELEASE
+          sentry-cli releases finalize $SENTRY_RELEASE
+
+          # Create new deploy for this Sentry release
+          sentry-cli releases deploys $SENTRY_RELEASE new -e $SENTRY_DEPLOY_ENVIRONMENT
