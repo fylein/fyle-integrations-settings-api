@@ -22,6 +22,7 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
           IMAGE_NAME: fyle_integration_settings-api
+
       - name: Deploy to Staging
         uses: fylein/aws-eks-deploy-action@master
         env:
@@ -36,31 +37,31 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           KUBERNETES_MANIFEST_FILE_PATH: deployment/staging/controller.yml
-      - name: Create new Sentry release
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: fyle-technologies-private-limi
-          SENTRY_PROJECT: integrations-settings-api
-          SENTRY_DEPLOY_ENVIRONMENT: staging
+
+      - name: Install kustomize
         run: |
-          # Install Sentry CLI
-          curl -sL https://sentry.io/get-cli/ | bash
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
 
-          # Create new Sentry release
-          export SENTRY_RELEASE=$(sentry-cli releases propose-version)
-          sentry-cli releases new -p $SENTRY_PROJECT $SENTRY_RELEASE
-          sentry-cli releases set-commits --auto $SENTRY_RELEASE
-          sentry-cli releases finalize $SENTRY_RELEASE
-
-          # Create new deploy for this Sentry release
-          sentry-cli releases deploys $SENTRY_RELEASE new -e $SENTRY_DEPLOY_ENVIRONMENT
-      - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2
+      - name: Clone another repository
         env:
-          SLACK_COLOR: ${{ job.status }}
-          SLACK_MESSAGE: Staging Deploy Status - ${{ job.status }}
-          SLACK_TITLE: Deploy Integrations Settings API to Staging
-          SLACK_ICON_EMOJI: ":pepeok:"
-          SLACK_USERNAME: LOLO
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_FOOTER: ''
+          ACCESS_TOKEN: ${{ secrets.GITHUB_DEPLOY_ACCESS_TOKEN }}
+        run: |
+          git clone https://github.com/fylein/fyle-deploy.git
+          cd fyle-deploy
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "integrations@fylehq.com"
+
+      - name: Update Image Tag
+        run: |
+          cd fyle-deploy/staging-2-in/integrations
+          NEW_TAG="v$(git rev-parse --short HEAD)";
+          kustomize edit set image fyle_integration_settings-api=fyle_integration_settings-api:$NEW_TAG
+
+      - name: Commit and push changes
+        run: |
+          cd fyle-deploy/
+          git checkout -b argo-integrations
+          git add .
+          git commit -m "Update image tag"
+          git push origin main
