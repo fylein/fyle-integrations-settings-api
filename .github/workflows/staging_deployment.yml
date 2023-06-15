@@ -23,21 +23,6 @@ jobs:
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
           IMAGE_NAME: fyle_integration_settings-api
 
-      - name: Deploy to Staging
-        uses: fylein/aws-eks-deploy-action@master
-        env:
-          EKS_CLUSTER_NAME: ${{ secrets.EKS_CLUSTER_NAME }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          LOCAL_HOST: ${{ secrets.LOCAL_HOST }}
-          LOCAL_PORT: ${{ secrets.LOCAL_PORT }}
-          REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
-          EKS_KUBECTL_ROLE: ${{ secrets.EKS_KUBECTL_ROLE }}
-          ROLE_SESSION_NAME: ${{ secrets.ROLE_SESSION_NAME }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          KUBERNETES_MANIFEST_FILE_PATH: deployment/staging/controller.yml
-
       - name: Install kustomize
         run: |
           curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
@@ -45,7 +30,7 @@ jobs:
 
       - name: Clone another repository
         env:
-          ACCESS_TOKEN: ${{ secrets.GITHUB_DEPLOY_ACCESS_TOKEN }}
+          ACCESS_TOKEN: ${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "integrations@fylehq.com"
