@@ -16,7 +16,7 @@ jobs:
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
       - name: push to dockerhub
-        uses: fylein/docker-release-action@master
+        uses: docker-release-action@master
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -30,7 +30,7 @@ jobs:
       - name: Clone another repository
         uses: actions/checkout@v2
         with:
-          repository: fylein/${{ secrets.STAGING_DEPLOY_REPO }}
+          repository: ${{ secrets.STAGING_DEPLOY_REPO }}
           ref: argo-integrations
           path: ${{ secrets.STAGING_DEPLOY_REPO }}
           persist-credentials: false
@@ -49,5 +49,5 @@ jobs:
           git config --global user.name "GitHub Actions"
           git add .
           git commit -m "Update image tag"
-          git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}@github.com/fylein/${{ secrets.STAGING_DEPLOY_REPO }}
+          git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}@github.com/${{ secrets.STAGING_DEPLOY_REPO }}
           git push origin argo-integrations
