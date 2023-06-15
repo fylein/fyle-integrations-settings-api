@@ -29,29 +29,25 @@ jobs:
 
       - name: Clone another repository
         uses: actions/checkout@v2
-        env:
-          ACCESS_TOKEN: ${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}
         with:
-          repository: fylein/fyle-deploy
+          repository: fylein/${{ secrets.STAGING_DEPLOY_REPO }}
           ref: argo-integrations
-          path: fyle-deploy
+          path: ${{ secrets.STAGING_DEPLOY_REPO }}
           persist-credentials: false
           token: ${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}
 
       - name: Update Image Tag
         run: |
-          cd fyle-deploy/staging-2-in/integrations
-          NEW_TAG="v$(git rev-parse --short HEAD)";
+          cd ${{ secrets.STAGING_DEPLOY_REPO }}/staging-2-in/integrations
+          NEW_TAG="v$(git rev-parse --short HEAD)"
           kustomize edit set image fyle_integration_settings-api=fyle_integration_settings-api:$NEW_TAG
 
       - name: Commit and push changes
         run: |
-          cd fyle-deploy/
-          git checkout argo-integrations
+          cd $ {{ secrets.STAGING_DEPLOY_REPO }}/
           git config --global user.email "integrations@fylehq.com"
           git config --global user.name "GitHub Actions"
           git add .
           git commit -m "Update image tag"
-          git diff argo-integrations
-          git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}@github.com/fylein/fyle-deploy
+          git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}@github.com/fylein/${{ secrets.STAGING_DEPLOY_REPO }}
           git push origin argo-integrations
