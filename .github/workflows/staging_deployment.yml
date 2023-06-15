@@ -47,10 +47,10 @@ jobs:
         env:
           ACCESS_TOKEN: ${{ secrets.GITHUB_DEPLOY_ACCESS_TOKEN }}
         run: |
-          git clone https://github.com/fylein/fyle-deploy.git
-          cd fyle-deploy
           git config --global user.name "GitHub Actions"
           git config --global user.email "integrations@fylehq.com"
+          git clone https://github.com/fylein/fyle-deploy.git
+          cd fyle-deploy
 
       - name: Update Image Tag
         run: |
