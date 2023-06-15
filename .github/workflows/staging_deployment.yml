@@ -45,10 +45,6 @@ jobs:
           kustomize edit set image fyle_integration_settings-api=fyle_integration_settings-api:$NEW_TAG
 
       - name: Commit and push changes
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}
-          persist-credentials: false
         run: |
           cd fyle-deploy/
           git checkout argo-integrations
