@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: Staging
     steps:
-      - uses: actions/checkout@v2
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
       - name: push to dockerhub
@@ -29,14 +28,15 @@ jobs:
           sudo mv kustomize /usr/local/bin/
 
       - name: Clone another repository
+        uses: actions/checkout@v2
         env:
           ACCESS_TOKEN: ${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "integrations@fylehq.com"
-          git config --global credential.helper store
-          git clone https://github.com/fylein/fyle-deploy.git
-          cd fyle-deploy
+        with:
+          repository: fylein/fyle-deploy
+          ref: argo-integrations
+          path: fyle-deploy
+          persist-credentials: false
+          token: ${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}
 
       - name: Update Image Tag
         run: |
@@ -50,4 +50,4 @@ jobs:
           git checkout -b argo-integrations
           git add .
           git commit -m "Update image tag"
-          git push origin main
+          git push origin argo-integrations
