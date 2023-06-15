@@ -47,7 +47,7 @@ jobs:
       - name: Commit and push changes
         run: |
           cd fyle-deploy/
-          git checkout -b argo-integrations
+          git checkout argo-integrations
           git add .
           git commit -m "Update image tag"
           git push origin argo-integrations
