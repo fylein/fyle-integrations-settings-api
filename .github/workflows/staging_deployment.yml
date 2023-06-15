@@ -44,7 +44,7 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          cd $ {{ secrets.STAGING_DEPLOY_REPO }}/
+          cd ${{ secrets.STAGING_DEPLOY_REPO }}/
           git config --global user.email "integrations@fylehq.com"
           git config --global user.name "GitHub Actions"
           git add .
