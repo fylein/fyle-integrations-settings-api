@@ -40,7 +40,7 @@ jobs:
         run: |
           cd ${{ secrets.STAGING_DEPLOY_REPO }}/staging-2-in/integrations
           NEW_TAG="v$(git rev-parse --short HEAD)"
-          kustomize edit set image fyle_integration_settings-api=fyle_integration_settings-api:$NEW_TAG
+          kustomize edit set image docker.io/${{ DOCKERHUB_USERNAME }}/fyle_integration_settings-api=docker.io/${{ DOCKERHUB_USERNAME }}/fyle_integration_settings-api:$NEW_TAG
 
       - name: Commit and push changes
         run: |
