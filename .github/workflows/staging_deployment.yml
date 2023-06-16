@@ -32,7 +32,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: ${{ secrets.STAGING_DEPLOY_REPO }}
-          ref: argo-integrations
+          ref: master
           path: ${{ secrets.STAGING_DEPLOY_REPO }}
           persist-credentials: false
           token: ${{ secrets.DEPLOY_GIT_ACCESS_TOKEN }}
