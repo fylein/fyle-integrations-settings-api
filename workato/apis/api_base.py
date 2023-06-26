@@ -8,8 +8,7 @@ from ..exceptions import *
 API_URL = '{}/api/'.format(os.environ.get('APP_WK_ORIGIN'))
 
 API_HEADERS: dict = {
-    'X-USER-TOKEN': os.environ.get('WK_API_PLATFORM_KEY'),
-    'X-USER-EMAIL': os.environ.get('WK_PARTNER_EMAIL'),
+    'Authorization': 'Bearer {}'.format(os.environ.get('WK_API_CLIENT')),
     'Content-Type': 'application/json'
 }
 
