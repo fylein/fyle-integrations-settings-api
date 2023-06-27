@@ -18,7 +18,7 @@ class Org(models.Model):
     cluster_domain = models.CharField(max_length=255, help_text='Fyle cluster domain')
     is_fyle_connected = models.BooleanField(null=True, help_text='Is Fyle API Connected')
     is_sendgrid_connected = models.BooleanField(null=True, help_text='Is Sendgrid Connected')
-    allow_travelperk = models.BooleanField(default=False, help_text='Allow Travelperk')
+    allow_travelperk = models.BooleanField(default=True, help_text='Allow Travelperk')
     allow_gusto = models.BooleanField(default=False, help_text='Allow Gusto')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
