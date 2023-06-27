@@ -106,7 +106,7 @@ def create_managed_user_and_set_properties(org_id, org: Org):
         # Need to post this package for creating common connections
         package = connector.packages.post(org.managed_user_id, folder['id'], 'assets/common_connections.zip')
         # post package is an async request, polling to get the status of the package
-
+    
         polling.poll(
             lambda: connector.packages.get(org.managed_user_id, package['id'])['status'] == 'completed',
             step=5,
