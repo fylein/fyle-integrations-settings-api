@@ -16,7 +16,11 @@ def post_package_to_workato():
     count=0
     for org_id in org_ids:
         org = Org.objects.get(id=org_id)
-        managed_user = connector.managed_users.get_by_id(org.fyle_org_id)
+        managed_user = None
+        try:
+            managed_user = connector.managed_users.get_by_id(org.fyle_org_id)
+        except:
+            print("managed user not found")
         if org.managed_user_id and managed_user:
             travelperk = TravelPerk.objects.filter(org_id = org_id).first()
             if travelperk:
