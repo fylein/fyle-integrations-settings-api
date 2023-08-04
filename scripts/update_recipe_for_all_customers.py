@@ -11,10 +11,8 @@ def get_all_managed_user():
 
 def post_package_to_workato():
     connector = Workato()
-    print("connected to worakto")
     org_ids = get_all_managed_user()
     count=0
-    print("org_ids")
     for org_id in org_ids:
         org = Org.objects.get(id=org_id)
         managed_user=None
@@ -31,7 +29,6 @@ def post_package_to_workato():
                         if travelperk_conf.is_recipe_enabled:
                             try:
                                 connector.recipes.post(org.managed_user_id, travelperk_conf.recipe_id, None, 'stop')
-                                print("recipe stopped")
                             except:
                                 print('no recipe found')
                     try:
@@ -42,14 +39,11 @@ def post_package_to_workato():
                         )
                         travelperk.package_id = package['id']
                         travelperk.save()
-                        print("package posted")
-                        print(package["id"])
                     except:
                         print('error posting')
                     if travelperk_conf and travelperk_conf.is_recipe_enabled:
                         try:
                             connector.recipes.post(org.managed_user_id, travelperk_conf.recipe_id, None, 'start')
-                            print("recipe started")
                         except:
                             print('some error')
                     count +=1
