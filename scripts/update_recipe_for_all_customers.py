@@ -25,28 +25,26 @@ def post_package_to_workato():
                 travelperk = TravelPerk.objects.filter(org_id = org_id).first()
                 if travelperk:
                     travelperk_conf = TravelPerkConfiguration.objects.filter(org_id=org_id).first()
-                    if travelperk_conf:
-                        if travelperk_conf.is_recipe_enabled:
-                            try:
-                                connector.recipes.post(org.managed_user_id, travelperk_conf.recipe_id, None, 'stop')
-                            except:
-                                print('no recipe found')
+                    if travelperk_conf and travelperk_conf.is_recipe_enabled:
+                        try:
+                            connector.recipes.post(org.managed_user_id, travelperk_conf.recipe_id, None, 'stop')
+                        except:
+                            print('no recipe found')
                     try:
                         package = post_package(
-                        org_id=org_id,
-                        folder_id=travelperk.folder_id,
-                        package_path='assets/travelperk.zip'
+                            org_id=org_id,
+                            folder_id=travelperk.folder_id,
+                            package_path='assets/travelperk.zip'
                         )
                         travelperk.package_id = package['id']
                         travelperk.save()
                     except:
-                        print('error posting')
+                        print('error uploading package to workato')
                     if travelperk_conf and travelperk_conf.is_recipe_enabled:
                         try:
                             connector.recipes.post(org.managed_user_id, travelperk_conf.recipe_id, None, 'start')
                         except:
-                            print('some error')
+                            print('error while starting the recipe')
                     count +=1
                     print(org.name,count)
-                    print("Success")
 
