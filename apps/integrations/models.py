@@ -17,4 +17,4 @@ class Integration(models.Model):
 
     class Meta:
         db_table = 'integrations'
-        unique_together = ('tpa_id', 'org_id', 'type')
+        unique_together = ('org_id', 'type')
