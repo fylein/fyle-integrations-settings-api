@@ -9,7 +9,7 @@ services:
     entrypoint: bash run.sh
     restart: unless-stopped
     volumes:
-    - ./:/fyle-admin-settings-api
+    - ./:/fyle-integrations-settings-api
     ports:
     - 8007:8007
     depends_on:

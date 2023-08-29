@@ -174,5 +174,4 @@ def get_recipe_running_status(org_id, task_count):
     org = Org.objects.filter(fyle_org_id=org_id).first()
     recipes = connector.recipes.get(managed_user_id=org.managed_user_id)['result']
     sync_recipe = next(recipe for recipe in recipes if recipe['name'] == BAMBOO_HR['recipe'])
-    print(sync_recipe)
     return sync_recipe['lifetime_task_count']>=task_count+BAMBOOHR_TASKS_IN_SUCCESS

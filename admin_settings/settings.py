@@ -43,13 +43,15 @@ INSTALLED_APPS = [
     # Installed Apps
     'rest_framework',
     'fyle_rest_auth',
+    'django_filters',
 
     # User Created Apps
     'apps.users',
     'apps.bamboohr',
     'apps.orgs',
     'apps.travelperk',
-    'apps.gusto'
+    'apps.gusto',
+    'apps.integrations'
 ]
 
 MIDDLEWARE = [
@@ -97,6 +99,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'fyle_rest_auth.authentication.FyleJWTAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 

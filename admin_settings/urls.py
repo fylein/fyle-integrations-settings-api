@@ -19,5 +19,6 @@ from django.urls import path, include
 urlpatterns = [
     path('api/auth/', include('fyle_rest_auth.urls')),
     path('api/orgs/', include('apps.orgs.urls')),
-    path('api/user/', include('apps.users.urls'))
+    path('api/user/', include('apps.users.urls')),
+    path('api/integrations/', include('apps.integrations.urls')),
 ]
