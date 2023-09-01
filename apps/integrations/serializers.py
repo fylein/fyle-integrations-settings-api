@@ -18,8 +18,7 @@ class IntegrationSerializer(serializers.ModelSerializer):
         """
         integration = Integration.objects.filter(
             org_id=validated_data['org_id'],
-            type=validated_data['type'],
-            is_active=validated_data['is_active']
+            type=validated_data['type']
         ).first()
 
         if not integration and validated_data['is_active']:
