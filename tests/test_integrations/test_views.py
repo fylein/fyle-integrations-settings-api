@@ -145,10 +145,7 @@ def test_integrations_view_invalid_access_token(api_client):
     api_client.credentials(HTTP_AUTHORIZATION='Bearer ey.ey.ey')
 
     response = api_client.get(url)
-    assert response.status_code == 200
-
-    response = json.loads(response.content)
-    assert len(response) == 0
+    assert response.status_code == 403
 
     response = api_client.post(url, post_integration_accounting)
     assert response.status_code == 403

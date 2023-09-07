@@ -21,6 +21,16 @@ class IntegrationsView(generics.ListCreateAPIView):
     queryset = Integration.objects.filter(is_active=True, is_beta=True)
     filterset_fields = {'type': {'exact'}}
 
+    def get(self, request, *args, **kwargs):
+        # This block is for authenticating the user
+        access_token = self.request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        try:
+            get_org_id_from_access_token(access_token)
+            return super().get(request, *args, **kwargs)
+        except Exception as error:
+            logger.info(error)
+            raise AuthenticationFailed('Invalid access token')
+
     def perform_create(self, serializer):
         try:
             access_token = self.request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
