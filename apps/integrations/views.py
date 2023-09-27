@@ -19,13 +19,17 @@ class IntegrationsView(generics.ListCreateAPIView):
     authentication_classes = []
     serializer_class = IntegrationSerializer
     queryset = Integration.objects.filter(is_active=True, is_beta=True)
-    filterset_fields = {'type': {'exact'}}
+    filterset_fields = {'type': {'exact'}, 'org_id': {'exact'}}
 
     def get(self, request, *args, **kwargs):
         # This block is for authenticating the user
         access_token = self.request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
         try:
-            get_org_id_from_access_token(access_token)
+            org_id = get_org_id_from_access_token(access_token)
+
+            # Add validated org_id to query_params
+            request.query_params._mutable = True
+            request.query_params['org_id'] = org_id
             return super().get(request, *args, **kwargs)
         except Exception as error:
             logger.info(error)
