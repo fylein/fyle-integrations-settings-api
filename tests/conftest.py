@@ -70,16 +70,6 @@ def default_session_fixture(request):
     )
     patched_6.__enter__()
 
-    def unpatch():
-        patched_1.__exit__(None, None, None)
-        patched_2.__exit__(None, None, None)
-        patched_3.__exit__(None, None, None)
-        patched_4.__exit__(None, None, None)
-        patched_5.__exit__(None, None, None)
-        patched_6.__exit__(None, None, None)
-
-    request.addfinalizer(unpatch)
-
 
 @pytest.fixture()
 def access_token():
