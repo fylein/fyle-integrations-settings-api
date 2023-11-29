@@ -10,7 +10,7 @@ class Integration(models.Model):
     org_id = models.CharField(max_length=255, help_text='Org Id')
     type = models.CharField(max_length=255, help_text='Type of Integration', choices=INTEGRATION_TYPE)
     is_active = models.BooleanField(default=False, help_text='Is Integration Active')
-    is_beta = models.BooleanField(default=False, help_text='Is Beta')
+    is_beta = models.BooleanField(default=True, help_text='Is Beta')
     connected_at = models.DateTimeField(auto_now_add=True, help_text='Connected at datetime')
     disconnected_at = models.DateTimeField(null=True, help_text='Disconnected at datetime')
     updated_at = models.DateTimeField(auto_now=True, help_text='Updated at datetime')

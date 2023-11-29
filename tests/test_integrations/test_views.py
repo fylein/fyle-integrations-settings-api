@@ -34,7 +34,7 @@ def test_integrations_view_post_accounting(api_client, mocker, access_token):
     assert response['tpa_name'] == post_integration_accounting['tpa_name']
     assert response['type'] == post_integration_accounting['type']
     assert response['is_active'] == post_integration_accounting['is_active']
-    assert response['is_beta'] == False
+    assert response['is_beta'] == True
     assert response['disconnected_at'] == None
 
 
@@ -67,7 +67,7 @@ def test_integrations_view_post(api_client, mocker, access_token):
     assert response['tpa_name'] == post_integration_accounting['tpa_name']
     assert response['type'] == post_integration_accounting['type']
     assert response['is_active'] == post_integration_accounting['is_active']
-    assert response['is_beta'] == False
+    assert response['is_beta'] == True
     assert response['disconnected_at'] == None
 
     response = api_client.post(url, post_integration_hrms)
@@ -80,7 +80,7 @@ def test_integrations_view_post(api_client, mocker, access_token):
     assert response['tpa_name'] == post_integration_hrms['tpa_name']
     assert response['type'] == post_integration_hrms['type']
     assert response['is_active'] == post_integration_hrms['is_active']
-    assert response['is_beta'] == False
+    assert response['is_beta'] == True
     assert response['disconnected_at'] == None
 
 
