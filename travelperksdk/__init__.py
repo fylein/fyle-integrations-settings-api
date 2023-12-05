@@ -1,6 +1,7 @@
 """
 TravelPerk init
 """
+from .apis import TravelperkSDK
 from .exceptions import (
     TravelperkSDKError,
     NotFoundError,
@@ -13,6 +14,7 @@ from .exceptions import (
 
 
 __all__ = [
+    'TravelPerkSDK',
     'TravelperkSDKError',
     'NotFoundError',
     'UnauthorizedClientError',
