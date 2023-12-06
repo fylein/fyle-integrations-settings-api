@@ -1,15 +1,16 @@
 """
-Travelperk Python SDK
+Travelperk Python Class
 """
 import json
-from typing import List, Dict
 import requests
 from future.moves.urllib.parse import urlencode
 
+from travelperk.exceptions import *
+from travelperk.apis.invoice_profiles import InvoiceProfiles
 
-class TravelperkSDK:
+class Travelperk:
     """
-    Travelperk SDK
+    Travelperk Python Class
     """
 
     def __init__(self, client_id: str, client_secret: str,
@@ -37,6 +38,8 @@ class TravelperkSDK:
 
         self.__access_token = None
 
+        self.invoice_profiles = InvoiceProfiles()
+
         self.update_access_token()
         self.update_server_url()
 
@@ -46,7 +49,7 @@ class TravelperkSDK:
         """
         base_url = self.__base_url
 
-        self.invoices.set_server_url(base_url)
+        self.invoice_profiles.set_server_url(base_url)
 
     def update_access_token(self):
         """
@@ -55,7 +58,7 @@ class TravelperkSDK:
         self.__get_access_token()
         access_token = self.__access_token
 
-        self.invoices.change_access_token(access_token)
+        self.invoice_profiles.change_access_token(access_token)
 
     def __get_access_token(self):
         """Get the access token using a HTTP post.
@@ -71,14 +74,11 @@ class TravelperkSDK:
             'client_secret': self.__client_secret
         }
 
-        api_data = urlencode(api_data)
-
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        response = requests.post(url=self.__token_url, data=api_data, headers=headers)
-
+        response = requests.post(url=self.__token_url, data=urlencode(api_data), headers=headers)
         if response.status_code == 200:
             auth = json.loads(response.text)
             self.__access_token = auth['access_token']
@@ -97,43 +97,4 @@ class TravelperkSDK:
             raise InternalServerError('Internal server error', response.text)
 
         else:
-            raise TravelperkSDKError('Error: {0}'.format(response.status_code), response.text)
-
-    def _get_request(self, object_type: str, api_url: str) -> List[Dict] or Dict:
-        """Create a HTTP GET request.
-
-        Parameters:
-            api_url (str): Url for the wanted API.
-
-        Returns:
-            A response from the request (dict).
-        """
-
-        api_headers = {
-            'Authorization': 'Bearer {0}'.format(self.__access_token),
-            'Accept': 'application/json'
-        }
-
-        response = requests.get(
-            '{0}{1}'.format(self.__server_url, api_url),
-            headers=api_headers
-        )
-
-        if response.status_code == 200:
-            result = json.loads(response.text)
-            return result[object_type]
-
-        elif response.status_code == 400:
-            raise BadRequestError('Something wrong with the request body', response.text)
-
-        elif response.status_code == 401:
-            raise UnauthorizedClientError('Wrong client secret or/and refresh token', response.text)
-
-        elif response.status_code == 404:
-            raise NotFoundError('Client ID doesn\'t exist', response.text)
-
-        elif response.status_code == 500:
-            raise InternalServerError('Internal server error', response.text)
-
-        else:
-            raise TravelperkSDKError('Error: {0}'.format(response.status_code), response.text)
+            raise TravelperkError('Error: {0}'.format(response.status_code), response.text)

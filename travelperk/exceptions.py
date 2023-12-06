@@ -1,9 +1,9 @@
 """
-TravelPerk SDK Exceptions
+TravelPerk Exceptions
 """
 
 
-class TravelperkSDKError(Exception):
+class TravelperkError(Exception):
     """The base exception class for Travelperk.
 
     Parameters:
@@ -12,7 +12,7 @@ class TravelperkSDKError(Exception):
     """
 
     def __init__(self, msg, response=None):
-        super(TravelperkSDKError, self).__init__(msg)
+        super(TravelperkError, self).__init__(msg)
         self.message = msg
         self.response = response
 
@@ -20,25 +20,25 @@ class TravelperkSDKError(Exception):
         return repr(self.message)
 
 
-class UnauthorizedClientError(TravelperkSDKError):
+class UnauthorizedClientError(TravelperkError):
     """Wrong client secret and/or refresh token, 401 error."""
 
 
-class ForbiddenClientError(TravelperkSDKError):
+class ForbiddenClientError(TravelperkError):
     """The user has insufficient privilege, 403 error."""
 
 
-class BadRequestError(TravelperkSDKError):
+class BadRequestError(TravelperkError):
     """Some of the parameters are wrong, 400 error."""
 
 
-class NotFoundError(TravelperkSDKError):
+class NotFoundError(TravelperkError):
     """Not found the item from URL, 404 error."""
 
 
-class InternalServerError(TravelperkSDKError):
-    """The rest TravelperkSDK errors, 500 error."""
+class InternalServerError(TravelperkError):
+    """The rest Travelperk errors, 500 error."""
 
 
-class RateLimitError(TravelperkSDKError):
+class RateLimitError(TravelperkError):
     """To many requests, 429 error."""
