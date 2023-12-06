@@ -1,9 +1,8 @@
-from travelperksdk.exceptions import *
-
 from typing import List, Dict
 import requests
 import json
 
+from travelperk.exceptions import *
 
 class ApiBase:
     """The base class for all API classes."""
@@ -40,14 +39,14 @@ class ApiBase:
 
         api_headers = {
             'Authorization': 'Bearer {0}'.format(self.__access_token),
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'Api-Version': '1'
         }
 
         response = requests.get(
             '{0}{1}'.format(self.__server_url, api_url),
             headers=api_headers
         )
-
         if response.status_code == 200:
             result = json.loads(response.text)
             return result[object_type]
@@ -65,4 +64,4 @@ class ApiBase:
             raise InternalServerError('Internal server error', response.text)
 
         else:
-            raise TravelperkSDKError('Error: {0}'.format(response.status_code), response.text)
+            raise TravelperkError('Error: {0}'.format(response.status_code), response.text)

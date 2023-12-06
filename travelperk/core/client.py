@@ -1,17 +1,16 @@
 """
-Travelperk Python SDK
+Travelperk Python Class
 """
 import json
-from typing import List, Dict
 import requests
 from future.moves.urllib.parse import urlencode
 
-from travelperksdk.exceptions import *
-from travelperksdk.apis.invoice_profiles import InvoiceProfiles
+from travelperk.exceptions import *
+from travelperk.apis.invoice_profiles import InvoiceProfiles
 
-class TravelperkSDK:
+class Travelperk:
     """
-    Travelperk SDK
+    Travelperk Python Class
     """
 
     def __init__(self, client_id: str, client_secret: str,
@@ -74,17 +73,12 @@ class TravelperkSDK:
             'client_id': self.__client_id,
             'client_secret': self.__client_secret
         }
-        print('api_data', self.__token_url)
-
-        api_data = urlencode(api_data)
-        print('api_data', api_data)
 
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
-        response = requests.post(url=self.__token_url, data=api_data, headers=headers)
-        print('response', json.loads(response.text))
+        response = requests.post(url=self.__token_url, data=urlencode(api_data), headers=headers)
         if response.status_code == 200:
             auth = json.loads(response.text)
             self.__access_token = auth['access_token']
@@ -103,4 +97,4 @@ class TravelperkSDK:
             raise InternalServerError('Internal server error', response.text)
 
         else:
-            raise TravelperkSDKError('Error: {0}'.format(response.status_code), response.text)
+            raise TravelperkError('Error: {0}'.format(response.status_code), response.text)
