@@ -13,7 +13,7 @@ class ApiBase:
         self.__api_token = None
         self.__sub_domain = None
     
-    def post_request(self, module_api_path):
+    def __post_request(self, module_api_path):
         """
         HTTP post method to send data to BambooHR API URL
 
