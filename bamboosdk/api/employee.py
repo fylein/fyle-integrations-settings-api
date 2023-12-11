@@ -10,4 +10,4 @@ class Employee(ApiBase):
         Returns:
             List with dicts in Employee schema.
         """
-        return self.__post_request(self.GET_EMPLOYEE_REPORT)
+        return self._post_request(self.GET_EMPLOYEE_REPORT)
