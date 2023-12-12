@@ -204,11 +204,6 @@ else:
         'default': dj_database_url.config(engine='django_db_geventpool.backends.postgresql_psycopg2')
     }
 
-DATABASES['cache_db'] = {
-    'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': 'cache.db'
-}
-
 DATABASE_ROUTERS = ['admin_settings.cache_router.CacheRouter']
 
 # Password validation
