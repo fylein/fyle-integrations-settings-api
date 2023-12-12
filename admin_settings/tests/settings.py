@@ -11,11 +11,11 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 import os
+from pathlib import Path
 import sys
 
 import dj_database_url
 
-from .sentry import Sentry
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'fyle_rest_auth',
     'django_filters',
-    'django_q',
 
     # User Created Apps
     'apps.users',
@@ -100,37 +99,6 @@ REST_FRAMEWORK = {
         'fyle_rest_auth.authentication.FyleJWTAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-}
-
-Q_CLUSTER = {
-    'name': 'integrations_settings_api',
-    'save_limit': 0,
-    'retry': 14400,
-    'timeout': 3600,
-    'catch_up': False,
-    'workers': 4,
-    # How many tasks are kept in memory by a single cluster.
-    # Helps balance the workload and the memory overhead of each individual cluster
-    'queue_limit': 10,
-    'cached': False,
-    'orm': 'default',
-    'ack_failures': True,
-    'poll': 1,
-    'max_attempts': 1,
-    'attempt_count': 1,
-    # The number of tasks a worker will process before recycling.
-    # Useful to release memory resources on a regular basis.
-    'recycle': 50,
-    # The maximum resident set size in kilobytes before a worker will recycle and release resources.
-    # Useful for limiting memory usage.
-    'max_rss': 100000 # 100mb
-}
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'auth_cache',
-    }
 }
 
 
@@ -204,13 +172,6 @@ else:
         'default': dj_database_url.config(engine='django_db_geventpool.backends.postgresql_psycopg2')
     }
 
-DATABASES['cache_db'] = {
-    'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': 'cache.db'
-}
-
-DATABASE_ROUTERS = ['admin_settings.cache_router.CacheRouter']
-
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -277,16 +238,4 @@ WORKATO_ORIGIN_URL = os.environ.get('WORKATO_ORIGIN_URL')
 WORKATO_FRAME_ANCESTORS_URL = os.environ.get('WORKATO_FRAME_ANCESTORS_URL')
 FYLE_NOTIFICATIONS_EMAIL = os.environ.get('FYLE_NOTIFICATIONS_EMAIL')
 
-CORS_ORIGIN_ALLOW_ALL = True
-
-# Sentry
-Sentry.init()
-
-CORS_ALLOW_HEADERS = [
-    'sentry-trace',
-    'authorization',
-    'content-type'
-]
-
-# Environ Variable Required for Tests
 FYLE_REFRESH_TOKEN = os.environ.get('FYLE_REFRESH_TOKEN')
