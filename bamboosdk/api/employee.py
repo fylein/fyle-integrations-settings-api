@@ -5,7 +5,7 @@ class Employee(ApiBase):
     
     GET_EMPLOYEE_REPORT = '/v1/reports/custom?format=JSON&onlyCurrent=false'
 
-    def sync_employees(self):
+    def get_all(self):
         """Get the list of employees from bambooHr
         Returns:
             List with dicts in Employee schema.
