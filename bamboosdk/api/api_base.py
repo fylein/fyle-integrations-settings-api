@@ -3,6 +3,9 @@ import base64
 import json
 from bamboosdk.exceptions import *
 
+
+payload = { "fields": ["displayName", "firstName", "lastName", "department", "workEmail", "supervisorEmail", "status"] }
+
 class ApiBase:
     """
     Base class for all API classes
@@ -12,6 +15,7 @@ class ApiBase:
     def __init__(self) -> None:
         self.__api_token = None
         self.__sub_domain = None
+        self.headers = None
     
     def _post_request(self, module_api_path):
         """
@@ -20,17 +24,10 @@ class ApiBase:
         Parameters:
             payload (dict): Data to be sent to Bamboo API
             module_api_path (str): URL of BambooHR API
-        """
-
-        headers = {
-            "content-type": "application/json",
-            "authorization": f"Basic {self.__encode_username_password()}"
-        }   
-
-        payload = { "fields": ["displayName", "firstName", "lastName", "department", "workEmail", "supervisorEmail", "status"] }
-        
+        """  
+    
         url= self.API_BASE_URL.format(self.__sub_domain) + module_api_path
-        response = requests.post(url=url, json=payload, headers=headers)
+        response = requests.post(url=url, json=payload, headers=self.headers)
         if response.status_code == 200:
             result = json.loads(response.text)
             return result
@@ -47,6 +44,10 @@ class ApiBase:
             error_msg = 'The api token is invalid'
             raise InvalidTokenError('Invalid token, try to refresh it', error_msg)
         
+        else:
+            error_msg = 'Something went wrong'
+            raise Exception('Something went wrong')
+        
     
     def __encode_username_password(self):
         """
@@ -61,6 +62,11 @@ class ApiBase:
 
     def set_api_token(self, api_token):
         self.__api_token = api_token
+
+        self.headers = {
+            "content-type": "application/json",
+            "authorization": f"Basic {self.__encode_username_password()}"
+        } 
     
     def set_sub_domain(self, sub_domain):
         self.__sub_domain = sub_domain
