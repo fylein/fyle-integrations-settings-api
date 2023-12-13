@@ -5,8 +5,9 @@ import json
 import requests
 from future.moves.urllib.parse import urlencode
 
-from travelperk.exceptions import *
-from travelperk.apis.invoice_profiles import InvoiceProfiles
+from connectors.travelperk.exceptions import *
+from connectors.travelperk.apis.invoice_profiles import InvoiceProfiles
+from connectors.travelperk.apis.webhooks import WebhooksSubscriptions
 
 class Travelperk:
     """
@@ -39,6 +40,7 @@ class Travelperk:
         self.__access_token = None
 
         self.invoice_profiles = InvoiceProfiles()
+        self.webhooks = WebhooksSubscriptions()
 
         self.update_access_token()
         self.update_server_url()
@@ -50,6 +52,7 @@ class Travelperk:
         base_url = self.__base_url
 
         self.invoice_profiles.set_server_url(base_url)
+        self.webhooks.set_server_url(base_url)
 
     def update_access_token(self):
         """
@@ -59,6 +62,7 @@ class Travelperk:
         access_token = self.__access_token
 
         self.invoice_profiles.change_access_token(access_token)
+        self.webhooks.change_access_token(access_token)
 
     def __get_access_token(self):
         """Get the access token using a HTTP post.
