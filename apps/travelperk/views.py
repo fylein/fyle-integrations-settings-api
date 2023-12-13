@@ -1,5 +1,6 @@
 import logging
 from django.conf import settings
+import traceback
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
@@ -15,7 +16,6 @@ from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
 from apps.travelperk.actions import connect_travelperk
 
 from .helpers import get_refresh_token_using_auth_code
-
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
