@@ -25,3 +25,6 @@ class NotFoundItemError(BambooHrSDKError):
 
 class InvalidTokenError(BambooHrSDKError):
     """Invalid or non-existing access token, 401 error"""
+
+class InternalServerError(BambooHrSDKError):
+    """Internal server error, 500 error"""

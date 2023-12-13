@@ -44,9 +44,13 @@ class ApiBase:
             error_msg = 'The api token is invalid'
             raise InvalidTokenError('Invalid token, try to refresh it', error_msg)
         
-        else:
-            error_msg = 'Something went wrong'
-            raise Exception('Something went wrong')
+        if response.status_code == 500:
+            error_msg = json.loads(response.text)
+            raise InternalServerError('Internal server error', error_msg)
+
+        raise BambooHrSDKError(
+            'Status code {0}'.format(response.status_code), response.text
+        )
         
     
     def __encode_username_password(self):
