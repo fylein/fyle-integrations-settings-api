@@ -1,9 +1,14 @@
 import logging
-from django.conf import settings
 import traceback
+from django.conf import settings
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
 
 from workato import Workato
 from workato.exceptions import *
@@ -14,6 +19,7 @@ from apps.orgs.actions import create_connection_in_workato, upload_properties, p
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
 from apps.travelperk.actions import connect_travelperk
+from connectors.travelperk import exceptions as travelperk_exc
 
 from .helpers import get_refresh_token_using_auth_code
 
@@ -224,7 +230,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
             org = Org.objects.get(id=kwargs['org_id'])
             travelperk = TravelPerk.objects.get(org_id=org.id)
 
-            refresh_token = get_refresh_token_using_auth_code(request.data.get('code'))
+            refresh_token = get_refresh_token_using_auth_code(request.data.get('code'), kwargs['org_id'])
 
             properties_payload = {
                 'properties': {
