@@ -36,6 +36,7 @@ def get_refresh_token_using_auth_code(code: str, org_id: str):
             defaults={
                 'refresh_token': api_response['refresh_token'],
             }
+        )
 
         return api_response['refresh_token']
     else:
