@@ -126,14 +126,6 @@ Q_CLUSTER = {
     'max_rss': 100000 # 100mb
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': 'auth_cache',
-    }
-}
-
-
 SERVICE_NAME = os.environ.get('SERVICE_NAME')
 
 LOGGING = {
