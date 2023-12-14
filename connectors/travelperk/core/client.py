@@ -7,7 +7,7 @@ from future.moves.urllib.parse import urlencode
 
 from connectors.travelperk.exceptions import *
 from connectors.travelperk.apis.invoice_profiles import InvoiceProfiles
-from connectors.travelperk.s.webhooks import WebhooksSubscriptions
+from connectors.travelperk.apis.webhooks import WebhooksSubscriptions
 
 class Travelperk:
     """
