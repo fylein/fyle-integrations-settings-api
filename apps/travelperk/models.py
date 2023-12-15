@@ -19,8 +19,6 @@ class TravelperkCredential(models.Model):
         db_table = 'travelperk_credentials'
 
 
-from django.db import models
-
 class InvoiceLineItem(models.Model):
     """
     Travelperk Invoice Line Item Model
@@ -103,6 +101,8 @@ class TravelPerk(models.Model):
     is_s3_connected = models.BooleanField(null=True, help_text='If S3 Is Connectoed')
     is_travelperk_connected = models.BooleanField(null=True, help_text='If Travelperk Is Connected')
     travelperk_connection_id = models.IntegerField(null=True, help_text='Travelperk Connection Id')
+    webhook_subscription_id = models.CharField(max_length=255, null=True, help_text='Webhook Subscription Id')
+    webhook_enabled = models.BooleanField(null=True, help_text='If Webhook Is Enabled')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
 
