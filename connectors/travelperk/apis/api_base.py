@@ -135,8 +135,7 @@ class ApiBase:
         )
 
         if response.status_code == 200:
-            result = json.loads(response.text)
-            return result
+            return response.text
 
         elif response.status_code == 400:
             raise BadRequestError('Something wrong with the request body', response.text)
