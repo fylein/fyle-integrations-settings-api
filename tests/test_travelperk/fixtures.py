@@ -9,6 +9,8 @@ fixture = {
        "is_s3_connected":"dtmmy",
        "created_at":"2022-11-29T15:39:49.221955Z",
        "updated_at":"2022-11-29T15:41:59.535831Z",
+       "webhook_subscription_id": "123",
+       "webhook_enabled": True,
        "org":2
     },
     "configurations": {

@@ -12,8 +12,9 @@ from apps.names import TRAVELPERK
 from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties, post_folder, post_package
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential
 from apps.travelperk.actions import connect_travelperk
+from apps.travelperk.connector import TravelperkConnector
 
 from .helpers import get_refresh_token_using_auth_code
 
@@ -219,53 +220,39 @@ class ConnectTravelperkView(generics.CreateAPIView):
     """
 
     def post(self, request, *args, **kwargs):
+
         try:
-            connector = Workato()
             org = Org.objects.get(id=kwargs['org_id'])
-            travelperk = TravelPerk.objects.get(org_id=org.id)
-
             refresh_token = get_refresh_token_using_auth_code(request.data.get('code'), kwargs['org_id'])
-
-            properties_payload = {
-                'properties': {
-                    'TRAVELPERK_REFRESH_TOKEN': refresh_token
-                }
-            }
-
-            data = {
-                "input": {
-                    "key": "***"
-                }
-            }
-
-            upload_properties(org.managed_user_id, properties_payload)
-
-            travelperk_connection = create_connection_in_workato(org.id, TRAVELPERK['connection'], org.managed_user_id, data)
-            if 'authorization_status' in travelperk_connection and travelperk_connection['authorization_status'] == 'success':
-                travelperk.is_connected = True
-                travelperk.save()
+            
+            if refresh_token:
+                travelperk_credential = TravelperkCredential.objects.get(org=org)
+                travelperk_connection = TravelperkConnector(travelperk_credential, kwargs['org_id'])
                 
-                recipes = connector.recipes.get(org.managed_user_id)['result']
-                travelperk_configuration, _ =  TravelPerkConfiguration.objects.update_or_create(
-                    org_id=org.id,
-                    recipe_id=recipes[0]['id'],
+                travelperk_webhook_data = {
+                    'name': 'travelperk webhook invoice',
+                    'url': 'https://webhook.site/e4ac2898-209f-4dd2-88cf-738dea95ecdc',
+                    'secret': 'some secret',
+                    'events': [
+                        'invoice.issued'
+                    ]
+                }
+
+                created_webhook = travelperk_connection.create_webhook(travelperk_webhook_data)
+                print('created_webhook', created_webhook)
+                TravelPerk.objects.update_or_create(
+                    org=org,
                     defaults={
-                        'recipe_data': recipes[0]['code'],
-                        'is_recipe_enabled': True
+                        'webhook_id': created_webhook['id'],
                     }
                 )
-                connector.recipes.post(org.managed_user_id, travelperk_configuration.recipe_id, None, 'start')
+
                 return Response(
-                    data=travelperk_connection,
+                    data=created_webhook,
                     status=status.HTTP_200_OK
                 )
 
-            return Response(
-                data='Something went wrong while connecting to travelperk',
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        except Exception as exception:
+        except Exception:
             error = traceback.format_exc()
             logger.error(error)
 
