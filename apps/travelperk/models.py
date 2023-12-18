@@ -46,12 +46,45 @@ class Invoice(models.Model):
     status = models.CharField(max_length=20, help_text='Status of the invoice (e.g., paid).')
     taxes_summary = models.JSONField(help_text='Summary of taxes applied to the invoice.')
     total = models.DecimalField(max_digits=10, decimal_places=2, help_text='Total amount of the invoice.')
+    vendor = models.CharField(max_length=255, null=True, help_text='Vendor name.')
     travelperk_bank_account = models.CharField(max_length=50, null=True, blank=True, help_text='TravelPerk bank account information if available.')
-    
+
     exported_to_fyle = models.BooleanField(default=False, help_text='If the invoice is exported to Fyle')
 
     class Meta:
         db_table = 'invoices'
+        
+    @staticmethod
+    def create_or_update_invoices(invoice_data):
+        """
+        Create or update invoice object
+        """
+
+        # Create or update Invoice object based on serial_number
+        invoice_object, _ = Invoice.objects.update_or_create(
+            serial_number=invoice_data['serial_number'],
+            defaults={
+                'billing_information': invoice_data['billing_information'],
+                'billing_period': invoice_data['billing_period'],
+                'currency': invoice_data['currency'],
+                'due_date': invoice_data['due_date'],
+                'from_date': invoice_data['from_date'],
+                'to_date': invoice_data['to_date'],
+                'issuing_date': invoice_data['issuing_date'],
+                'mode': invoice_data['mode'],
+                'pdf': invoice_data['pdf'],
+                'profile_id': invoice_data['profile_id'],
+                'profile_name': invoice_data['profile_name'],
+                'reference': invoice_data['reference'],
+                'status': invoice_data['status'],
+                'taxes_summary': invoice_data['taxes_summary'],
+                'total': invoice_data['total'],
+                'travelperk_bank_account': invoice_data['travelperk_bank_account'],
+                'exported_to_fyle': False,
+            }
+        )
+        
+        return invoice_object
 
 
 class InvoiceLineItem(models.Model):
@@ -91,6 +124,39 @@ class InvoiceLineItem(models.Model):
     class Meta:
         db_table = 'invoice_line_items'
 
+    @staticmethod
+    def create_or_update_invoice_lineitems(invoice_lineitems_data, invoice_id):
+        """
+        Create or update invoice line item object
+        """
+        
+        invoice_lineitems_objects = []
+        for line_item_data in invoice_lineitems_data:
+            invoice_linteitem, _ = InvoiceLineItem.objects.update_or_create(
+                defaults={
+                    'expense_date': line_item_data['expense_date'],
+                    'description': line_item_data['description'],
+                    'quantity': line_item_data['quantity'],
+                    'unit_price': line_item_data['unit_price'],
+                    'non_taxable_unit_price': line_item_data['non_taxable_unit_price'],
+                    'tax_percentage': line_item_data['tax_percentage'],
+                    'tax_amount': line_item_data['tax_amount'],
+                    'tax_regime': line_item_data['tax_regime'],
+                    'total_amount': line_item_data['total_amount'],
+                    'trip_id': line_item_data['metadata']['trip_id'],
+                    'trip_name': line_item_data['metadata']['trip_name'],
+                    'service': line_item_data['metadata']['service'],
+                    'booker_name': line_item_data['metadata']['booker']['name'],
+                    'booker_email': line_item_data['metadata']['booker']['email'],
+                    'cost_center': line_item_data['metadata']['cost_center'],
+                    'credit_card_last_4_digits': line_item_data['metadata']['credit_card_last_4_digits'],
+                    'invoice': invoice_id,
+                }
+            )
+            invoice_lineitems_objects.append(invoice_linteitem)
+
+        return invoice_lineitems_objects
+
 
 class TravelPerk(models.Model):
     """
@@ -118,7 +184,7 @@ class TravelPerkConfiguration(models.Model):
     TravelperkConfiguration Model
     """
 
-    id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Configuration')
+    id = models.AutoField(primary_key=True, help_text='def createUnique Id to indentify a Configuration')
     org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
     recipe_id = models.CharField(max_length=255, help_text='Recipe Id', null=True)
     recipe_data = models.TextField(help_text='Code For Recipe', null=True)
