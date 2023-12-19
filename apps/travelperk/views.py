@@ -17,7 +17,7 @@ from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, Travelpe
 from apps.travelperk.actions import connect_travelperk
 from apps.travelperk.connector import TravelperkConnector
 
-from .fyle_connector import create_expense_in_fyle
+from .actions import create_expense_in_fyle
 from .helpers import get_refresh_token_using_auth_code
 
 logger = logging.getLogger(__name__)

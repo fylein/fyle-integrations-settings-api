@@ -187,7 +187,7 @@ class TravelPerkConfiguration(models.Model):
     TravelperkConfiguration Model
     """
 
-    id = models.AutoField(primary_key=True, help_text='def createUnique Id to indentify a Configuration')
+    id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Configuration')
     org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
     recipe_id = models.CharField(max_length=255, help_text='Recipe Id', null=True)
     recipe_data = models.TextField(help_text='Code For Recipe', null=True)
