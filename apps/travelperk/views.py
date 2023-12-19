@@ -16,8 +16,8 @@ from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigur
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem
 from apps.travelperk.actions import connect_travelperk
 from apps.travelperk.connector import TravelperkConnector
+from apps.orgs.exceptions import handle_fyle_exceptions
 
-from .fyle_connector import create_expense_in_fyle
 from .helpers import get_refresh_token_using_auth_code
 
 logger = logging.getLogger(__name__)
@@ -269,21 +269,21 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
     
     authentication_classes = []
     permission_classes = []
-
+    
+    @handle_fyle_exceptions(task_name='Travelperk Webhook')
     def create(self, request, *args, **kwargs):
-        try:
-            # Custom processing of the webhook event data
-            with transaction.atomic():
-                # Extract invoice line items from the request data
-                invoice_lineitems_data = request.data.pop('lines')
 
-                # Create or update Invoice and related line items
-                invoice = Invoice.create_or_update_invoices(request.data)
-                invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
+        # Custom processing of the webhook event data
+        with transaction.atomic():
+            # Extract invoice line items from the request data
+            invoice_lineitems_data = request.data.pop('lines')
 
-            create_expense_in_fyle(invoice, invoice_linteitmes)
+            # Create or update Invoice and related line items
+            invoice = Invoice.create_or_update_invoices(request.data)
+            invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
 
-            return Response({'status': 'success'})
-
-        except Exception as e:
-            return Response({'status': 'error', 'error_message': str(e)})
+        return Response(
+            data={
+                'message': 'expenses created successfully'
+            },
+            status=status.HTTP_200_OK)
