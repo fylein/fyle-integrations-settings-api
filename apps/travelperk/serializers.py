@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from workato import Workato
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, Invoice, InvoiceLineItem
 from apps.orgs.models import Org
 
 
@@ -46,3 +46,9 @@ class TravelPerkConfigurationSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'recipe_id'
         ]
+
+
+class InvoiceLineItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InvoiceLineItem
+        fields = '__all__'

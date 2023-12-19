@@ -46,7 +46,6 @@ class Invoice(models.Model):
     status = models.CharField(max_length=20, help_text='Status of the invoice (e.g., paid).')
     taxes_summary = models.JSONField(help_text='Summary of taxes applied to the invoice.')
     total = models.DecimalField(max_digits=10, decimal_places=2, help_text='Total amount of the invoice.')
-    vendor = models.CharField(max_length=255, null=True, help_text='Vendor name.')
     travelperk_bank_account = models.CharField(max_length=50, null=True, blank=True, help_text='TravelPerk bank account information if available.')
 
     exported_to_fyle = models.BooleanField(default=False, help_text='If the invoice is exported to Fyle')
@@ -93,6 +92,7 @@ class InvoiceLineItem(models.Model):
     """
 
     id = models.AutoField(primary_key=True, help_text='Unique identifier for the line item.')
+    invoice_line_id = models.CharField(max_length=255, help_text='id for invoice line')
     expense_date = models.DateField(help_text='Date of the expense for this line item.')
     description = models.CharField(max_length=255, help_text='Description of the product or service.')
     quantity = models.IntegerField(help_text='Quantity of the product or service.')
@@ -114,10 +114,11 @@ class InvoiceLineItem(models.Model):
     
     # Cost Center
     cost_center = models.CharField(max_length=20, help_text='Cost center associated with this line item.')
-    
+    vendor = models.CharField(max_length=255, null=True, help_text='Vendor name.')
+
     # Other Fields
     credit_card_last_4_digits = models.CharField(max_length=4, help_text='Last 4 digits of the credit card used for payment.')
-    
+
     # Foreign Key to Invoice
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='line_items', help_text='Invoice associated with this line item.')
 
@@ -133,6 +134,7 @@ class InvoiceLineItem(models.Model):
         invoice_lineitems_objects = []
         for line_item_data in invoice_lineitems_data:
             invoice_linteitem, _ = InvoiceLineItem.objects.update_or_create(
+                invoice_line_id=line_item_data['id'],
                 defaults={
                     'expense_date': line_item_data['expense_date'],
                     'description': line_item_data['description'],
@@ -149,6 +151,7 @@ class InvoiceLineItem(models.Model):
                     'booker_name': line_item_data['metadata']['booker']['name'],
                     'booker_email': line_item_data['metadata']['booker']['email'],
                     'cost_center': line_item_data['metadata']['cost_center'],
+                    'vendor': line_item_data['metadata']['vendor'],
                     'credit_card_last_4_digits': line_item_data['metadata']['credit_card_last_4_digits'],
                     'invoice': invoice_id,
                 }
