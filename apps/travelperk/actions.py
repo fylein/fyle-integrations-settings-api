@@ -44,7 +44,7 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitem: Invo
                 'purpose': expense.description,
                 'merchant': expense.vendor,
                 'claim_amount': expense.total_amount,
-                'spent_at': '2023-06-01T01:18:19.292-08:00',
+                'spent_at': '2023-06-01',
                 'source': 'CORPORATE_CARD',
             }
         }
