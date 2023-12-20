@@ -11,7 +11,8 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
         self.bamboohr_sdk = BambooHrSDK(api_token=bamboo_hr.api_token, sub_domain=bamboo_hr.sub_domain)
 
     def sync_employees(self):
-        pass
+        employees = self.bamboohr_sdk.employees.get_all()
+        self.upsert_employees(employees)
 
-    def upsert_employees(self):
+    def upsert_employees(self, employees):
         pass

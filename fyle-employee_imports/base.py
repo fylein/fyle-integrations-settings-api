@@ -1,10 +1,17 @@
+from apps.orgs.models import FyleCredential
+from fyle_integrations_platform_connector import PlatformConnector
+
 class FyleEmployeeImport():
 
     def __init__(self, org_id: int):
         self.org_id = org_id
     
     def sync_fyle_employees(self):
-        pass
+        fyle_credentials: FyleCredential = FyleCredential.objects.get(org__id=self.org_id)
+
+        platform_connection = PlatformConnector(fyle_credentials)
+
+        platform_connection.employees.sync()
 
     def get_existing_departments_from_fyle(self):
         pass
@@ -31,5 +38,6 @@ class FyleEmployeeImport():
         raise NotImplementedError('Implement sync_hrms_employees() in the child class')
     
     def sync_employees(self):
-        pass
+        self.sync_fyle_employees()
+        self.sync_hrms_employees()
 
