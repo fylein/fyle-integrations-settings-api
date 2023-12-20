@@ -9,14 +9,14 @@ class Webhook(ApiBase):
 
     def post(self, payload):
         """
-			Post webhook url to bamboohr for employee update or create
-			Returns:
-		"""
+            Post webhook url to bamboohr for employee update or create
+            Returns:
+        """
         return self._post_request(self.POST_WEBHOOK, payload)
 
     def delete(self, id):
         """
             Delete Webhook
-		    Returns:
+            Returns:
         """
         return self._delete_request(self.DELETE_WEBHOOK.format(id))
