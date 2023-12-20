@@ -1,7 +1,7 @@
 from .api_base import ApiBase
 
-class Fields(ApiBase):
-	CHECK_URL = '/v1/meta/fields/'
+class TimeOff(ApiBase):
+	CHECK_URL = '/v1/meta/time_off/types/'
 	
 	def get(self):
 		"""
