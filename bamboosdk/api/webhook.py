@@ -17,6 +17,6 @@ class Webhook(ApiBase):
     def delete(self, id):
         """
             Delete Webhook
-		    Returns:
+            Returns:
         """
         return self._delete_request(self.DELETE_WEBHOOK.format(id))
