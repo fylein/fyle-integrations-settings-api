@@ -18,6 +18,7 @@ from apps.travelperk.actions import connect_travelperk
 from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.exceptions import handle_fyle_exceptions
 
+from .actions import create_expense_in_fyle
 from .helpers import get_refresh_token_using_auth_code
 
 logger = logging.getLogger(__name__)
@@ -270,7 +271,7 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
     authentication_classes = []
     permission_classes = []
     
-    @handle_fyle_exceptions(task_name='Travelperk Webhook')
+    @handle_fyle_exceptions()
     def create(self, request, *args, **kwargs):
 
         # Custom processing of the webhook event data
@@ -281,6 +282,8 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
             # Create or update Invoice and related line items
             invoice = Invoice.create_or_update_invoices(request.data)
             invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
+
+        create_expense_in_fyle(kwargs['org_id'], invoice, invoice_linteitmes)
 
         return Response(
             data={
