@@ -60,6 +60,10 @@ class ApiBase:
             result = json.loads(response.text)
             return result
 
+        if response.status_code == 201:
+            result = json.loads(response.text)
+            return result
+        
         if response.status_code == 403:
             error_msg = json.loads(response.text)
             raise NoPrivilegeError('Forbidden, the user has insufficient privilege', error_msg)
