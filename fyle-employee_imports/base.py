@@ -33,7 +33,7 @@ class FyleEmployeeImport():
         pass
 
     def sync_hrms_employees(self):
-        pass
+        raise NotImplementedError('')
     
     def sync_employees(self):
         pass
