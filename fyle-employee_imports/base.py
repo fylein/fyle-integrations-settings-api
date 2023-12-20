@@ -1,12 +1,7 @@
-from bamboosdk.bamboohrsdk import BambooHrSDK
-from apps.bamboohr.models import BambooHr
-
 class FyleEmployeeImport():
 
     def __init__(self, org_id: int):
         self.org_id = org_id
-        bamboohr = BambooHr.objects.get(org_id__in= org_id)
-        self.bamboohr_sdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
     
     def sync_fyle_employees(self):
         pass
@@ -33,7 +28,7 @@ class FyleEmployeeImport():
         pass
 
     def sync_hrms_employees(self):
-        raise NotImplementedError('')
+        raise NotImplementedError('Implement sync_hrms_employees() in the child class')
     
     def sync_employees(self):
         pass
