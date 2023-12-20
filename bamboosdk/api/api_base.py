@@ -120,8 +120,9 @@ class ApiBase:
         self.__api_token = api_token
 
         self.headers = {
-            "content-type": "application/json",
-            "authorization": f"Basic {self.__encode_username_password()}"
+            'Accept': 'application/json',
+            'content-type': 'application/json',
+            'authorization': f'Basic {self.__encode_username_password()}'
         } 
     
     def set_sub_domain(self, sub_domain):
