@@ -22,6 +22,10 @@ class DestinationAttribute(models.Model):
     auto_created = models.BooleanField(default=False,
                                         help_text='Indicates whether the field is auto created by the integration')
 
+    class Meta:
+        db_table = 'destination_attributes'
+        unique_together = ('destination_id', 'attribute_type', 'org')
+
     @staticmethod
     def create_or_update_destination_attribute(attribute: Dict, org_id):
         """
@@ -33,7 +37,6 @@ class DestinationAttribute(models.Model):
             org_id=org_id,
             defaults={
                 'active': attribute['active'] if 'active' in attribute else None,
-                'display_name': attribute['display_name'],
                 'value': attribute['value'],
                 'detail': attribute['detail'] if 'detail' in attribute else None
             }
@@ -42,14 +45,13 @@ class DestinationAttribute(models.Model):
     
     @staticmethod
     def bulk_create_or_update_destination_attributes(
-            attributes: List[Dict], attribute_type: str, org_id: int, update: bool = False, display_name: str = None):
+            attributes: List[Dict], attribute_type: str, org_id: int, update: bool = False):
         """
         Create Destination Attributes in bulk
         :param update: Update Pre-existing records or not
         :param attribute_type: Attribute type
         :param attributes: attributes = [{
             'attribute_type': Type of attribute,
-            'display_name': Display_name of attribute_field,
             'value': Value of attribute,
             'destination_id': Destination Id of the attribute,
             'detail': Extra Details of the attribute
@@ -64,8 +66,6 @@ class DestinationAttribute(models.Model):
             'attribute_type': attribute_type,
             'org_id': org_id
         }
-        if display_name:
-            filters['display_name'] = display_name
 
         existing_attributes = DestinationAttribute.objects.filter(**filters)\
             .values('id', 'destination_id', 'detail', 'active')
@@ -94,7 +94,6 @@ class DestinationAttribute(models.Model):
                 attributes_to_be_created.append(
                     DestinationAttribute(
                         attribute_type=attribute_type,
-                        display_name=attribute['display_name'],
                         value=attribute['value'],
                         destination_id=attribute['destination_id'],
                         detail=attribute['detail'] if 'detail' in attribute else None,
@@ -142,6 +141,9 @@ class ExpenseAttribute(models.Model):
     auto_created = models.BooleanField(default=False,
                                     help_text='Indicates whether the field is auto created by the integration')
 
+    class Meta:
+        db_table = 'expense_attributes'
+        unique_together = ('value', 'attribute_type', 'org')
 
     @staticmethod
     def create_or_update_expense_attribute(attribute: Dict, org_id):
@@ -155,7 +157,6 @@ class ExpenseAttribute(models.Model):
             defaults={
                 'active': attribute['active'] if 'active' in attribute else None,
                 'source_id': attribute['source_id'],
-                'display_name': attribute['display_name'],
                 'detail': attribute['detail'] if 'detail' in attribute else None
             }
         )
@@ -170,7 +171,6 @@ class ExpenseAttribute(models.Model):
         :param attribute_type: Attribute type
         :param attributes: attributes = [{
             'attribute_type': Type of attribute,
-            'display_name': Display_name of attribute_field,
             'value': Value of attribute,
             'source_id': Fyle Id of the attribute,
             'detail': Extra Details of the attribute
@@ -182,7 +182,7 @@ class ExpenseAttribute(models.Model):
 
         existing_attributes = ExpenseAttribute.objects.filter(
             value__in=attribute_value_list, attribute_type=attribute_type,
-            org_id=org_id).values('id', 'detail', 'active')
+            org_id=org_id).values('id', 'detail', 'value', 'active')
 
         existing_attribute_values = []
 
@@ -206,7 +206,6 @@ class ExpenseAttribute(models.Model):
                 attributes_to_be_created.append(
                     ExpenseAttribute(
                         attribute_type=attribute_type,
-                        display_name=attribute['display_name'],
                         value=attribute['value'],
                         source_id=attribute['source_id'],
                         detail=attribute['detail'] if 'detail' in attribute else None,

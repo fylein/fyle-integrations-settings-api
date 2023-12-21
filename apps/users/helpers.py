@@ -1,8 +1,9 @@
 from django.conf import settings
 import json
-from typing import Dict
+from typing import Dict, List
 import requests
 from fyle.platform import Platform
+from apps.fyle_hrms_mappings.models import ExpenseAttribute
 
 
 class PlatformConnector:
@@ -20,8 +21,18 @@ class PlatformConnector:
             client_secret=settings.FYLE_CLIENT_SECRET,
             refresh_token=refresh_token
         )
+    
+    def bulk_create_or_update_expense_attributes(self, attributes: List[dict], attribute_type, org_id, update_existing: bool = False) -> None:
+        """
+        Bulk creates or updates expense attributes.
+        :param attributes: List of expense attributes.
+        :param update_existing: If True, updates/creates the existing expense attributes.
+        """
+        ExpenseAttribute.bulk_create_or_update_expense_attributes(
+            attributes, attribute_type, org_id, update_existing
+        )
 
-    def sync(self):
+    def sync_employees(self, org_id):
         query_params = {'is_enabled': 'eq.true','order': 'updated_at.desc'}
         attribute_type = 'EMPLOYEE'
         generator = self.connection.v1beta.admin.employees.list_all(query_params)
@@ -45,7 +56,7 @@ class PlatformConnector:
                         }
                     })
         
-        # add employees to expense_attribute table
+        self.bulk_create_or_update_expense_attributes(employee_attributes, attribute_type, org_id ,True)
 
 def post_request(url: str, body: Dict, api_headers: Dict) -> Dict:
     """

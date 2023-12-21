@@ -1,17 +1,19 @@
-from apps.orgs.models import FyleCredential
-from fyle_integrations_platform_connector import PlatformConnector
+from apps.orgs.models import Org
+from apps.users.helpers import PlatformConnector
+from fyle_rest_auth.models import AuthToken
 
 class FyleEmployeeImport():
 
-    def __init__(self, org_id: int):
+    def __init__(self, org_id: int, user):
         self.org_id = org_id
+        self.user = user
     
     def sync_fyle_employees(self):
-        fyle_credentials: FyleCredential = FyleCredential.objects.get(org__id=self.org_id)
-
-        platform_connection = PlatformConnector(fyle_credentials)
-
-        platform_connection.employees.sync()
+        
+        refresh_token = AuthToken.objects.get(user__user_id=self.user).refresh_token
+        cluster_domain = Org.objects.get(user__user_id=self.user).cluster_domain
+        platform_connection = PlatformConnector(refresh_token, cluster_domain)
+        platform_connection.sync_employees(org_id=self.org_id)
 
     def get_existing_departments_from_fyle(self):
         pass
