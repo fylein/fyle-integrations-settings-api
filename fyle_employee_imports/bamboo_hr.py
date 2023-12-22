@@ -30,12 +30,12 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
             }
 
             attributes.append({
-                            'attribute_type': 'EMPLOYEE',
-                            'value': employee['displayName'],
-                            'destination_id': employee['id'],
-                            'detail': detail,
-                            'active': active_status
-                    })
+                'attribute_type': 'EMPLOYEE',
+                'value': employee['displayName'],
+                'destination_id': employee['id'],
+                'detail': detail,
+                'active': active_status
+                })
             
         DestinationAttribute.bulk_create_or_update_destination_attributes(
             attributes=attributes, attribute_type='EMPLOYEE', org_id=self.org_id)
