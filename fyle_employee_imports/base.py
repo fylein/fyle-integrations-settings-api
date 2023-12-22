@@ -53,13 +53,9 @@ class FyleEmployeeImport():
         
         return departments_payload
 
-    def departments_to_be_imported(self):
+    def departments_to_be_imported(self, hrms_employees):
 
         new_departments = []
-        hrms_employees = DestinationAttribute.objects.filter(
-        attribute_type='EMPLOYEE',
-        org_id=self.org_id
-        ).order_by('value', 'id')
 
         for employee in hrms_employees:
             if employee.detail['department_name']:
@@ -72,9 +68,9 @@ class FyleEmployeeImport():
         for department in departments_payload:
             self.platform_connection.post_department(department)
 
-    def import_departments(self):
+    def import_departments(self, hrms_employees):
         existing_departments = self.get_existing_departments_from_fyle()
-        new_departments = self.departments_to_be_imported()
+        new_departments = self.departments_to_be_imported(hrms_employees)
         departments_payload = self.create_fyle_department_payload(existing_departments, new_departments)
         self.post_department(departments_payload)
 
@@ -91,4 +87,9 @@ class FyleEmployeeImport():
         self.sync_fyle_employees()
         self.sync_hrms_employees()
 
-        self.import_departments()
+        hrms_employees = DestinationAttribute.objects.filter(
+        attribute_type='EMPLOYEE',
+        org_id=self.org_id
+        ).order_by('value', 'id')
+
+        self.import_departments(hrms_employees)
