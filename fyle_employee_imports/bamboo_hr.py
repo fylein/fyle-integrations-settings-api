@@ -38,6 +38,6 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
                 })
             
         DestinationAttribute.bulk_create_or_update_destination_attributes(
-            attributes=attributes, attribute_type='EMPLOYEE', org_id=self.org_id)
+            attributes=attributes, attribute_type='EMPLOYEE', org_id=self.org_id, update=True)
         
         return []
