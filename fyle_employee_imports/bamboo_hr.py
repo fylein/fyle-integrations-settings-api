@@ -1,5 +1,5 @@
 from typing import Dict
-
+from apps.users.models import User
 from apps.fyle_hrms_mappings.models import DestinationAttribute
 from .base import FyleEmployeeImport
 from bamboosdk.bamboohrsdk import BambooHrSDK
@@ -8,7 +8,7 @@ from apps.bamboohr.models import BambooHr
 
 class BambooHrEmployeeImport(FyleEmployeeImport):
 
-    def __init__(self, org_id: int, user):
+    def __init__(self, org_id: int, user: User):
         super().__init__(org_id, user)
         bamboo_hr = BambooHr.objects.get(org_id__in=org_id)
         self.bamboohr_sdk = BambooHrSDK(api_token=bamboo_hr.api_token, sub_domain=bamboo_hr.sub_domain)

@@ -68,7 +68,7 @@ class DestinationAttribute(models.Model):
         }
 
         existing_attributes = DestinationAttribute.objects.filter(**filters)\
-            .values('id', 'destination_id', 'detail', 'active')
+            .values('id', 'destination_id', 'value', 'detail', 'active')
 
         existing_attribute_destination_ids = []
 

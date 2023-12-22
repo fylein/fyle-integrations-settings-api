@@ -56,7 +56,7 @@ class PlatformConnector:
                         }
                     })
         
-        self.bulk_create_or_update_expense_attributes(employee_attributes, attribute_type, org_id ,True)
+        self.bulk_create_or_update_expense_attributes(employee_attributes, attribute_type, org_id, True)
 
 def post_request(url: str, body: Dict, api_headers: Dict) -> Dict:
     """
