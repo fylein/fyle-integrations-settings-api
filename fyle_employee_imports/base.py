@@ -1,5 +1,5 @@
-from typing import Dict
-from apps.fyle_hrms_mappings.models import DestinationAttribute
+from typing import Dict, List
+from apps.fyle_hrms_mappings.models import DestinationAttribute, ExpenseAttribute
 from apps.orgs.models import Org
 from apps.users.helpers import PlatformConnector
 from fyle_rest_auth.models import AuthToken
@@ -74,11 +74,57 @@ class FyleEmployeeImport():
         departments_payload = self.create_fyle_department_payload(existing_departments, new_departments)
         self.post_department(departments_payload)
 
-    def get_employee_and_approver_payload(self):
-        pass
+    def get_employee_and_approver_payload(self, hrms_employees):
+        
+        employee_payload: List[Dict] = []
+        employee_emails: List[str] = []
+        approver_emails: List[str] = []
+        employee_approver_payload: List[Dict] = []
 
-    def import_employees(self):
-        pass
+        for employee in hrms_employees:
+            if employee.detail['email']:
+                update_create_employee = {
+                'user_email': employee.detail['email'],
+                'user_full_name': employee.detail['full_name'],
+                'code': employee.destination_id,
+                'department_name': employee.detail['department_name'] if employee.detail['department_name'] else '',
+                'is_enabled': employee.active
+                }
+                employee_payload.append(update_create_employee)
+                employee_emails.append(employee.detail['email'])
+
+                if employee.detail['approver_emails']:
+                    employee_approver_payload.append({
+                        'user_email': employee.detail['email'],
+                        'approver_emails': employee.detail['approver_emails']
+                    })
+                    approver_emails.extend(employee.detail['approver_emails'])
+
+        existing_approver_emails = ExpenseAttribute.objects.filter(
+            org_id=self.org_id, attribute_type='EMPLOYEE', value__in=approver_emails
+        ).values_list('value', flat=True)
+
+        employee_approver_payload = list(filter(
+            lambda employee_approver: set(
+                employee_approver['approver_emails']
+            ).issubset(employee_emails) or set(
+                employee_approver['approver_emails']
+            ).issubset(existing_approver_emails),
+            employee_approver_payload
+        ))
+
+        return employee_payload, employee_approver_payload
+
+    def fyle_employee_import(self, hrms_employees):
+        fyle_employee_payload, employee_approver_payload = self.get_employee_and_approver_payload(hrms_employees)
+
+        if employee_approver_payload:
+            self.platform_connection.bulk_post_employees(employees_payload=employee_approver_payload)
+
+        if fyle_employee_payload:
+            self.platform_connection.bulk_post_employees(employees_payload=fyle_employee_payload)
+        
+        self.platform_connection.sync_employees(org_id=self.org_id)
 
     def sync_hrms_employees(self):
         raise NotImplementedError('Implement sync_hrms_employees() in the child class')
@@ -93,3 +139,4 @@ class FyleEmployeeImport():
         ).order_by('value', 'id')
 
         self.import_departments(hrms_employees)
+        self.fyle_employee_import(hrms_employees)

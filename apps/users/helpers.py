@@ -22,6 +22,9 @@ class PlatformConnector:
             refresh_token=refresh_token
         )
     
+    def bulk_post_employees(self, employees_payload):
+        self.connection.v1beta.admin.employees.invite_bulk({'data': employees_payload})
+    
     def get_departments(self, query_params):
 
         departments = self.connection.v1beta.admin.departments.list_all(query_params={
