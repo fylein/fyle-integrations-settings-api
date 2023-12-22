@@ -88,7 +88,7 @@ class FyleEmployeeImport():
         raise NotImplementedError('Implement sync_hrms_employees() in the child class')
     
     def sync_employees(self):
-        # self.sync_fyle_employees()
-        # self.sync_hrms_employees()
+        self.sync_fyle_employees()
+        self.sync_hrms_employees()
 
         self.import_departments()
