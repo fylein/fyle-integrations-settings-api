@@ -21,14 +21,13 @@ class FyleEmployeeImport():
         query_params={
             'order': 'id.desc'
         }
-        departments_generator = self.platform_connection.get_departments(query_params=query_params)
+        departments_generator = self.platform_connection.get_department_generator(query_params=query_params)
         for response in departments_generator:
-            if response.get('data'):
-                for department in response['data']:
-                    existing_departments[department['display_name']] = {
-                        'id': department['id'],
-                        'is_enabled': department['is_enabled']
-                    }
+            for department in response['data']:
+                existing_departments[department['display_name']] = {
+                    'id': department['id'],
+                    'is_enabled': department['is_enabled']
+                }
         return existing_departments
 
     def create_fyle_department_payload(self, existing_departments, new_departments):
@@ -129,8 +128,8 @@ class FyleEmployeeImport():
         self.sync_hrms_employees()
 
         hrms_employees = DestinationAttribute.objects.filter(
-        attribute_type='EMPLOYEE',
-        org_id=self.org_id
+            attribute_type='EMPLOYEE',
+            org_id=self.org_id
         ).order_by('value', 'id')
 
         self.import_departments(hrms_employees)

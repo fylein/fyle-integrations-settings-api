@@ -24,16 +24,14 @@ class PlatformConnector:
     
     def bulk_post_employees(self, employees_payload):
         self.connection.v1beta.admin.employees.invite_bulk({'data': employees_payload})
-    
-    def get_departments(self, query_params):
 
+    def get_department_generator(self, query_params):
         departments = self.connection.v1beta.admin.departments.list_all(query_params={
             'order': 'id.desc'
         })
         return departments
 
     def post_department(self, department):
-
         self.connection.v1beta.admin.departments.post({"data": department})
     
     def bulk_create_or_update_expense_attributes(self, attributes: List[dict], attribute_type, org_id, update_existing: bool = False) -> None:
