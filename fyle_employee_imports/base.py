@@ -17,7 +17,6 @@ class FyleEmployeeImport():
         self.platform_connection.sync_employees(org_id=self.org_id)
 
     def get_existing_departments_from_fyle(self):
-        
         existing_departments: Dict = {}
         query_params={
             'order': 'id.desc'
@@ -33,7 +32,6 @@ class FyleEmployeeImport():
         return existing_departments
 
     def create_fyle_department_payload(self, existing_departments, new_departments):
-        
         departments_payload = []
 
         for department in new_departments:
@@ -54,7 +52,6 @@ class FyleEmployeeImport():
         return departments_payload
 
     def departments_to_be_imported(self, hrms_employees):
-
         new_departments = []
 
         for employee in hrms_employees:
@@ -64,7 +61,6 @@ class FyleEmployeeImport():
         return list(set(new_departments))
 
     def post_department(self, departments_payload):
-        
         for department in departments_payload:
             self.platform_connection.post_department(department)
 
@@ -75,7 +71,6 @@ class FyleEmployeeImport():
         self.post_department(departments_payload)
 
     def get_employee_and_approver_payload(self, hrms_employees):
-        
         employee_payload: List[Dict] = []
         employee_emails: List[str] = []
         approver_emails: List[str] = []
@@ -83,14 +78,14 @@ class FyleEmployeeImport():
 
         for employee in hrms_employees:
             if employee.detail['email']:
-                update_create_employee = {
-                'user_email': employee.detail['email'],
-                'user_full_name': employee.detail['full_name'],
-                'code': employee.destination_id,
-                'department_name': employee.detail['department_name'] if employee.detail['department_name'] else '',
-                'is_enabled': employee.active
+                update_create_employee_payload = {
+                    'user_email': employee.detail['email'],
+                    'user_full_name': employee.detail['full_name'],
+                    'code': employee.destination_id,
+                    'department_name': employee.detail['department_name'] if employee.detail['department_name'] else '',
+                    'is_enabled': employee.active
                 }
-                employee_payload.append(update_create_employee)
+                employee_payload.append(update_create_employee_payload)
                 employee_emails.append(employee.detail['email'])
 
                 if employee.detail['approver_emails']:
@@ -118,11 +113,11 @@ class FyleEmployeeImport():
     def fyle_employee_import(self, hrms_employees):
         fyle_employee_payload, employee_approver_payload = self.get_employee_and_approver_payload(hrms_employees)
 
-        if employee_approver_payload:
-            self.platform_connection.bulk_post_employees(employees_payload=employee_approver_payload)
-
         if fyle_employee_payload:
             self.platform_connection.bulk_post_employees(employees_payload=fyle_employee_payload)
+
+        if employee_approver_payload:
+            self.platform_connection.bulk_post_employees(employees_payload=employee_approver_payload)
         
         self.platform_connection.sync_employees(org_id=self.org_id)
 
