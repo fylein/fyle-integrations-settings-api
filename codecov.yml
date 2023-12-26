@@ -10,8 +10,8 @@ comment:
 coverage:                 #code coverage range
   precision: 2
   range:
-  - 88.0
-  - 90.0
+  - 94.0
+  - 95.0
   round: down
 github_checks:
   annotations: false
