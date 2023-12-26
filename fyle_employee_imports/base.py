@@ -1,4 +1,7 @@
 from typing import Dict, List
+from datetime import datetime
+
+from apps.bamboohr.models import BambooHr
 from apps.fyle_hrms_mappings.models import DestinationAttribute, ExpenseAttribute
 from apps.orgs.models import Org
 from apps.users.helpers import PlatformConnector
@@ -9,6 +12,7 @@ class FyleEmployeeImport():
     def __init__(self, org_id: int, user):
         self.org_id = org_id
         self.user = user
+        self.bamboohr = BambooHr.objects.get(org_id__in=self.org_id)
         refresh_token = AuthToken.objects.get(user__user_id=self.user).refresh_token
         cluster_domain = Org.objects.get(user__user_id=self.user).cluster_domain
         self.platform_connection = PlatformConnector(refresh_token, cluster_domain)
@@ -115,8 +119,14 @@ class FyleEmployeeImport():
         if fyle_employee_payload:
             self.platform_connection.bulk_post_employees(employees_payload=fyle_employee_payload)
 
+            self.bamboohr.employee_exported_at = datetime.now()
+            self.bamboohr.save()
+
         if employee_approver_payload:
             self.platform_connection.bulk_post_employees(employees_payload=employee_approver_payload)
+            
+            self.bamboohr.employee_exported_at = datetime.now()
+            self.bamboohr.save()
         
         self.platform_connection.sync_employees(org_id=self.org_id)
 
@@ -129,7 +139,8 @@ class FyleEmployeeImport():
 
         hrms_employees = DestinationAttribute.objects.filter(
             attribute_type='EMPLOYEE',
-            org_id=self.org_id
+            org_id=self.org_id,
+            updated_at__gte=self.bamboohr.employee_exported_at,
         ).order_by('value', 'id')
 
         self.import_departments(hrms_employees)
