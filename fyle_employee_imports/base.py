@@ -120,14 +120,13 @@ class FyleEmployeeImport():
             self.platform_connection.bulk_post_employees(employees_payload=fyle_employee_payload)
 
             self.bamboohr.employee_exported_at = datetime.now()
-            self.bamboohr.save()
 
         if employee_approver_payload:
             self.platform_connection.bulk_post_employees(employees_payload=employee_approver_payload)
             
             self.bamboohr.employee_exported_at = datetime.now()
-            self.bamboohr.save()
         
+        self.bamboohr.save()
         self.platform_connection.sync_employees(org_id=self.org_id)
 
     def sync_hrms_employees(self):
