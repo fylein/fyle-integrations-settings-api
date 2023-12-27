@@ -12,9 +12,21 @@ from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationS
 from apps.bamboohr.actions import disconnect_bamboohr, sync_employees
 from apps.names import BAMBOO_HR
 
+from django_q.tasks import async_task
+
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
+
+class RefreshEmployees(generics.CreateAPIView):
+    
+    def post(self, request, *args, **kwargs):
+        async_task('apps.bamboohr.tasks.refresh_employees')
+
+        return Response(
+            data = {'message': 'success'},
+            status=status.HTTP_201_CREATED
+        )
 
 class BambooHrView(generics.ListAPIView):
     serializer_class = BambooHrSerializer
