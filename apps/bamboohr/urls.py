@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import PostFolder, PostPackage, BambooHrConnection, BambooHrView, BambooHrConfigurationView, \
-    DisconnectView, SyncEmployeesView, HealthCheck, RefreshEmployees
+    DisconnectView, SyncEmployeesView, HealthCheck
 
 app_name = 'bamboohr'
 
