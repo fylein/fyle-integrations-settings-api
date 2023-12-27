@@ -22,8 +22,8 @@ class BambooHrReadyView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            # bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']])
-            bamboohrsdk = BambooHrSDK(api_token='864acbfb14b38f974439af49ec95bc02e52a45b9', sub_domain='baba')
+            bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']])
+            bamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
             response = bamboohrsdk.time_off.get()
 
             if response['timeOffTypes']:

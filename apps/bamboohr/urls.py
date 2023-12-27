@@ -6,7 +6,7 @@ from .views import PostFolder, PostPackage, BambooHrConnection, BambooHrView, Ba
 app_name = 'bamboohr'
 
 urlpatterns = [
-    path('ready/', BambooHrReadyView.as_view(), name='ready'),
+    path('health_check/', BambooHrReadyView.as_view(), name='health-check'),
     path('', BambooHrView.as_view(), name='bamboohr'),
     path('packages/', PostPackage.as_view(), name='package'),
     path('folder/', PostFolder.as_view(), name='folder'),
