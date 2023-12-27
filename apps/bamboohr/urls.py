@@ -1,11 +1,12 @@
 from django.urls import path
 
 from .views import PostFolder, PostPackage, BambooHrConnection, BambooHrView, BambooHrConfigurationView, \
-    DisconnectView, SyncEmployeesView
+    DisconnectView, SyncEmployeesView, BambooHrReadyView
 
 app_name = 'bamboohr'
 
 urlpatterns = [
+    path('ready/', BambooHrReadyView.as_view(), name='ready'),
     path('', BambooHrView.as_view(), name='bamboohr'),
     path('packages/', PostPackage.as_view(), name='package'),
     path('folder/', PostFolder.as_view(), name='folder'),

@@ -1,4 +1,5 @@
 import logging
+from bamboosdk.bamboohrsdk import BambooHrSDK
 
 from rest_framework.response import Response
 from rest_framework.views import status
@@ -12,9 +13,38 @@ from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationS
 from apps.bamboohr.actions import disconnect_bamboohr, sync_employees
 from apps.names import BAMBOO_HR
 
+from rest_framework.views import APIView
+
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
+class BambooHrReadyView(generics.ListAPIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            # bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']])
+            bamboohrsdk = BambooHrSDK(api_token='864acbfb14b38f974439af49ec95bc02e52a45b9', sub_domain='baba')
+            response = bamboohrsdk.time_off.get()
+
+            if response['timeOffTypes']:
+                return Response(
+                    data = {
+                        'message': 'Ready'
+                    },
+                    status=status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    data = {
+                        'message': 'Invalid token'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except BambooHr.DoesNotExist:
+            return Response(
+                data={'message': 'Bamboo HR Details Not Found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 class BambooHrView(generics.ListAPIView):
     serializer_class = BambooHrSerializer
