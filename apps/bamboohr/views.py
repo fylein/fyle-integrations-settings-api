@@ -48,16 +48,6 @@ class HealthCheck(generics.ListAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-class RefreshEmployees(generics.CreateAPIView):
-    
-    def post(self, request, *args, **kwargs):
-        async_task('apps.bamboohr.tasks.refresh_employees')
-
-        return Response(
-            data = {'message': 'success'},
-            status=status.HTTP_201_CREATED
-        )
-
 class BambooHrView(generics.ListAPIView):
     serializer_class = BambooHrSerializer
 
@@ -240,20 +230,9 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
     def post(self, request, *args, **kwargs):
     
-        try:
-            config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
-            sync_recipe = sync_employees(kwargs['org_id'], config)
+        async_task('apps.bamboohr.tasks.refresh_employees')
 
-            # in case of an error response
-            if isinstance(sync_recipe, Response):
-                return sync_recipe
-            
-            return Response(
-                data=sync_recipe,
-                status=status.HTTP_200_OK
-            )
-        except BambooHrConfiguration.DoesNotExist:
-            return Response(
-                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        return Response(
+            data = {'message': 'success'},
+            status=status.HTTP_201_CREATED
+        )
