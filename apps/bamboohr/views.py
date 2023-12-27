@@ -18,7 +18,7 @@ from rest_framework.views import APIView
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
-class BambooHrReadyView(generics.ListAPIView):
+class HealthCheck(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
