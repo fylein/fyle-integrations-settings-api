@@ -22,7 +22,7 @@ class BambooHrReadyView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']])
+            bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']], is_credentials_expire=False)
             bamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
             response = bamboohrsdk.time_off.get()
 
@@ -34,6 +34,8 @@ class BambooHrReadyView(generics.ListAPIView):
                     status=status.HTTP_200_OK
                 )
             else:
+                bamboohr.is_credentials_expired = True
+                bamboohr.save()
                 return Response(
                     data = {
                         'message': 'Invalid token'
