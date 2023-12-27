@@ -1,4 +1,5 @@
 import logging
+from bamboosdk.bamboohrsdk import BambooHrSDK
 
 from rest_framework.response import Response
 from rest_framework.views import status
@@ -17,6 +18,35 @@ from django_q.tasks import async_task
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
+class HealthCheck(generics.ListAPIView):
+
+    def get(self, request, *args, **kwargs):
+        try:
+            bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']], is_credentials_expire=False)
+            bamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
+            response = bamboohrsdk.time_off.get()
+
+            if response['timeOffTypes']:
+                return Response(
+                    data = {
+                        'message': 'Ready'
+                    },
+                    status=status.HTTP_200_OK
+                )
+            else:
+                bamboohr.is_credentials_expired = True
+                bamboohr.save()
+                return Response(
+                    data = {
+                        'message': 'Invalid token'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except BambooHr.DoesNotExist:
+            return Response(
+                data={'message': 'Bamboo HR Details Not Found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
 class RefreshEmployees(generics.CreateAPIView):
     
