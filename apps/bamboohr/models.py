@@ -17,6 +17,8 @@ class BambooHr(models.Model):
     sub_domain = models.CharField(max_length=255, null=True, help_text='Bamboo HR Sub Domain')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
+    employee_exported_at = models.DateTimeField(auto_now_add=True, help_text='Employee exported to Fyle at datetime')
+    is_credentials_expired = models.BooleanField(default=False, help_text='BambooHr Credential Status')
 
     class Meta:
         db_table = 'bamboohr'

@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from fylesdk import FyleSDK
+from fyle.platform import Platform
 
 import jwt
 from apps.orgs.models import FyleCredential
@@ -45,9 +45,11 @@ def create_fyle_connection(org_id: str):
     client_id = settings.FYLE_CLIENT_ID
     client_secret = settings.FYLE_CLIENT_SECRET
     refresh_token = fyle_credentials.refresh_token
+    token_url = settings.FYLE_TOKEN_URI
 
-    connection = FyleSDK(
-        base_url=base_url,
+    connection = Platform(
+        server_url=base_url,
+        token_url=token_url,
         client_id=client_id,
         client_secret=client_secret,
         refresh_token=refresh_token

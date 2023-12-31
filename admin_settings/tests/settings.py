@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'apps.orgs',
     'apps.travelperk',
     'apps.gusto',
-    'apps.integrations'
+    'apps.integrations',
+    'apps.fyle_hrms_mappings',
 ]
 
 MIDDLEWARE = [
