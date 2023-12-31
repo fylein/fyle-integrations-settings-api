@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime, timezone
+from fylesdk import FyleSDK
 
 import jwt
+from apps.orgs.models import FyleCredential
 from apps.orgs.exceptions import handle_workato_exception
 from django.conf import settings
 
@@ -27,3 +29,28 @@ def get_signed_api_key(managed_user_id: str) -> str:
     )
 
     return encoded_token
+
+
+def create_fyle_connection(org_id: str):
+    """
+    Create a Fyle connection using the provided credentials.
+
+    Returns:
+        FyleSDK: An instance of the FyleSDK class for making API requests.
+    """
+
+    fyle_credentials = FyleCredential.objects.get(org_id=org_id)
+
+    base_url = settings.FYLE_BASE_URL
+    client_id = settings.FYLE_CLIENT_ID
+    client_secret = settings.FYLE_CLIENT_SECRET
+    refresh_token = fyle_credentials.refresh_token
+
+    connection = FyleSDK(
+        base_url=base_url,
+        client_id=client_id,
+        client_secret=client_secret,
+        refresh_token=refresh_token
+    )
+
+    return connection

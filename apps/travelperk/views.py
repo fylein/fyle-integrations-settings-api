@@ -228,10 +228,10 @@ class ConnectTravelperkView(generics.CreateAPIView):
             if refresh_token:
                 travelperk_credential = TravelperkCredential.objects.get(org=org)
                 travelperk_connection = TravelperkConnector(travelperk_credential, kwargs['org_id'])
-                
+
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
-                    'url': 'https://webhook.site/e4ac2898-209f-4dd2-88cf-738dea95ecdc',
+                    'url': 'https://webhook.site/c18f1a37-133d-4981-83d5-6d8234e26216',
                     'secret': 'some secret',
                     'events': [
                         'invoice.issued'
@@ -239,7 +239,6 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 }
 
                 created_webhook = travelperk_connection.create_webhook(travelperk_webhook_data)
-                print('created_webhook', created_webhook)
                 TravelPerk.objects.update_or_create(
                     org=org,
                     defaults={

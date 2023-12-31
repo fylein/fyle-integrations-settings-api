@@ -126,3 +126,17 @@ class TravelPerkConfiguration(models.Model):
 
     class Meta:
         db_table = 'travelperk_configurations'
+
+
+class ImportedExpenseDetail(models.Model):
+    """
+    Detail of imported expense
+    """
+
+    id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Imported Expense Detail')
+    org = models.ForeignKey(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
+    expense_id = models.CharField(max_length=255, help_text='Expense Id')
+    file_id = models.CharField(max_length=255, help_text='File Id')
+    is_reciept_attached = models.BooleanField(help_text='If Reciept Is Attached')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
+    updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')

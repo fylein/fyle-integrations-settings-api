@@ -20,7 +20,7 @@ class TravelperkConnector:
         client_secret = settings.TRAVELPERK_CLIENT_SECRET
         environment = settings.TRAVELPERK_ENVIRONMENT
         refresh_token = credentials_object.refresh_token
-        
+
         self.connection = Travelperk(client_id, client_secret, refresh_token, environment)
         self.org_id = org_id
         
@@ -40,9 +40,10 @@ class TravelperkConnector:
             TravelPerk.objects.update_or_create(
                 org_id=self.org_id,
                 defaults={
-                    'webhook_id': response['id'],
+                    'webhook_subscription_id': response['id'],
                     'webhook_enabled': response['enabled']
                 }
             )
 
         return response
+
