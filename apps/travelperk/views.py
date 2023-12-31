@@ -1,6 +1,7 @@
 import logging
 import traceback
 from django.conf import settings
+from django.db import transaction
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
@@ -12,14 +13,17 @@ from apps.names import TRAVELPERK
 from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties, post_folder, post_package
 from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem
 from apps.travelperk.actions import connect_travelperk
 from apps.travelperk.connector import TravelperkConnector
+from apps.orgs.exceptions import handle_fyle_exceptions
 
+from .actions import create_expense_in_fyle
 from .helpers import get_refresh_token_using_auth_code
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
+
 
 class TravelperkView(generics.ListAPIView):
     serializer_class = TravelperkSerializer
@@ -260,3 +264,29 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 data='Something went wrong while connecting to travelperk',
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class TravelperkWebhookAPIView(generics.CreateAPIView):
+    
+    authentication_classes = []
+    permission_classes = []
+    
+    @handle_fyle_exceptions()
+    def create(self, request, *args, **kwargs):
+
+        # Custom processing of the webhook event data
+        with transaction.atomic():
+            # Extract invoice line items from the request data
+            invoice_lineitems_data = request.data.pop('lines')
+
+            # Create or update Invoice and related line items
+            invoice = Invoice.create_or_update_invoices(request.data)
+            invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
+
+        create_expense_in_fyle(kwargs['org_id'], invoice, invoice_linteitmes)
+
+        return Response(
+            data={
+                'message': 'expenses created successfully'
+            },
+            status=status.HTTP_200_OK)
