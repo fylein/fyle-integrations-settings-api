@@ -12,7 +12,7 @@ class FyleEmployeeImport():
     def __init__(self, org_id: int, user):
         self.org_id = org_id
         self.user = user
-        self.bamboohr = BambooHr.objects.get(org_id__in=self.org_id)
+        self.bamboohr = BambooHr.objects.get(org_id__in=[self.org_id])
         refresh_token = AuthToken.objects.get(user__user_id=self.user).refresh_token
         cluster_domain = Org.objects.get(user__user_id=self.user).cluster_domain
         self.platform_connection = PlatformConnector(refresh_token, cluster_domain)
