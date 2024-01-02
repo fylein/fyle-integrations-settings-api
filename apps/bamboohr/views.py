@@ -63,7 +63,7 @@ class WebhookAPIView(generics.CreateAPIView):
             {
                 'status': 'success'
             },
-            status=status.HTTP_201_OK
+            status=status.HTTP_201_CREATED
         )
 
 class BambooHrView(generics.ListAPIView):
