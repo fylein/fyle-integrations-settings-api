@@ -47,3 +47,12 @@ class TravelperkConnector:
 
         return response
 
+    def delete_webhook_connection(self, webhook_subscription_id: str):
+        """
+        Delete Webhook in Travelperk
+        :param webhook_subscription_id: Webhook Id
+        :return: Dict
+        """
+
+        response = self.connection.webhooks.delete(webhook_subscription_id)        
+        return response
