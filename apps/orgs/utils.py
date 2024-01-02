@@ -41,14 +41,15 @@ def create_fyle_connection(org_id: str):
 
     fyle_credentials = FyleCredential.objects.get(org_id=org_id)
 
-    base_url = settings.FYLE_BASE_URL
     client_id = settings.FYLE_CLIENT_ID
     client_secret = settings.FYLE_CLIENT_SECRET
     refresh_token = fyle_credentials.refresh_token
     token_url = settings.FYLE_TOKEN_URI
 
+    server_url = '{}/platform/v1beta'.format(fyle_credentials.org.cluster_domain)
+
     connection = Platform(
-        server_url=base_url,
+        server_url=server_url,
         token_url=token_url,
         client_id=client_id,
         client_secret=client_secret,
