@@ -213,17 +213,12 @@ class DisconnectView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            configuration = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
             bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
-
-            connection = disconnect_bamboohr(kwargs['org_id'], configuration, bamboohr)
-
-            # in case of an error response
-            if isinstance(connection, Response):
-                return connection
-            
+            webhook_id = request.data['webhook_id']
+            bambamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
+            bambamboohrsdk.webhook.delete(id=webhook_id)
             return Response(
-                data=connection,
+                data='Succesfully disconnected Bamboohr',
                 status=status.HTTP_200_OK
             )
         except BambooHr.DoesNotExist:
@@ -232,11 +227,6 @@ class DisconnectView(generics.CreateAPIView):
                     'message': 'BambooHR connection does not exists for this org.'
                 },
                 status = status.HTTP_404_NOT_FOUND
-            )
-        except BambooHrConfiguration.DoesNotExist:
-            return Response(
-                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
-                status=status.HTTP_404_NOT_FOUND
             )
 
 

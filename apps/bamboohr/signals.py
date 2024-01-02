@@ -38,10 +38,3 @@ def run_post_save_bamboohr_triggers(sender, instance: BambooHr, **kwargs):
     response = bamboohrsdk.webhook.post(payload=webhook_payload)
     instance.webhook_id = int(response['id'])
     instance.save()
-
-@receiver(pre_delete, sender=BambooHr)
-def run_pre_delete_bamboohr_trigger(sender, instance: BambooHr, **kwargs):
-    webhook_id = instance.webhook_id
-
-    bambamboohrsdk = BambooHrSDK(api_token=instance.api_token, sub_domain=instance.sub_domain)
-    bambamboohrsdk.webhook.delete(id=webhook_id)
