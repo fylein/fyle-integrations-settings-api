@@ -20,7 +20,7 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
     def upsert_employees(self, employees: Dict):
         attributes = []
         for employee in employees['employees']:
-            supervisor = [employee['supervisorEmail']]
+            supervisor = [employee['supervisorEmail']] if employee['supervisorEmail'] else None
             active_status = True if employee['status'] == 'Active' else False
             detail = {
                 'email': employee['workEmail'] if employee['workEmail'] else None,

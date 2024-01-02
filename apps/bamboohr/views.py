@@ -48,6 +48,24 @@ class HealthCheck(generics.ListAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+
+class WebhookAPIView(generics.CreateAPIView):
+
+    def post(self, request, *args, **kwargs):
+
+        org_id = kwargs['org_id']
+        user = self.request.user
+        payload = request.data
+
+        async_task('apps.bamboohr.tasks.update_employee', org_id, user, payload)
+
+        return Response(
+            {
+                'status': 'success'
+            },
+            status=status.HTTP_201_OK
+        )
+
 class BambooHrView(generics.ListAPIView):
     serializer_class = BambooHrSerializer
 
