@@ -10,8 +10,7 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
 
     def __init__(self, org_id: int, user: User):
         super().__init__(org_id, user)
-        bamboo_hr = BambooHr.objects.get(org_id__in=org_id)
-        self.bamboohr_sdk = BambooHrSDK(api_token=bamboo_hr.api_token, sub_domain=bamboo_hr.sub_domain)
+        self.bamboohr_sdk = BambooHrSDK(api_token=self.bamboohr.api_token, sub_domain=self.bamboohr.sub_domain)
 
     def sync_hrms_employees(self):
         employees = self.bamboohr_sdk.employees.get_all()
