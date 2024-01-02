@@ -235,7 +235,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
 
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
-                    'url': 'https://webhook.site/c18f1a37-133d-4981-83d5-6d8234e26216',
+                    'url': 'https://webhook.site/3446fc0e-cf2f-468b-bc54-8197c689ee97',
                     'secret': 'some secret',
                     'events': [
                         'invoice.issued'

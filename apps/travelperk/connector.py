@@ -18,7 +18,7 @@ class TravelperkConnector:
         
         client_id = settings.TRAVELPERK_CLIENT_ID
         client_secret = settings.TRAVELPERK_CLIENT_SECRET
-        environment = settings.TRAVELPERK_ENVIRONMENT
+        environment = 'sandbox'
         refresh_token = credentials_object.refresh_token
 
         self.connection = Travelperk(client_id, client_secret, refresh_token, environment)
