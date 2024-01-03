@@ -49,7 +49,7 @@ class HealthCheck(generics.ListAPIView):
             )
 
 
-class WebhookAPIView(generics.CreateAPIView):
+class WebhookCallbackAPIView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
 
@@ -214,11 +214,10 @@ class DisconnectView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         try:
             bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
-            webhook_id = request.data['webhook_id']
             bambamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
-            bambamboohrsdk.webhook.delete(id=webhook_id)
+            response = bambamboohrsdk.webhook.delete(id=bamboohr.webhook_id)
             return Response(
-                data='Succesfully disconnected Bamboohr',
+                data=response,
                 status=status.HTTP_200_OK
             )
         except BambooHr.DoesNotExist:
