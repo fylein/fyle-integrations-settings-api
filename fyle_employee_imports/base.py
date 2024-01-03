@@ -115,7 +115,6 @@ class FyleEmployeeImport():
 
     def fyle_employee_import(self, hrms_employees):
         fyle_employee_payload, employee_approver_payload = self.get_employee_and_approver_payload(hrms_employees)
-
         if fyle_employee_payload:
             self.platform_connection.bulk_post_employees(employees_payload=fyle_employee_payload)
 
@@ -141,6 +140,6 @@ class FyleEmployeeImport():
             org_id=self.org_id,
             updated_at__gte=self.bamboohr.employee_exported_at,
         ).order_by('value', 'id')
-
+        
         self.import_departments(hrms_employees)
         self.fyle_employee_import(hrms_employees)
