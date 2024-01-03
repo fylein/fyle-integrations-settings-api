@@ -272,9 +272,9 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 }
 
                 connector = Workato()
-                configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.get(org__id=kwargs['org_id'])
+                configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.filter(org__id=kwargs['org_id']).first()
 
-                if configuration.is_recipe_enabled:
+                if configuration and configuration.is_recipe_enabled:
                     connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
                     configuration.is_recipe_enabled = False
                     configuration.save()
