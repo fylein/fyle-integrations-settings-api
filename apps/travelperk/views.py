@@ -263,14 +263,15 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 travelperk_connection = TravelperkConnector(travelperk_credential, kwargs['org_id'])
 
                 travelperk_webhook_data = {
-                    'name': 'travelperk webhook',
-                    'url': settings.API_URL + '/orgs/{}/travelperk_webhook/'.format(kwargs['org_id']),
-                    'secret': 'secret',
+                    'name': 'travelperk webhook invoice',
+                    'url': 'https://integrations-api.fyleapps.tech/api' + '/orgs/{}/travelperk_webhook/'.format(kwargs['org_id']),
+                    'secret': 'some secret',
                     'events': [
                         'invoice.issued'
                     ]
                 }
 
+                print('travd', travelperk_webhook_data)
                 connector = Workato()
                 configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.filter(org__id=kwargs['org_id']).first()
 
