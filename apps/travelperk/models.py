@@ -60,7 +60,6 @@ class Invoice(models.Model):
         """
 
         # Create or update Invoice object based on serial_number
-        print('invoice date', invoice_data)
         invoice_object, _ = Invoice.objects.update_or_create(
             serial_number=invoice_data['serial_number'],
             defaults={

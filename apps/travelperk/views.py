@@ -271,7 +271,6 @@ class ConnectTravelperkView(generics.CreateAPIView):
                     ]
                 }
 
-                print('travd', travelperk_webhook_data)
                 connector = Workato()
                 configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.filter(org__id=kwargs['org_id']).first()
 
