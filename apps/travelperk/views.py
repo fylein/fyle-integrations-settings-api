@@ -263,9 +263,9 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 travelperk_connection = TravelperkConnector(travelperk_credential, kwargs['org_id'])
 
                 travelperk_webhook_data = {
-                    'name': 'travelperk webhook invoice',
-                    'url': 'https://webhook.site/3446fc0e-cf2f-468b-bc54-8197c689ee97',
-                    'secret': 'some secret',
+                    'name': 'travelperk webhook',
+                    'url': settings.API_URL + '/orgs/{}/travelperk_webhook/'.format(kwargs['org_id']),
+                    'secret': 'secret',
                     'events': [
                         'invoice.issued'
                     ]
