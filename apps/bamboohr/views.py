@@ -13,7 +13,7 @@ from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationS
 from apps.bamboohr.actions import disconnect_bamboohr, sync_employees
 from apps.names import BAMBOO_HR
 
-from rest_framework.views import APIView
+from django_q.tasks import async_task
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -47,6 +47,24 @@ class HealthCheck(generics.ListAPIView):
                 data={'message': 'Bamboo HR Details Not Found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+class WebhookCallbackAPIView(generics.CreateAPIView):
+
+    def post(self, request, *args, **kwargs):
+
+        org_id = kwargs['org_id']
+        user = self.request.user
+        payload = request.data
+
+        async_task('apps.bamboohr.tasks.update_employee', org_id, user, payload)
+
+        return Response(
+            {
+                'status': 'success'
+            },
+            status=status.HTTP_201_CREATED
+        )
 
 class BambooHrView(generics.ListAPIView):
     serializer_class = BambooHrSerializer
@@ -195,17 +213,11 @@ class DisconnectView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            configuration = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
             bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
-
-            connection = disconnect_bamboohr(kwargs['org_id'], configuration, bamboohr)
-
-            # in case of an error response
-            if isinstance(connection, Response):
-                return connection
-            
+            bambamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
+            response = bambamboohrsdk.webhook.delete(id=bamboohr.webhook_id)
             return Response(
-                data=connection,
+                data=response,
                 status=status.HTTP_200_OK
             )
         except BambooHr.DoesNotExist:
@@ -214,11 +226,6 @@ class DisconnectView(generics.CreateAPIView):
                     'message': 'BambooHR connection does not exists for this org.'
                 },
                 status = status.HTTP_404_NOT_FOUND
-            )
-        except BambooHrConfiguration.DoesNotExist:
-            return Response(
-                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
-                status=status.HTTP_404_NOT_FOUND
             )
 
 
@@ -230,20 +237,9 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
     def post(self, request, *args, **kwargs):
     
-        try:
-            config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
-            sync_recipe = sync_employees(kwargs['org_id'], config)
+        async_task('apps.bamboohr.tasks.refresh_employees', kwargs['org_id'], self.request.user)
 
-            # in case of an error response
-            if isinstance(sync_recipe, Response):
-                return sync_recipe
-            
-            return Response(
-                data=sync_recipe,
-                status=status.HTTP_200_OK
-            )
-        except BambooHrConfiguration.DoesNotExist:
-            return Response(
-                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        return Response(
+            data = {'message': 'success'},
+            status=status.HTTP_201_CREATED
+        )
