@@ -218,6 +218,35 @@ class TravelperkConnection(generics.ListCreateAPIView):
         )
 
 
+class DisconnectTravelperkView(generics.CreateAPIView):
+    """
+    Api call to Disconnect Travelperk Connection
+    """
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            travelperk = TravelPerk.objects.filter(org=kwargs['org_id']).first()
+            travelperk_creds = TravelperkCredential.objects.filter(org=kwargs['org_id']).first()
+
+            travelperk_connector = TravelperkConnector(travelperk_creds, kwargs['org_id'])
+            travelperk_connector.delete_webhook_connection(travelperk.webhook_subscription_id)
+
+            travelperk.webhook_subscription_id = None
+            travelperk.is_travelperk_connected = False
+            travelperk.save()
+
+            return Response(
+                data={'message': 'disconnected successfully'},
+                status=status.HTTP_200_OK
+            )
+        
+        except TravelPerk.DoesNotExist:
+            return Response(
+                data={'message': 'no travelperk connection found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
 class ConnectTravelperkView(generics.CreateAPIView):
     """
     Api Call to make Travelperk Connection in workato
@@ -232,10 +261,10 @@ class ConnectTravelperkView(generics.CreateAPIView):
             if refresh_token:
                 travelperk_credential = TravelperkCredential.objects.get(org=org)
                 travelperk_connection = TravelperkConnector(travelperk_credential, kwargs['org_id'])
-                
+
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
-                    'url': 'https://webhook.site/e4ac2898-209f-4dd2-88cf-738dea95ecdc',
+                    'url': 'https://webhook.site/3446fc0e-cf2f-468b-bc54-8197c689ee97',
                     'secret': 'some secret',
                     'events': [
                         'invoice.issued'
@@ -243,11 +272,11 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 }
 
                 created_webhook = travelperk_connection.create_webhook(travelperk_webhook_data)
-                print('created_webhook', created_webhook)
                 TravelPerk.objects.update_or_create(
                     org=org,
                     defaults={
                         'webhook_id': created_webhook['id'],
+                        'is_travelperk_connected': True
                     }
                 )
 
