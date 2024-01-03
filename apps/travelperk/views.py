@@ -264,7 +264,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
 
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
-                    'url': 'https://webhook.site/3446fc0e-cf2f-468b-bc54-8197c689ee97',
+                    'url': settings.API_URL + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
                     'secret': 'some secret',
                     'events': [
                         'invoice.issued'
@@ -272,9 +272,9 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 }
 
                 connector = Workato()
-                configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.get(org__id=kwargs['org_id'])
+                configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.filter(org__id=kwargs['org_id']).first()
 
-                if configuration.is_recipe_enabled:
+                if configuration and configuration.is_recipe_enabled:
                     connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
                     configuration.is_recipe_enabled = False
                     configuration.save()
