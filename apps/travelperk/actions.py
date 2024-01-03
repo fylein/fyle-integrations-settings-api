@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime, timezone
 import logging
+from io import BytesIO
 from fyle.platform import Platform
 
 from workato import Workato
@@ -43,35 +44,28 @@ def download_file(remote_url, local_filename):
 
     # Check if the response status code is 200 (OK)
     if response.status_code == 200:
-        # Open a local file in binary write mode
-        with open(local_filename, 'wb') as file:
-            # Iterate over the content in chunks and write to the local file
-            for chunk in response.iter_content(chunk_size=128):
-                file.write(chunk)
-        # Print a success message if the file is downloaded successfully
-        logger.info(f'Successfully downloaded the file to {local_filename}')
+        return BytesIO(response.content)
     else:
         # Print an error message if the file download fails
         logger.info(f'Failed to download the file. Status code: {response.status_code}')
 
 
-def upload_to_s3_presigned_url(file_path, presigned_url):
+def upload_to_s3_presigned_url(file_content, presigned_url):
     # Open the local file in binary read mode
-    with open(file_path, 'rb') as file:
-        headers = {
-            'Content-Type': 'application/pdf'
-        }
+    headers = {
+        'Content-Type': 'application/pdf'
+    }
 
-        # Send a PUT request to the S3 pre-signed URL with the file data
-        response = requests.put(presigned_url, data=file, headers=headers)
+    # Send a PUT request to the S3 pre-signed URL with the file data
+    response = requests.put(presigned_url, data=file_content, headers=headers)
 
-        # Check if the response status code is 200 (OK)
-        if response.status_code == 200:
-            # Print a success message if the file is uploaded successfully
-            logger.info(f'Successfully uploaded {file_path} to S3.')
-        else:
-            # Print an error message if the file upload fails
-            logger.info(f'Failed to upload {file_path} to S3. Status code: {response.status_code}')
+    # Check if the response status code is 200 (OK)
+    if response.status_code == 200:
+        # Print a success message if the file is uploaded successfully
+        logger.info(f'Successfully uploaded to S3.')
+    else:
+        # Print an error message if the file upload fails
+        logger.info(f'Failed to upload to S3. Status code: {response.status_code}')
 
 
 def attach_reciept_to_expense(expense_id: str, invoice: Invoice, imported_expense: ImportedExpenseDetail, platform_connection: Platform):
@@ -90,8 +84,8 @@ def attach_reciept_to_expense(expense_id: str, invoice: Invoice, imported_expens
     generate_url = platform_connection.v1beta.spender.files.generate_file_urls({'data': {'id': file['data']['id']}})
     download_path = 'tmp/{}-invoice.pdf'.format(expense_id)
 
-    download_file(invoice.pdf, download_path)
-    upload_to_s3_presigned_url(download_path, generate_url['data']['upload_url'])
+    file_content = download_file(invoice.pdf, download_path)
+    upload_to_s3_presigned_url(file_content, generate_url['data']['upload_url'])
 
     attached_reciept = platform_connection.v1beta.spender.expenses.attach_receipt({'data': {'id': expense_id, 'file_id': file['data']['id']}})
 
