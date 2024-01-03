@@ -33,7 +33,7 @@ def run_post_save_bamboohr_triggers(sender, instance: BambooHr, **kwargs):
             'status': 'status'
         },
         'name': instance.org.name,
-        'monitorFields': ['firstName', 'lastName', 'department', 'workEmail', 'reportingTo', 'status'],
+        'monitorFields': ['firstName', 'lastName', 'department', 'workEmail', 'status'],
         'url': API_URL + f'/orgs/{instance.org.id}/bamboohr/webhook_callback/',
         'format': 'json'
     }
