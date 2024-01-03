@@ -264,7 +264,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
 
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
-                    'url': 'https://integrations-api.fyleapps.tech/api' + '/orgs/{}/travelperk_webhook/'.format(kwargs['org_id']),
+                    'url': settings.API_URL + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
                     'secret': 'some secret',
                     'events': [
                         'invoice.issued'
