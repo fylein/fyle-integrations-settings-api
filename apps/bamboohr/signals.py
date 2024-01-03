@@ -19,9 +19,6 @@ def run_pre_save_configuration_triggers(sender, instance: BambooHrConfiguration,
 @receiver(post_save, sender=BambooHr)
 def run_post_save_bamboohr_triggers(sender, instance: BambooHr, **kwargs):
 
-    # Disconnect the signal to avoid triggering it again
-    post_save.disconnect(run_post_save_bamboohr_triggers, sender=BambooHr)
-
     bamboohrsdk = BambooHrSDK(api_token=instance.api_token, sub_domain=instance.sub_domain)
     
     webhook_payload = {
@@ -39,8 +36,4 @@ def run_post_save_bamboohr_triggers(sender, instance: BambooHr, **kwargs):
     }
 
     response = bamboohrsdk.webhook.post(payload=webhook_payload)
-    instance.webhook_id = int(response['id'])
-    instance.save()
-
-    # Reconnect the signal after saving
-    post_save.connect(run_post_save_bamboohr_triggers, sender=BambooHr)
+    BambooHr.objects.filter(id=instance.id).update(webhook_id=int(response['id']))
