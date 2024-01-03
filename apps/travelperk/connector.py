@@ -18,7 +18,7 @@ class TravelperkConnector:
         
         client_id = settings.TRAVELPERK_CLIENT_ID
         client_secret = settings.TRAVELPERK_CLIENT_SECRET
-        environment = settings.TRAVELPERK_ENVIRONMENT
+        environment = 'sandbox'
         refresh_token = credentials_object.refresh_token
 
         self.connection = Travelperk(client_id, client_secret, refresh_token, environment)
@@ -47,3 +47,12 @@ class TravelperkConnector:
 
         return response
 
+    def delete_webhook_connection(self, webhook_subscription_id: str):
+        """
+        Delete Webhook in Travelperk
+        :param webhook_subscription_id: Webhook Id
+        :return: Dict
+        """
+
+        response = self.connection.webhooks.delete(webhook_subscription_id)        
+        return response

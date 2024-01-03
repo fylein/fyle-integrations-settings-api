@@ -38,7 +38,7 @@ class Invoice(models.Model):
         choices=[('reseller', 'Reseller'), ('direct', 'Direct')],
         help_text='Mode of the invoice, indicating whether it is a reseller or direct invoice.'
     )
-    pdf = models.URLField(help_text='URL to the PDF version of the invoice.')
+    pdf = models.TextField(help_text='URL to the PDF version of the invoice.')
     profile_id = models.CharField(max_length=255, help_text='ID of the profile associated with the invoice.')
     profile_name = models.CharField(max_length=255, help_text='Name of the profile associated with the invoice.')
     reference = models.CharField(max_length=50, help_text='Reference information for the invoice (e.g., Trip #9876543).')
@@ -60,6 +60,7 @@ class Invoice(models.Model):
         """
 
         # Create or update Invoice object based on serial_number
+        print('invoice date', invoice_data)
         invoice_object, _ = Invoice.objects.update_or_create(
             serial_number=invoice_data['serial_number'],
             defaults={
@@ -82,7 +83,7 @@ class Invoice(models.Model):
                 'exported_to_fyle': False,
             }
         )
-        
+
         return invoice_object
 
 
@@ -205,7 +206,10 @@ class ImportedExpenseDetail(models.Model):
     id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Imported Expense Detail')
     org = models.ForeignKey(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
     expense_id = models.CharField(max_length=255, help_text='Expense Id')
-    file_id = models.CharField(max_length=255, help_text='File Id')
-    is_reciept_attached = models.BooleanField(help_text='If Reciept Is Attached')
+    file_id = models.CharField(null=True, max_length=255, help_text='File Id')
+    is_reciept_attached = models.BooleanField(default=False, help_text='If Reciept Is Attached')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
+
+    class Meta:
+        db_table = 'imported_expense_details'
