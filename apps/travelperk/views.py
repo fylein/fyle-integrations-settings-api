@@ -271,6 +271,14 @@ class ConnectTravelperkView(generics.CreateAPIView):
                     ]
                 }
 
+                connector = Workato()
+                configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.get(org__id=kwargs['org_id'])
+
+                if configuration.is_recipe_enabled:
+                    connector.recipes.post(configuration.org.managed_user_id, configuration.recipe_id, None, 'stop')
+                    configuration.is_recipe_enabled = False
+                    configuration.save()
+
                 created_webhook = travelperk_connection.create_webhook(travelperk_webhook_data)
                 TravelPerk.objects.update_or_create(
                     org=org,
