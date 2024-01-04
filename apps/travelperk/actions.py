@@ -114,9 +114,9 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
             }
         }
 
+        platform_connection = create_fyle_connection(org.id)
         if expense.service in CATEGORY_MAP:
             category_name = CATEGORY_MAP[expense.service]
-            platform_connection = create_fyle_connection(org.id)
 
             query_params = {
                 'limit': 1,
