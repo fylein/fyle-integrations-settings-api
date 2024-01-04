@@ -133,3 +133,4 @@ dmypy.json
 setup.sh
 secret_test*
 **/.DS_Store
+cache.db

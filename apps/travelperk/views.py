@@ -251,9 +251,10 @@ class ConnectTravelperkView(generics.CreateAPIView):
     """
     Api Call to make Travelperk Connection in workato
     """
+    permission_classes = []
+    authentication_classes = []
 
     def post(self, request, *args, **kwargs):
-
         try:
             org = Org.objects.get(id=kwargs['org_id'])
             refresh_token = get_refresh_token_using_auth_code(request.data.get('code'), kwargs['org_id'])
