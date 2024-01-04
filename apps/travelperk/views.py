@@ -252,6 +252,9 @@ class ConnectTravelperkView(generics.CreateAPIView):
     Api Call to make Travelperk Connection in workato
     """
 
+    permission_classes = []
+    authentication_classes = []
+
     def post(self, request, *args, **kwargs):
 
         try:
