@@ -38,12 +38,13 @@ def connect_travelperk(org_id):
     return connection_id
 
 
-def download_file(remote_url, local_filename):
+def download_file(remote_url):
     # Send a GET request to the remote URL with streaming enabled
     response = requests.get(remote_url, stream=True)
 
     # Check if the response status code is 200 (OK)
     if response.status_code == 200:
+        logger.info(f'Successfully downloaded the file. Status code: {response.status_code}')
         return BytesIO(response.content)
     else:
         # Print an error message if the file download fails
@@ -113,21 +114,22 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
             }
         }
 
-        category_name = CATEGORY_MAP[expense.service]
-        platform_connection = create_fyle_connection(org.id)
+        if expense.category in CATEGORY_MAP:
+            category_name = CATEGORY_MAP[expense.service]
+            platform_connection = create_fyle_connection(org.id)
 
-        query_params = {
-            'limit': 1,
-            'offset': 0,
-            'order': "updated_at.asc",
-            'system_category': "eq.{}".format(category_name),
-            'is_enabled': "eq.True"
-        }
+            query_params = {
+                'limit': 1,
+                'offset': 0,
+                'order': "updated_at.asc",
+                'system_category': "eq.{}".format(category_name),
+                'is_enabled': "eq.True"
+            }
 
-        category = platform_connection.v1beta.admin.categories.list(query_params=query_params)
+            category = platform_connection.v1beta.admin.categories.list(query_params=query_params)
 
-        if category['count'] > 0:
-            payload['data']['category_id'] = category['data'][0]['id']
+            if category['count'] > 0:
+                payload['data']['category_id'] = category['data'][0]['id']
 
         expense = platform_connection.v1beta.spender.expenses.post(payload)
         if expense:
