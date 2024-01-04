@@ -270,7 +270,11 @@ class ConnectTravelperkView(generics.CreateAPIView):
                         'invoice.issued'
                     ]
                 }
-
+                print('travelperk webhook data', travelperk_webhook_data)
+                
+                webhooks = travelperk_connection.connection.webhooks.get_all()
+                print('webhooks', webhooks)
+                
                 connector = Workato()
                 configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.filter(org__id=kwargs['org_id']).first()
 
