@@ -114,7 +114,7 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
             }
         }
 
-        if expense.category in CATEGORY_MAP:
+        if expense.service in CATEGORY_MAP:
             category_name = CATEGORY_MAP[expense.service]
             platform_connection = create_fyle_connection(org.id)
 

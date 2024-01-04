@@ -270,10 +270,6 @@ class ConnectTravelperkView(generics.CreateAPIView):
                         'invoice.issued'
                     ]
                 }
-                print('travelperk webhook data', travelperk_webhook_data)
-                
-                webhooks = travelperk_connection.connection.webhooks.get_all()
-                print('webhooks', webhooks)
                 
                 connector = Workato()
                 configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.filter(org__id=kwargs['org_id']).first()
@@ -318,6 +314,7 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
         # Custom processing of the webhook event data
         with transaction.atomic():
             # Extract invoice line items from the request data
+            logger.info("webhook data: {}".format(request.data))
             invoice_lineitems_data = request.data.pop('lines')
 
             # Create or update Invoice and related line items
