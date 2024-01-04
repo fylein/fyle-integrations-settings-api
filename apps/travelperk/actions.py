@@ -83,9 +83,8 @@ def attach_reciept_to_expense(expense_id: str, invoice: Invoice, imported_expens
 
     file = platform_connection.v1beta.spender.files.create_file(file_payload)
     generate_url = platform_connection.v1beta.spender.files.generate_file_urls({'data': {'id': file['data']['id']}})
-    download_path = 'tmp/{}-invoice.pdf'.format(expense_id)
 
-    file_content = download_file(invoice.pdf, download_path)
+    file_content = download_file(invoice.pdf)
     upload_to_s3_presigned_url(file_content, generate_url['data']['upload_url'])
 
     attached_reciept = platform_connection.v1beta.spender.expenses.attach_receipt({'data': {'id': expense_id, 'file_id': file['data']['id']}})
