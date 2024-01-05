@@ -1,18 +1,22 @@
 from typing import Dict, List
 from datetime import datetime
 
-from apps.bamboohr.models import BambooHr
+from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.fyle_hrms_mappings.models import DestinationAttribute, ExpenseAttribute
 from apps.orgs.models import Org
 from apps.users.helpers import PlatformConnector
 from fyle_rest_auth.models import AuthToken
+
+from apps.bamboohr.email import send_failure_notification_email
+from django.conf import settings
 
 class FyleEmployeeImport():
 
     def __init__(self, org_id: int, user):
         self.org_id = org_id
         self.user = user
-        self.bamboohr = BambooHr.objects.get(org_id__in=self.org_id)
+        self.bamboohr = BambooHr.objects.get(org_id__in=[self.org_id])
+        self.bamboohr_configuration = BambooHrConfiguration.objects.get(org_id__in=[self.org_id])
         refresh_token = AuthToken.objects.get(user__user_id=self.user).refresh_token
         cluster_domain = Org.objects.get(user__user_id=self.user).cluster_domain
         self.platform_connection = PlatformConnector(refresh_token, cluster_domain)
@@ -78,6 +82,8 @@ class FyleEmployeeImport():
         employee_emails: List[str] = []
         approver_emails: List[str] = []
         employee_approver_payload: List[Dict] = []
+        unimported_employees: List = []
+        no_unimported_employees: int = 0
 
         for employee in hrms_employees:
             if employee.detail['email']:
@@ -97,6 +103,12 @@ class FyleEmployeeImport():
                         'approver_emails': employee.detail['approver_emails']
                     })
                     approver_emails.extend(employee.detail['approver_emails'])
+            else:
+                no_unimported_employees += 1
+                unimported_employees.append({'name': employee.detail['full_name'], 'id':employee.destination_id})
+        
+        admin_email = self.bamboohr_configuration.additional_email_options['admin_email']
+        send_failure_notification_email(employees=unimported_employees, number_of_employees=no_unimported_employees, admin_email=admin_email)
 
         existing_approver_emails = ExpenseAttribute.objects.filter(
             org_id=self.org_id, attribute_type='EMPLOYEE', value__in=approver_emails
