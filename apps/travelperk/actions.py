@@ -83,9 +83,8 @@ def attach_reciept_to_expense(expense_id: str, invoice: Invoice, imported_expens
 
     file = platform_connection.v1beta.spender.files.create_file(file_payload)
     generate_url = platform_connection.v1beta.spender.files.generate_file_urls({'data': {'id': file['data']['id']}})
-    download_path = 'tmp/{}-invoice.pdf'.format(expense_id)
 
-    file_content = download_file(invoice.pdf, download_path)
+    file_content = download_file(invoice.pdf)
     upload_to_s3_presigned_url(file_content, generate_url['data']['upload_url'])
 
     attached_reciept = platform_connection.v1beta.spender.expenses.attach_receipt({'data': {'id': expense_id, 'file_id': file['data']['id']}})
@@ -114,9 +113,9 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
             }
         }
 
-        if expense.category in CATEGORY_MAP:
+        platform_connection = create_fyle_connection(org.id)
+        if expense.service in CATEGORY_MAP:
             category_name = CATEGORY_MAP[expense.service]
-            platform_connection = create_fyle_connection(org.id)
 
             query_params = {
                 'limit': 1,

@@ -252,6 +252,9 @@ class ConnectTravelperkView(generics.CreateAPIView):
     Api Call to make Travelperk Connection in workato
     """
 
+    permission_classes = []
+    authentication_classes = []
+
     def post(self, request, *args, **kwargs):
 
         try:
@@ -270,7 +273,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
                         'invoice.issued'
                     ]
                 }
-
+                
                 connector = Workato()
                 configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.filter(org__id=kwargs['org_id']).first()
 
@@ -314,6 +317,7 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
         # Custom processing of the webhook event data
         with transaction.atomic():
             # Extract invoice line items from the request data
+            logger.info("webhook data: {}".format(request.data))
             invoice_lineitems_data = request.data.pop('lines')
 
             # Create or update Invoice and related line items
