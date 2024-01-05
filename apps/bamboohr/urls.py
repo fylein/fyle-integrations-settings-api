@@ -1,12 +1,11 @@
 from django.urls import path
 
 from .views import PostFolder, PostPackage, BambooHrConnection, BambooHrView, BambooHrConfigurationView, \
-    DisconnectView, SyncEmployeesView, HealthCheck, WebhookCallbackAPIView
+    DisconnectView, SyncEmployeesView, HealthCheck
 
 app_name = 'bamboohr'
 
 urlpatterns = [
-    path('webhook_callback/', WebhookCallbackAPIView.as_view(), name='webhook-callback'),
     path('health_check/', HealthCheck.as_view(), name='health-check'),
     path('', BambooHrView.as_view(), name='bamboohr'),
     path('packages/', PostPackage.as_view(), name='package'),
