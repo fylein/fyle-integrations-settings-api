@@ -7,7 +7,9 @@ fixture = {
        "sub_domain":"dummy",
        "created_at":"2022-11-29T15:39:49.221955Z",
        "updated_at":"2022-11-29T15:41:59.535831Z",
-       "org":1
+       "org":1,
+       "employee_exported_at": "2022-11-29T15:39:49.221955Z",
+       "is_credentials_expired": False,
     },
     "configurations": {
            "id":1,
