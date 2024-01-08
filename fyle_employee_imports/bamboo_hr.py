@@ -34,22 +34,27 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
     def upsert_employees(self, employees: Dict):
         attributes = []
         for employee in employees['employees']:
-            supervisor = [employee['supervisorEmail']]
-            active_status = True if employee['status'] == 'Active' else False
+            supervisor = [employee.get('supervisorEmail', None)]
+            active_status = True if employee.get('status', None) == 'Active' else False
+
+            display_name = employee.get('displayName', None)
+            if not display_name:
+                display_name = employee['firstName'] + ' ' + employee['lastName']
+
             detail = {
-                'email': employee['workEmail'] if employee['workEmail'] else None,
-                'department_name': employee['department'] if employee['department'] else None,
-                'full_name': employee['displayName'] if employee['displayName'] else None,
+                'email': employee.get('workEmail', None),
+                'department_name': employee.get('department', None),
+                'full_name': display_name,
                 'approver_emails': supervisor,
             }
 
             attributes.append({
                 'attribute_type': 'EMPLOYEE',
-                'value': employee['displayName'],
+                'value': display_name,
                 'destination_id': employee['id'],
                 'detail': detail,
                 'active': active_status
-                })
+            })
             
         DestinationAttribute.bulk_create_or_update_destination_attributes(
             attributes=attributes, attribute_type='EMPLOYEE', org_id=self.org_id, update=True)

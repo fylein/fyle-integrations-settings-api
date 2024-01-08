@@ -90,8 +90,7 @@ class ApiBase:
         url= self.API_BASE_URL.format(self.__sub_domain) + module_api_path
         response = requests.delete(url=url, headers=self.headers)
         if response.status_code == 200:
-            result = json.loads(response.text)
-            return result
+            return {'message':'Webhook has been deleted'}
 
         if response.status_code == 403:
             error_msg = json.loads(response.text)
