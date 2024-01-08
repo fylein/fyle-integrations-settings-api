@@ -18,7 +18,7 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
         admin_email = self.bamboohr_configuration.additional_email_options['admin_email']
         return admin_email
 
-    def save_hrms(self):
+    def save_employee_exported_at_time(self):
         self.bamboohr.save()
     
     def set_employee_exported_at(self):

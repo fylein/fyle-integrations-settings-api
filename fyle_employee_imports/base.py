@@ -136,7 +136,7 @@ class FyleEmployeeImport():
             
             self.set_employee_exported_at()
         
-        self.save_hrms()
+        self.save_employee_exported_at_time()
         self.platform_connection.sync_employees(org_id=self.org_id)
 
     def sync_hrms_employees(self):
@@ -151,7 +151,7 @@ class FyleEmployeeImport():
     def get_employee_exported_at(self):
         raise NotImplementedError('Implement get_employee_exported_at() in the child class')
 
-    def save_hrms(self):
+    def save_employee_exported_at_time(self):
         raise NotImplementedError('Implement save_hrms() in the child class') 
 
     def sync_employees(self):
