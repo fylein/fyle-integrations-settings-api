@@ -15,8 +15,6 @@ class FyleEmployeeImport():
     def __init__(self, org_id: int, user):
         self.org_id = org_id
         self.user = user
-        self.bamboohr = BambooHr.objects.get(org_id__in=[self.org_id])
-        self.bamboohr_configuration = BambooHrConfiguration.objects.get(org_id__in=[self.org_id])
         refresh_token = AuthToken.objects.get(user__user_id=self.user).refresh_token
         cluster_domain = Org.objects.get(user__user_id=self.user).cluster_domain
         self.platform_connection = PlatformConnector(refresh_token, cluster_domain)
@@ -82,8 +80,8 @@ class FyleEmployeeImport():
         employee_emails: List[str] = []
         approver_emails: List[str] = []
         employee_approver_payload: List[Dict] = []
-        unimported_employees: List = []
-        no_unimported_employees: int = 0
+        incomplete_employees: List = []
+        incomplete_employee_count: int = 0
 
         for employee in hrms_employees:
             if employee.detail['email']:
@@ -104,11 +102,11 @@ class FyleEmployeeImport():
                     })
                     approver_emails.extend(employee.detail['approver_emails'])
             else:
-                no_unimported_employees += 1
-                unimported_employees.append({'name': employee.detail['full_name'], 'id':employee.destination_id})
+                incomplete_employee_count += 1
+                incomplete_employees.append({'name': employee.detail['full_name'], 'id':employee.destination_id})
         
-        admin_email = self.bamboohr_configuration.additional_email_options['admin_email']
-        send_failure_notification_email(employees=unimported_employees, number_of_employees=no_unimported_employees, admin_email=admin_email)
+        admin_email = self.get_admin_email()
+        send_failure_notification_email(employees=incomplete_employees, number_of_employees=incomplete_employee_count, admin_email=admin_email)
 
         existing_approver_emails = ExpenseAttribute.objects.filter(
             org_id=self.org_id, attribute_type='EMPLOYEE', value__in=approver_emails
@@ -131,19 +129,31 @@ class FyleEmployeeImport():
         if fyle_employee_payload:
             self.platform_connection.bulk_post_employees(employees_payload=fyle_employee_payload)
 
-            self.bamboohr.employee_exported_at = datetime.now()
+            self.set_employee_exported_at()
 
         if employee_approver_payload:
             self.platform_connection.bulk_post_employees(employees_payload=employee_approver_payload)
             
-            self.bamboohr.employee_exported_at = datetime.now()
+            self.set_employee_exported_at()
         
-        self.bamboohr.save()
+        self.save_hrms()
         self.platform_connection.sync_employees(org_id=self.org_id)
 
     def sync_hrms_employees(self):
         raise NotImplementedError('Implement sync_hrms_employees() in the child class')
     
+    def get_admin_email(self):
+        raise NotImplementedError('Implement get_admin_email() in the child class')
+
+    def set_employee_exported_at(self):
+        raise NotImplementedError('Implement set_employee_exported_at() in the child class')
+
+    def get_employee_exported_at(self):
+        raise NotImplementedError('Implement get_employee_exported_at() in the child class')
+
+    def save_hrms(self):
+        raise NotImplementedError('Implement save_hrms() in the child class') 
+
     def sync_employees(self):
         self.sync_fyle_employees()
         self.sync_hrms_employees()
@@ -151,7 +161,7 @@ class FyleEmployeeImport():
         hrms_employees = DestinationAttribute.objects.filter(
             attribute_type='EMPLOYEE',
             org_id=self.org_id,
-            updated_at__gte=self.bamboohr.employee_exported_at,
+            updated_at__gte=self.get_employee_exported_at(),
         ).order_by('value', 'id')
 
         self.import_departments(hrms_employees)

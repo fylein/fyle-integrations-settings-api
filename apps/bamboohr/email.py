@@ -1,5 +1,6 @@
 import csv
 from io import StringIO
+from typing import List
 
 import sendgrid
 from sendgrid.helpers.mail import Mail, Attachment
@@ -8,7 +9,7 @@ import base64
 
 from admin_settings import settings
 
-def send_failure_notification_email(employees, number_of_employees ,admin_email):
+def send_failure_notification_email(employees: List[dict], number_of_employees: int ,admin_email: str):
 
     with open('apps/bamboohr/templates/mail_template.html', 'r') as file:
         email_template = file.read()
