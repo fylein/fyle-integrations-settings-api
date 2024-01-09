@@ -9,7 +9,7 @@ import base64
 
 from admin_settings import settings
 
-def send_failure_notification_email(employees: List[dict], number_of_employees: int ,admin_email: str):
+def send_failure_notification_email(employees: List[dict], number_of_employees: int ,admin_email: []):
 
     with open('apps/bamboohr/templates/mail_template.html', 'r') as file:
         email_template = file.read()

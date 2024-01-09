@@ -15,8 +15,11 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
         self.bamboohr_sdk = BambooHrSDK(api_token=self.bamboohr.api_token, sub_domain=self.bamboohr.sub_domain)
     
     def get_admin_email(self):
-        admin_email = self.bamboohr_configuration.additional_email_options['admin_email']
-        return admin_email
+        email_selected = self.bamboohr_configuration.emails_selected
+        admin_emails = []
+        for email in email_selected:
+            admin_emails.append(email['email'])
+        return admin_emails
 
     def save_employee_exported_at_time(self):
         self.bamboohr.save()
