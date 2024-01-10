@@ -1,5 +1,8 @@
 import logging
 import traceback
+import hmac
+import hashlib
+import json
 from django.conf import settings
 from django.db import transaction
 from rest_framework import generics
@@ -252,9 +255,6 @@ class ConnectTravelperkView(generics.CreateAPIView):
     Api Call to make Travelperk Connection in workato
     """
 
-    permission_classes = []
-    authentication_classes = []
-
     def post(self, request, *args, **kwargs):
 
         try:
@@ -310,24 +310,36 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
     
     authentication_classes = []
     permission_classes = []
-    
+
     @handle_fyle_exceptions()
     def create(self, request, *args, **kwargs):
+        
+        payload = request.data
+        secret = settings.TKWEBHOOKS_SECRET
+        signature = hmac.new(secret.encode(), json.dumps(payload).encode(), hashlib.sha256).hexdigest()
 
-        # Custom processing of the webhook event data
-        with transaction.atomic():
-            # Extract invoice line items from the request data
-            logger.info("webhook data: {}".format(request.data))
-            invoice_lineitems_data = request.data.pop('lines')
+        if signature != request.META['Tk-webhook-hmac-sha256']:
+            return Response(
+                data={
+                    'message': 'Invalid Signature'
+                },
+                status=status.HTTP_400_OK
+            )
+        else:
+            # Custom processing of the webhook event data
+            with transaction.atomic():
+                # Extract invoice line items from the request data
+                logger.info("webhook data: {}".format(request.data))
+                invoice_lineitems_data = request.data.pop('lines')
 
-            # Create or update Invoice and related line items
-            invoice = Invoice.create_or_update_invoices(request.data)
-            invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
+                # Create or update Invoice and related line items
+                invoice = Invoice.create_or_update_invoices(request.data)
+                invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
 
-        create_expense_in_fyle(kwargs['org_id'], invoice, invoice_linteitmes)
+            create_expense_in_fyle(kwargs['org_id'], invoice, invoice_linteitmes)
 
-        return Response(
-            data={
-                'message': 'expenses created successfully'
-            },
-            status=status.HTTP_200_OK)
+            return Response(
+                data={
+                    'message': 'expenses created successfully'
+                },
+                status=status.HTTP_200_OK)
