@@ -92,21 +92,28 @@ class BambooHrConnection(generics.CreateAPIView):
         api_token = request.data['input']['api_token']
         sub_domain = request.data['input']['subdomain']
 
-        bamboohr = BambooHr.objects.get_or_create(org=org, defaults={
-            'api_token': api_token,
-            'sub_domain': sub_domain
-        }) 
+        bamboohrsdk = BambooHrSDK(api_token=api_token, sub_domain=sub_domain)
+        timeoff = bamboohrsdk.time_off.get()
+        if timeoff.get('timeOffTypes', None):
+            bamboohr, _ = BambooHr.objects.update_or_create(org=org, defaults={
+                'api_token': api_token,
+                'sub_domain': sub_domain
+            })
 
-        return Response(
+            return Response(
             data="BambooHr is connected",
             status=status.HTTP_200_OK
         )
+        else:
+            return Response(
+                data = {
+                    'message': 'Invalid token'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class BambooHrConfigurationView(generics.ListCreateAPIView):
-
-    serializer_class = BambooHrConfigurationSerializer
-    queryset = BambooHrConfiguration.objects.all()
 
     def get(self, request, *args, **kwargs):
         try:
@@ -123,6 +130,30 @@ class BambooHrConfigurationView(generics.ListCreateAPIView):
                 data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+    def post(self, request, *args, **kwargs):
+        try:
+            org_id = self.request.data['org']
+
+            configuration, _ = BambooHrConfiguration.objects.update_or_create(
+            org_id=org_id,
+            defaults={
+                'additional_email_options': request.data['additional_email_options'],
+                'emails_selected': request.data['emails_selected']
+                }
+            )
+
+            return Response(
+                data=BambooHrConfigurationSerializer(configuration).data,
+                status=status.HTTP_200_OK
+            )
+
+        except BambooHrConfiguration.DoesNotExist:
+            return Response(
+                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
 
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
@@ -135,11 +166,13 @@ class DisconnectView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
+            bamboohr_queryset = BambooHr.objects.filter(org__id=kwargs['org_id'])
+            bamboohr = bamboohr_queryset.first()
             bambamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
-            response = bambamboohrsdk.webhook.delete(id=bamboohr.webhook_id)
+            bambamboohrsdk.webhook.delete(id=bamboohr.webhook_id)
+            bamboohr_queryset.update(api_token=None, sub_domain=None)
             return Response(
-                data=response,
+                data='Successfully Disconneted!',
                 status=status.HTTP_200_OK
             )
         except BambooHr.DoesNotExist:

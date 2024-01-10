@@ -106,7 +106,8 @@ class FyleEmployeeImport():
                 incomplete_employees.append({'name': employee.detail['full_name'], 'id':employee.destination_id})
         
         admin_email = self.get_admin_email()
-        send_failure_notification_email(employees=incomplete_employees, number_of_employees=incomplete_employee_count, admin_email=admin_email)
+        if incomplete_employee_count > 0:
+            send_failure_notification_email(employees=incomplete_employees, number_of_employees=incomplete_employee_count, admin_email=admin_email)
 
         existing_approver_emails = ExpenseAttribute.objects.filter(
             org_id=self.org_id, attribute_type='EMPLOYEE', value__in=approver_emails
@@ -126,17 +127,19 @@ class FyleEmployeeImport():
     def fyle_employee_import(self, hrms_employees):
         fyle_employee_payload, employee_approver_payload = self.get_employee_and_approver_payload(hrms_employees)
 
+        employee_exported_at_time = self.get_employee_exported_at()
+
         if fyle_employee_payload:
             self.platform_connection.bulk_post_employees(employees_payload=fyle_employee_payload)
 
-            self.set_employee_exported_at()
+            employee_exported_at_time = datetime.now()
 
         if employee_approver_payload:
             self.platform_connection.bulk_post_employees(employees_payload=employee_approver_payload)
             
-            self.set_employee_exported_at()
+            employee_exported_at_time = datetime.now()
         
-        self.save_employee_exported_at_time()
+        self.save_employee_exported_at_time(employee_exported_at = employee_exported_at_time)
         self.platform_connection.sync_employees(org_id=self.org_id)
 
     def sync_hrms_employees(self):
@@ -151,7 +154,7 @@ class FyleEmployeeImport():
     def get_employee_exported_at(self):
         raise NotImplementedError('Implement get_employee_exported_at() in the child class')
 
-    def save_employee_exported_at_time(self):
+    def save_employee_exported_at_time(self, employee_exported_at):
         raise NotImplementedError('Implement save_hrms() in the child class') 
 
     def sync_employees(self):

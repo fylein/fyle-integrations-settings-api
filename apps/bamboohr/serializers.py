@@ -23,23 +23,6 @@ class BambooHrConfigurationSerializer(serializers.ModelSerializer):
 
     org = serializers.CharField()
 
-    def create(self, validated_data):        
-        org = validated_data['org']
-        
-        configuration, _ = BambooHrConfiguration.objects.update_or_create(
-            org_id=org,
-            defaults={
-                'recipe_status': True,
-                'additional_email_options': validated_data['additional_email_options'],
-                'emails_selected': validated_data['emails_selected']
-            }
-        )
-
-        return configuration
-
     class Meta:
         model = BambooHrConfiguration
         fields = '__all__'
-        read_only_fields = [
-            'recipe_id'
-        ]
