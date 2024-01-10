@@ -268,12 +268,12 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
                     'url': settings.API_URL + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
-                    'secret': 'some secret',
+                    'secret': settings.TKWEBHOOKS_SECRET,
                     'events': [
                         'invoice.issued'
                     ]
                 }
-                
+
                 connector = Workato()
                 configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.filter(org__id=kwargs['org_id']).first()
 
