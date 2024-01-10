@@ -2,7 +2,13 @@ from django.db import models
 
 from apps.orgs.models import Org
 
-# Create your models here.
+
+USER_ROLE_CHOICES = (
+    ('TRAVELLER', 'TRAVERLLER'),
+    ('BOOKER', 'BOOKER'),
+    ('CARD_HOLDER', 'CARD_HOLDER')
+)
+
 
 class TravelperkCredential(models.Model):
     """
@@ -212,3 +218,20 @@ class ImportedExpenseDetail(models.Model):
 
     class Meta:
         db_table = 'imported_expense_details'
+
+
+class TravelperkProfileMapping(models.Model):
+    """
+    Detail of profile mapping
+    """
+    
+    id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Profile Mapping')
+    org = models.ForeignKey(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
+    profile_name = models.CharField(max_length=255, help_text='Profile Name')
+    user_role = models.CharField(choices=USER_ROLE_CHOICES, max_length=255, default='CARD_HOLDER', help_text='User Role')
+    is_import_enabled = models.BooleanField(default=False, help_text='If Import Is Enabled')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
+    updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
+
+    class Meta:
+        db_table = 'travelperk_profile_mappings'
