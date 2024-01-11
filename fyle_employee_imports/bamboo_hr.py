@@ -32,12 +32,15 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
         employees = self.bamboohr_sdk.employees.get_all()
         self.upsert_employees(employees)
 
-    def upsert_employees(self, employees: Dict):
+    def upsert_employees(self, employees: Dict, webhook_update: bool = False):
         attributes = []
         for employee in employees['employees']:
             
             supervisor = [employee.get('supervisorEmail', None)]
-            active_status = True if employee.get('status', None) == 'Active' else False
+            if webhook_update:
+                active_status = employee['status'] if isinstance(employee['status'], bool) else True if employee.get('status', None) == 'Active' else False
+            else:
+                active_status = True if employee.get('status', None) == 'Active' else False
 
             display_name = employee.get('displayName', None)
             if not display_name:
@@ -57,8 +60,8 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
                 'detail': detail,
                 'active': active_status
             })
-            
+
         DestinationAttribute.bulk_create_or_update_destination_attributes(
-            attributes=attributes, attribute_type='EMPLOYEE', org_id=self.org_id, update=True)
+            attributes=attributes, attribute_type='EMPLOYEE', org_id=self.org_id, update=True, webhook_update=webhook_update)
         
         return []
