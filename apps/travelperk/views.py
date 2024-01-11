@@ -325,7 +325,7 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
                 data={
                     'message': 'Invalid Signature'
                 },
-                status=status.HTTP_400_OK
+                status=status.HTTP_400_BAD_REQUEST
             )
         else:
             # Custom processing of the webhook event data
@@ -344,4 +344,5 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
                 data={
                     'message': 'expenses created successfully'
                 },
-                status=status.HTTP_200_OK)
+                status=status.HTTP_200_OK
+            )
