@@ -7,8 +7,8 @@ def refresh_employees(org_id: int, user: User):
     """
         Sync Employees from BambooHR to Fyle
     """
-    bambooHrImporter = BambooHrEmployeeImport(org_id=org_id, user=user)
-    bambooHrImporter.sync_employees()
+    bamboohr_importer = BambooHrEmployeeImport(org_id=org_id, user=user)
+    bamboohr_importer.sync_employees()
 
 def update_employee(org_id: int, user: User, payload: dict):
 

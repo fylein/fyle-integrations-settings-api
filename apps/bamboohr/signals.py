@@ -21,7 +21,7 @@ def run_post_save_bamboohr_triggers(sender, instance: BambooHr, **kwargs):
         },
         'name': instance.org.name,
         'monitorFields': ['firstName', 'lastName', 'department', 'workEmail', 'status'],
-        'url': 'https://localhost:8006/' + f'api/orgs/{instance.org.id}/bamboohr/webhook_callback/',
+        'url': API_URL + f'/orgs/{instance.org.id}/bamboohr/webhook_callback/',
         'format': 'json'
     }
 
