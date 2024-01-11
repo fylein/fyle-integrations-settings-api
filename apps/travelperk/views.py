@@ -338,8 +338,6 @@ class TravelperkPaymentProfileMappingView(LookupFieldMixin, generics.ListCreateA
     """
     API Call to store payment profile mapping
     """
-    permission_classes = []
-    authentication_classes = []
 
     serializer_class = TravelperkProfileMappingSerializer
     queryset = TravelperkProfileMapping.objects.all()
