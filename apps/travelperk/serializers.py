@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from workato import Workato
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, Invoice, InvoiceLineItem
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, InvoiceLineItem, TravelperkProfileMapping
 from apps.orgs.models import Org
 
 
@@ -52,3 +52,21 @@ class InvoiceLineItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceLineItem
         fields = '__all__'
+
+
+class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TravelperkProfileMapping
+        fields = '__all__'
+
+    def create(self, validated_data):
+        
+        org_id = self.context['request'].parser_context.get('kwargs').get('org_id')
+        travelperk_profile_mapping, _ = TravelperkProfileMapping.objects.update_or_create(
+            org_id=org_id,
+            profile_name=validated_data['profile_name'],
+            defaults=validated_data
+        )
+
+        return travelperk_profile_mapping

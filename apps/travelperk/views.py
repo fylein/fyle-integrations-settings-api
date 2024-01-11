@@ -8,12 +8,13 @@ from rest_framework.views import status
 
 from workato import Workato
 from workato.exceptions import *
+from admin_settings.utils import LookupFieldMixin
 
 from apps.names import TRAVELPERK
 from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties, post_folder, post_package
-from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem
+from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer, TravelperkProfileMappingSerializer
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem, TravelperkProfileMapping
 from apps.travelperk.actions import connect_travelperk
 from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.exceptions import handle_fyle_exceptions
@@ -331,3 +332,14 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
                 'message': 'expenses created successfully'
             },
             status=status.HTTP_200_OK)
+
+
+class TravelperkPaymentProfileMappingView(LookupFieldMixin, generics.ListCreateAPIView):
+    """
+    API Call to store payment profile mapping
+    """
+    permission_classes = []
+    authentication_classes = []
+
+    serializer_class = TravelperkProfileMappingSerializer
+    queryset = TravelperkProfileMapping.objects.all()
