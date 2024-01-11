@@ -320,7 +320,7 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
         secret = settings.TKWEBHOOKS_SECRET
         signature = hmac.new(secret.encode(), json.dumps(payload).encode(), hashlib.sha256).hexdigest()
 
-        if signature != request.META['Tk-webhook-hmac-sha256']:
+        if signature != request.META['HTTP_TK_WEBHOOK_HMAC_SHA256']:
             return Response(
                 data={
                     'message': 'Invalid Signature'
