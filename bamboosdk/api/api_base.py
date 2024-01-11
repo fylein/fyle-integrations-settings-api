@@ -29,20 +29,17 @@ class ApiBase:
             return result
 
         if response.status_code == 403:
-            error_msg = json.loads(response.text)
-            raise NoPrivilegeError('Forbidden, the user has insufficient privilege', error_msg)
+            raise NoPrivilegeError('Forbidden, the user has insufficient privilege', response.text)
 
         if response.status_code == 404:
-            error_msg = json.loads(response.text)
-            raise NotFoundItemError('Not found item with ID', error_msg)
+            raise NotFoundItemError('Not found item with ID', response.text)
 
         if response.status_code == 401:
             error_msg = 'The api token is invalid'
             raise InvalidTokenError('Invalid token, try to refresh it', error_msg)
         
         else:
-            error_msg = json.loads(response.text)
-            raise BambooHrSDKError('Status code {0}'.format(response.status_code), error_msg)
+            raise BambooHrSDKError('Status code {0}'.format(response.status_code), response.text)
 
     
     def _post_request(self, module_api_path, payload):
@@ -65,20 +62,17 @@ class ApiBase:
             return result
         
         if response.status_code == 403:
-            error_msg = json.loads(response.text)
-            raise NoPrivilegeError('Forbidden, the user has insufficient privilege', error_msg)
+            raise NoPrivilegeError('Forbidden, the user has insufficient privilege', response.text)
 
         if response.status_code == 404:
-            error_msg = json.loads(response.text)
-            raise NotFoundItemError('Not found item with ID', error_msg)
+            raise NotFoundItemError('Not found item with ID', response.text)
 
         if response.status_code == 401:
             error_msg = 'The api token is invalid'
             raise InvalidTokenError('Invalid token, try to refresh it', error_msg)
         
         else:
-            error_msg = json.loads(response.text)
-            raise BambooHrSDKError('Status code {0}'.format(response.status_code), error_msg)
+            raise BambooHrSDKError('Status code {0}'.format(response.status_code), response.text)
         
     def _delete_request(self, module_api_path):
         """
@@ -93,20 +87,17 @@ class ApiBase:
             return {'message':'Webhook has been deleted'}
 
         if response.status_code == 403:
-            error_msg = json.loads(response.text)
-            raise NoPrivilegeError('Forbidden, the user has insufficient privilege', error_msg)
+            raise NoPrivilegeError('Forbidden, the user has insufficient privilege', response.text)
 
         if response.status_code == 404:
-            error_msg = json.loads(response.text)
-            raise NotFoundItemError('Not found item with ID', error_msg)
+            raise NotFoundItemError('Not found item with ID', response.text)
 
         if response.status_code == 401:
             error_msg = 'The api token is invalid'
             raise InvalidTokenError('Invalid token, try to refresh it', error_msg)
         
         else:
-            error_msg = json.loads(response.text)
-            raise BambooHrSDKError('Status code {0}'.format(response.status_code), error_msg)
+            raise BambooHrSDKError('Status code {0}'.format(response.status_code), response.text)
 
     def __encode_username_password(self):
         """
