@@ -8,8 +8,8 @@ from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from datetime import datetime
 class BambooHrEmployeeImport(FyleEmployeeImport):
 
-    def __init__(self, org_id: int, user: User):
-        super().__init__(org_id, user)
+    def __init__(self, org_id: int):
+        super().__init__(org_id)
         self.bamboohr_queryset = BambooHr.objects.filter(org_id__in=[self.org_id]) #using queryset to use the update method, because save method will trigger signal
         self.bamboohr = self.bamboohr_queryset.first()
         self.bamboohr_configuration = BambooHrConfiguration.objects.get(org_id__in=[self.org_id])
