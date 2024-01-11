@@ -3,7 +3,7 @@ from datetime import datetime
 
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.fyle_hrms_mappings.models import DestinationAttribute, ExpenseAttribute
-from apps.orgs.models import Org
+from apps.orgs.models import FyleCredential, Org
 from apps.users.helpers import PlatformConnector
 from fyle_rest_auth.models import AuthToken
 
@@ -12,11 +12,11 @@ from django.conf import settings
 
 class FyleEmployeeImport():
 
-    def __init__(self, org_id: int, user):
+    def __init__(self, org_id: int):
         self.org_id = org_id
-        self.user = user
-        refresh_token = AuthToken.objects.get(user__user_id=self.user).refresh_token
-        cluster_domain = Org.objects.get(user__user_id=self.user).cluster_domain
+        org = Org.objects.get(id=org_id)
+        cluster_domain = org.cluster_domain
+        refresh_token = FyleCredential.objects.get(org=org).refresh_token
         self.platform_connection = PlatformConnector(refresh_token, cluster_domain)
     
     def sync_fyle_employees(self):

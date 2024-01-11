@@ -3,20 +3,20 @@ from apps.fyle_hrms_mappings.models import DestinationAttribute
 from fyle_employee_imports.bamboo_hr import BambooHrEmployeeImport
 from apps.users.models import User
 
-def refresh_employees(org_id: int, user: User):
+def refresh_employees(org_id: int):
     """
         Sync Employees from BambooHR to Fyle
     """
-    bamboohr_importer = BambooHrEmployeeImport(org_id=org_id, user=user)
+    bamboohr_importer = BambooHrEmployeeImport(org_id=org_id)
     bamboohr_importer.sync_employees()
 
-def update_employee(org_id: int, user: User, payload: dict):
+def update_employee(org_id: int, payload: dict):
 
     """
         Update employee in fyle when employee in Bamboohr is added or updated
     """
     bamboohr = BambooHr.objects.get(org_id__in=[org_id], is_credentials_expired=False)
-    bamboohr_importer = BambooHrEmployeeImport(org_id=org_id, user=user)
+    bamboohr_importer = BambooHrEmployeeImport(org_id=org_id)
 
     employee_payload = {'employees': []}
     payload = payload['employees'][0]

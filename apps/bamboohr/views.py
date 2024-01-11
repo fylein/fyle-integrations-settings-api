@@ -66,13 +66,15 @@ class BambooHrView(generics.ListAPIView):
 
 class WebhookCallbackAPIView(generics.CreateAPIView):
 
+    permission_classes = []
+    authentication_classes = []
+
     def post(self, request, *args, **kwargs):
 
         org_id = kwargs['org_id']
-        user = self.request.user
         payload = request.data
 
-        async_task('apps.bamboohr.tasks.update_employee', org_id, user, payload)
+        async_task('apps.bamboohr.tasks.update_employee', org_id, payload)
 
         return Response(
             {
@@ -197,7 +199,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
     def post(self, request, *args, **kwargs):
     
-        async_task('apps.bamboohr.tasks.refresh_employees', kwargs['org_id'], self.request.user)
+        async_task('apps.bamboohr.tasks.refresh_employees', kwargs['org_id'])
 
         return Response(
             data = {'message': 'success'},
