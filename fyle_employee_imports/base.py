@@ -84,7 +84,7 @@ class FyleEmployeeImport():
         incomplete_employee_count: int = 0
 
         for employee in hrms_employees:
-            if employee.detail['email'] or webhook_call:
+            if employee.detail['email']:
                 update_create_employee_payload = {
                     'user_email': employee.detail['email'],
                     'user_full_name': employee.detail['full_name'],
