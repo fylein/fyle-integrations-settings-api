@@ -75,7 +75,7 @@ class FyleEmployeeImport():
         departments_payload = self.create_fyle_department_payload(existing_departments, new_departments)
         self.post_department(departments_payload)
 
-    def get_employee_and_approver_payload(self, hrms_employees, webhook_call):
+    def get_employee_and_approver_payload(self, hrms_employees):
         employee_payload: List[Dict] = []
         employee_emails: List[str] = []
         approver_emails: List[str] = []
@@ -124,8 +124,8 @@ class FyleEmployeeImport():
 
         return employee_payload, employee_approver_payload
 
-    def fyle_employee_import(self, hrms_employees, webhook_call = False):
-        fyle_employee_payload, employee_approver_payload = self.get_employee_and_approver_payload(hrms_employees, webhook_call=webhook_call)
+    def fyle_employee_import(self, hrms_employees):
+        fyle_employee_payload, employee_approver_payload = self.get_employee_and_approver_payload(hrms_employees)
 
         employee_exported_at_time = self.get_employee_exported_at()
 

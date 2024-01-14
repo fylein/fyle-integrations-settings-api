@@ -110,9 +110,14 @@ class DestinationAttribute(models.Model):
                         ('active' in attribute and attribute['active'] != primary_key_map[attribute['destination_id']]['active'])
                     ):
                     if webhook_update:
+                        # update the fields whose keys are present in the payload, if they are none in the payload
+                        # update with the old values
                         existing_employee_attribute = primary_key_map[attribute['destination_id']]['detail']
                         new_employee_attributes = attribute['detail']
-                        updated_employee_attributes_detail = {key: new_value if new_value is not None else existing_employee_attribute[key] for key, new_value in new_employee_attributes.items()}
+                        updated_employee_attributes_detail = {key: new_value if new_value is not None else existing_employee_attribute[key] \
+                                                            for key, new_value in new_employee_attributes.items()}
+                        
+                        # for approver email we keep the existing value as we don't get this in the webhook call
                         updated_employee_attributes_detail['approver_emails'] = existing_employee_attribute['approver_emails']
                         attributes_to_be_updated.append(
                             DestinationAttribute(

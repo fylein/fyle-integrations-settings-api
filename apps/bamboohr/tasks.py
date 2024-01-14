@@ -28,7 +28,7 @@ def update_employee(org_id: int, payload: dict):
         employee[field] = payload['fields'][field]['value']
 
     if not employee.get('status', None):
-        employee['status'] = True
+        employee['status'] = 'Active'
 
     employee_payload['employees'].append(employee)
 
