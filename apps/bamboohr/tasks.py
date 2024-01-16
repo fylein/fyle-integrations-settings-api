@@ -40,4 +40,4 @@ def update_employee(org_id: int, payload: dict):
             updated_at__gte=bamboohr.employee_exported_at,
         ).order_by('value', 'id')
     bamboohr_importer.import_departments(hrms_employees=hrms_employees)
-    bamboohr_importer.fyle_employee_import(hrms_employees=hrms_employees, webhook_call=True)
+    bamboohr_importer.fyle_employee_import(hrms_employees=hrms_employees)
