@@ -1,20 +1,22 @@
 from typing import Dict, List
 from datetime import datetime
 
-from apps.bamboohr.models import BambooHr
+from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.fyle_hrms_mappings.models import DestinationAttribute, ExpenseAttribute
-from apps.orgs.models import Org
+from apps.orgs.models import FyleCredential, Org
 from apps.users.helpers import PlatformConnector
 from fyle_rest_auth.models import AuthToken
 
+from apps.bamboohr.email import send_failure_notification_email
+from django.conf import settings
+
 class FyleEmployeeImport():
 
-    def __init__(self, org_id: int, user):
+    def __init__(self, org_id: int):
         self.org_id = org_id
-        self.user = user
-        self.bamboohr = BambooHr.objects.get(org_id__in=self.org_id)
-        refresh_token = AuthToken.objects.get(user__user_id=self.user).refresh_token
-        cluster_domain = Org.objects.get(user__user_id=self.user).cluster_domain
+        org = Org.objects.get(id=self.org_id)
+        cluster_domain = org.cluster_domain
+        refresh_token = FyleCredential.objects.get(org=org).refresh_token
         self.platform_connection = PlatformConnector(refresh_token, cluster_domain)
     
     def sync_fyle_employees(self):
@@ -78,6 +80,8 @@ class FyleEmployeeImport():
         employee_emails: List[str] = []
         approver_emails: List[str] = []
         employee_approver_payload: List[Dict] = []
+        incomplete_employees: List = []
+        incomplete_employee_count: int = 0
 
         for employee in hrms_employees:
             if employee.detail['email']:
@@ -97,6 +101,13 @@ class FyleEmployeeImport():
                         'approver_emails': employee.detail['approver_emails']
                     })
                     approver_emails.extend(employee.detail['approver_emails'])
+            else:
+                incomplete_employee_count += 1
+                incomplete_employees.append({'name': employee.detail['full_name'], 'id':employee.destination_id})
+        
+        admin_email = self.get_admin_email()
+        if incomplete_employee_count > 0:
+            send_failure_notification_email(employees=incomplete_employees, number_of_employees=incomplete_employee_count, admin_email=admin_email)
 
         existing_approver_emails = ExpenseAttribute.objects.filter(
             org_id=self.org_id, attribute_type='EMPLOYEE', value__in=approver_emails
@@ -116,22 +127,36 @@ class FyleEmployeeImport():
     def fyle_employee_import(self, hrms_employees):
         fyle_employee_payload, employee_approver_payload = self.get_employee_and_approver_payload(hrms_employees)
 
+        employee_exported_at_time = self.get_employee_exported_at()
+
         if fyle_employee_payload:
             self.platform_connection.bulk_post_employees(employees_payload=fyle_employee_payload)
 
-            self.bamboohr.employee_exported_at = datetime.now()
+            employee_exported_at_time = datetime.now()
 
         if employee_approver_payload:
             self.platform_connection.bulk_post_employees(employees_payload=employee_approver_payload)
             
-            self.bamboohr.employee_exported_at = datetime.now()
+            employee_exported_at_time = datetime.now()
         
-        self.bamboohr.save()
+        self.save_employee_exported_at_time(employee_exported_at = employee_exported_at_time)
         self.platform_connection.sync_employees(org_id=self.org_id)
 
     def sync_hrms_employees(self):
         raise NotImplementedError('Implement sync_hrms_employees() in the child class')
     
+    def get_admin_email(self):
+        raise NotImplementedError('Implement get_admin_email() in the child class')
+
+    def set_employee_exported_at(self):
+        raise NotImplementedError('Implement set_employee_exported_at() in the child class')
+
+    def get_employee_exported_at(self):
+        raise NotImplementedError('Implement get_employee_exported_at() in the child class')
+
+    def save_employee_exported_at_time(self, employee_exported_at):
+        raise NotImplementedError('Implement save_hrms() in the child class') 
+
     def sync_employees(self):
         self.sync_fyle_employees()
         self.sync_hrms_employees()
@@ -139,7 +164,7 @@ class FyleEmployeeImport():
         hrms_employees = DestinationAttribute.objects.filter(
             attribute_type='EMPLOYEE',
             org_id=self.org_id,
-            updated_at__gte=self.bamboohr.employee_exported_at,
+            updated_at__gte=self.get_employee_exported_at(),
         ).order_by('value', 'id')
 
         self.import_departments(hrms_employees)
