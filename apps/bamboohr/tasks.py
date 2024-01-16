@@ -1,7 +1,8 @@
 from apps.bamboohr.models import BambooHr
 from apps.fyle_hrms_mappings.models import DestinationAttribute
+from apps.orgs.models import FyleCredential, Org
+from apps.users.helpers import PlatformConnector
 from fyle_employee_imports.bamboo_hr import BambooHrEmployeeImport
-from apps.users.models import User
 
 def refresh_employees(org_id: int):
     """
@@ -17,7 +18,6 @@ def update_employee(org_id: int, payload: dict):
     """
     bamboohr = BambooHr.objects.get(org_id__in=[org_id], is_credentials_expired=False)
     bamboohr_importer = BambooHrEmployeeImport(org_id=org_id)
-
     employee_payload = {'employees': []}
     payload = payload['employees'][0]
     employee = {}
@@ -27,9 +27,12 @@ def update_employee(org_id: int, payload: dict):
     for field in payload['changedFields']:  
         employee[field] = payload['fields'][field]['value']
 
+    if not employee.get('status', None):
+        employee['status'] = 'Active'
+
     employee_payload['employees'].append(employee)
 
-    bamboohr_importer.upsert_employees(employees=employee_payload)
+    bamboohr_importer.upsert_employees(employees=employee_payload, webhook_update=True)
 
     hrms_employees = DestinationAttribute.objects.filter(
             attribute_type='EMPLOYEE',

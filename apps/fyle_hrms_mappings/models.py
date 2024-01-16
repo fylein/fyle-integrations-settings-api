@@ -45,7 +45,7 @@ class DestinationAttribute(models.Model):
     
     @staticmethod
     def bulk_create_or_update_destination_attributes(
-            attributes: List[Dict], attribute_type: str, org_id: int, update: bool = False):
+            attributes: List[Dict], attribute_type: str, org_id: int, update: bool = False, webhook_update: bool = False):
         """
         Create Destination Attributes in bulk
         :param update: Update Pre-existing records or not
@@ -109,15 +109,35 @@ class DestinationAttribute(models.Model):
                         or
                         ('active' in attribute and attribute['active'] != primary_key_map[attribute['destination_id']]['active'])
                     ):
-                    attributes_to_be_updated.append(
-                        DestinationAttribute(
-                            id=primary_key_map[attribute['destination_id']]['id'],
-                            value=attribute['value'],
-                            detail=attribute['detail'] if 'detail' in attribute else None,
-                            active=attribute['active'] if 'active' in attribute else None,
-                            updated_at=datetime.now()
+                    if webhook_update:
+                        # update the fields whose keys are present in the payload, if they are none in the payload
+                        # update with the old values
+                        existing_employee_attribute = primary_key_map[attribute['destination_id']]['detail']
+                        new_employee_attributes = attribute['detail']
+                        updated_employee_attributes_detail = {key: new_value if new_value is not None else existing_employee_attribute[key] \
+                                                            for key, new_value in new_employee_attributes.items()}
+                        
+                        # for approver email we keep the existing value as we don't get this in the webhook call
+                        updated_employee_attributes_detail['approver_emails'] = existing_employee_attribute['approver_emails']
+                        attributes_to_be_updated.append(
+                            DestinationAttribute(
+                                id=primary_key_map[attribute['destination_id']]['id'],
+                                value=attribute['value'],
+                                detail=updated_employee_attributes_detail,
+                                active=attribute['active'] if 'active' in attribute else None,
+                                updated_at=datetime.now()
+                            )
                         )
-                    )
+                    else:
+                        attributes_to_be_updated.append(
+                            DestinationAttribute(
+                                id=primary_key_map[attribute['destination_id']]['id'],
+                                value=attribute['value'],
+                                detail=attribute['detail'] if 'detail' in attribute else None,
+                                active=attribute['active'] if 'active' in attribute else None,
+                                updated_at=datetime.now()
+                            )
+                        )
         if attributes_to_be_created:
             DestinationAttribute.objects.bulk_create(attributes_to_be_created, batch_size=50)
 

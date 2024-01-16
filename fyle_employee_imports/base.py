@@ -14,7 +14,7 @@ class FyleEmployeeImport():
 
     def __init__(self, org_id: int):
         self.org_id = org_id
-        org = Org.objects.get(id=org_id)
+        org = Org.objects.get(id=self.org_id)
         cluster_domain = org.cluster_domain
         refresh_token = FyleCredential.objects.get(org=org).refresh_token
         self.platform_connection = PlatformConnector(refresh_token, cluster_domain)
