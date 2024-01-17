@@ -19,16 +19,12 @@ def update_employee(org_id: int, payload: dict):
     bamboohr = BambooHr.objects.get(org_id__in=[org_id], is_credentials_expired=False)
     bamboohr_importer = BambooHrEmployeeImport(org_id=org_id)
     employee_payload = {'employees': []}
-    payload = payload['employees'][0]
     employee = {}
+    payload = payload['employees'][0]
     employee['id'] = payload['id']
-    employee['firstName'] = payload['fields']['firstName']['value']
-    employee['lastName'] = payload['fields']['lastName']['value']
-    for field in payload['changedFields']:  
-        employee[field] = payload['fields'][field]['value']
-
-    if not employee.get('status', None):
-        employee['status'] = 'Active'
+    payload = payload['fields']
+    for field in payload.keys():
+        employee[field] = payload[field]['value']
 
     employee_payload['employees'].append(employee)
 
