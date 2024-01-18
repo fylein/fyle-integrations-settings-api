@@ -37,7 +37,7 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
         employee_payload = []
         employee_approver_payload = []
 
-        full_name = employee['firstName'] + ' ' + employee['lastName']
+        full_name = '{} {}'.format(employee['firstName'], employee['lastName'])
 
         if not employee.get('workEmail'):
             admin_email = self.get_admin_email()
@@ -54,7 +54,6 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
                     'approver_emails': [email]
                     }
                 )
-    
         update_create_employee_payload = {
             'user_email': employee['workEmail'],
             'user_full_name': full_name,
