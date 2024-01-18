@@ -16,7 +16,7 @@ for bamboohr in all_bamboohr:
                 'department': 'department',
                 'workEmail': 'workEmail',
                 'status': 'status',
-                'reportingTo': 'reportingTo'
+                'supervisorEId': 'supervisorEId'
             },
             'name': bamboohr.org.name,
             'monitorFields': ['firstName', 'lastName', 'department', 'workEmail', 'status', 'reportingTo'],
@@ -25,7 +25,8 @@ for bamboohr in all_bamboohr:
         }
 
         response = bamboohrsdk.webhook.post(payload=webhook_payload)
-        BambooHr.objects.filter(id=bamboohr.id).update(webhook_id=int(response['id']))
+        private_key = response['privateKey']
+        BambooHr.objects.filter(id=bamboohr.id).update(webhook_id=int(response['id']), private_key=private_key)
 
     except Exception as e:
         print(f'For org_id {bamboohr.org.id} error occured', e)
