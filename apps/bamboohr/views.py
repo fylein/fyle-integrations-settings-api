@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import json
 import logging
 from bamboosdk.bamboohrsdk import BambooHrSDK
 
@@ -73,15 +76,36 @@ class WebhookCallbackAPIView(generics.CreateAPIView):
 
         org_id = kwargs['org_id']
         payload = request.data
+        
+        bamboohr = BambooHr.objects.get(org_id__in=[org_id])
+        private_key = bamboohr.private_key
+        timestamp = request.headers['X-BambooHR-Timestamp']
+        signature = request.headers['X-BambooHR-Signature']
 
-        async_task('apps.bamboohr.tasks.update_employee', org_id, payload)
-
+        if timestamp and signature:
+            generated_signature = hmac.new(private_key.encode(), (json.dumps(payload)+ timestamp).encode(), hashlib.sha256).hexdigest()
+            if hmac.compare_digest(generated_signature, signature):
+                async_task('apps.bamboohr.tasks.update_employee', org_id, payload)
+                return Response(
+                    {
+                        'status': 'success'
+                    },
+                status=status.HTTP_201_CREATED
+                )
+            else:
+                return Response(
+                    {
+                        'status': 'Failed'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
         return Response(
-            {
-                'status': 'success'
-            },
-            status=status.HTTP_201_CREATED
-        )
+                    {
+                        'status': 'Failed'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
 class BambooHrConnection(generics.CreateAPIView):
     """
