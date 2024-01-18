@@ -38,8 +38,9 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
             if webhook_update:
                 supervisor = [None]
                 if employee['supervisorEId']:
-                    supervisor_employee = DestinationAttribute.objects.get(org_id=self.org_id, destination_id=employee['supervisorEId'])
-                    supervisor = [supervisor_employee.detail['email']]
+                    supervisor_employee = DestinationAttribute.objects.filter(org_id=self.org_id, destination_id=employee['supervisorEId']).first()
+                    if supervisor_employee:
+                        supervisor = [supervisor_employee.detail['email']]
             else:
                 supervisor = [employee.get('supervisorEmail', None)]
             active_status = True if employee.get('status', None) == 'Active' else False
