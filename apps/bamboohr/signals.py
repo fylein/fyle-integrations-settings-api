@@ -27,4 +27,5 @@ def run_post_save_bamboohr_triggers(sender, instance: BambooHr, **kwargs):
     }
 
     response = bamboohrsdk.webhook.post(payload=webhook_payload)
-    BambooHr.objects.filter(id=instance.id).update(webhook_id=int(response['id']))
+    private_key = response['privateKey']
+    BambooHr.objects.filter(id=instance.id).update(webhook_id=int(response['id']), private_key=private_key)
