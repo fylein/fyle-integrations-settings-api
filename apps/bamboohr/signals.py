@@ -18,7 +18,7 @@ def run_post_save_bamboohr_triggers(sender, instance: BambooHr, **kwargs):
             'department': 'department',
             'workEmail': 'workEmail',
             'status': 'status',
-            'reportingTo': 'reportingTo'
+            'supervisorEId': 'supervisorEId'
         },
         'name': instance.org.name,
         'monitorFields': ['firstName', 'lastName', 'department', 'workEmail', 'status', 'reportingTo'],
