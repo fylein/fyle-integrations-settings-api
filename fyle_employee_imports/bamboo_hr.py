@@ -1,4 +1,5 @@
 from typing import Dict
+from apps.bamboohr.email import send_failure_notification_email
 from apps.users.models import User
 from apps.fyle_hrms_mappings.models import DestinationAttribute
 from .base import FyleEmployeeImport
@@ -31,8 +32,48 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
     def sync_hrms_employees(self):
         employees = self.bamboohr_sdk.employees.get_all()
         self.upsert_employees(employees)
+    
+    def sync_with_webhook(self, employee):
+        employee_payload = []
+        employee_approver_payload = []
 
-    def upsert_employees(self, employees: Dict, webhook_update: bool = False):
+        full_name = '{} {}'.format(employee['firstName'], employee['lastName'])
+
+        if not employee.get('workEmail'):
+            admin_email = self.get_admin_email()
+            incomplete_employee = {'name': full_name, 'id': employee['id']}
+            send_failure_notification_email(employees=[incomplete_employee], number_of_employees=1, admin_email=admin_email)
+            return
+        if employee.get('supervisorEId'):
+            response = self.bamboohr_sdk.employees.get(employee['supervisorEId'])
+            email = response['workEmail']
+            fyle_employee = self.platform_connection.get_employee_by_email(email=email)
+            if len(fyle_employee):
+                employee_approver_payload.append({
+                    'user_email': employee['workEmail'],
+                    'approver_emails': [email]
+                    }
+                )
+        update_create_employee_payload = {
+            'user_email': employee['workEmail'],
+            'user_full_name': full_name,
+            'code': employee['id'],
+            'department_name': employee['department'] if employee['department'] else '',
+            'is_enabled': employee['status']
+        }
+        employee_payload.append(update_create_employee_payload)
+        if employee['department']:
+            existing_departments = self.get_existing_departments_from_fyle()
+            department_payload = self.create_fyle_department_payload(existing_departments, [employee['department']])
+            if department_payload:
+                self.platform_connection.post_department(department_payload[0])
+
+        self.platform_connection.bulk_post_employees(employees_payload=employee_payload)
+        if employee_approver_payload:
+            self.platform_connection.bulk_post_employees(employees_payload=employee_approver_payload)
+
+
+    def upsert_employees(self, employees: Dict):
         attributes = []
         for employee in employees['employees']:
             
@@ -59,6 +100,6 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
             })
 
         DestinationAttribute.bulk_create_or_update_destination_attributes(
-            attributes=attributes, attribute_type='EMPLOYEE', org_id=self.org_id, update=True, webhook_update=webhook_update)
+            attributes=attributes, attribute_type='EMPLOYEE', org_id=self.org_id, update=True)
         
         return []
