@@ -142,7 +142,7 @@ class FyleEmployeeImport():
         self.save_employee_exported_at_time(employee_exported_at = employee_exported_at_time)
         self.platform_connection.sync_employees(org_id=self.org_id)
 
-    def sync_hrms_employees(self):
+    def sync_hrms_employees(self, schedule: bool):
         raise NotImplementedError('Implement sync_hrms_employees() in the child class')
     
     def get_admin_email(self):
@@ -157,9 +157,9 @@ class FyleEmployeeImport():
     def save_employee_exported_at_time(self, employee_exported_at):
         raise NotImplementedError('Implement save_hrms() in the child class') 
 
-    def sync_employees(self):
+    def sync_employees(self, schedule: bool):
         self.sync_fyle_employees()
-        self.sync_hrms_employees()
+        self.sync_hrms_employees(schedule=schedule)
 
         hrms_employees = DestinationAttribute.objects.filter(
             attribute_type='EMPLOYEE',

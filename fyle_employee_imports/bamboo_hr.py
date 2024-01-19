@@ -1,5 +1,6 @@
 from typing import Dict
 from apps.bamboohr.email import send_failure_notification_email
+from apps.orgs.models import Org
 from apps.users.models import User
 from apps.fyle_hrms_mappings.models import DestinationAttribute
 from .base import FyleEmployeeImport
@@ -29,8 +30,12 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
     def get_employee_exported_at(self):
         return self.bamboohr.employee_exported_at
 
-    def sync_hrms_employees(self):
-        employees = self.bamboohr_sdk.employees.get_all()
+    def sync_hrms_employees(self, schedule):
+        sync_employee_from = None
+        if schedule:
+            sync_employee_from = Org.objects.get(id=self.org_id).created_at
+            sync_employee_from = sync_employee_from.replace(microsecond=0).isoformat()
+        employees = self.bamboohr_sdk.employees.get_all(schedule=schedule, sync_employee_from=sync_employee_from)
         self.upsert_employees(employees)
     
     def sync_with_webhook(self, employee):

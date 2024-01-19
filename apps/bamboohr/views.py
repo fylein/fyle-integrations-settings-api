@@ -102,6 +102,8 @@ class BambooHrConnection(generics.CreateAPIView):
                 'sub_domain': sub_domain
             })
 
+            async_task('apps.bamboohr.tasks.schedule_sync_employees', org.id)
+
             return Response(
             data="BambooHr is connected",
             status=status.HTTP_200_OK
@@ -173,6 +175,7 @@ class DisconnectView(generics.CreateAPIView):
             bambamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
             bambamboohrsdk.webhook.delete(id=bamboohr.webhook_id)
             bamboohr_queryset.update(api_token=None, sub_domain=None)
+            async_task('apps.bamboohr.tasks.delete_sync_employee_schedule', kwargs['org_id'])
             return Response(
                 data='Successfully Disconneted!',
                 status=status.HTTP_200_OK
