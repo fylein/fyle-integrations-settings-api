@@ -30,12 +30,12 @@ class BambooHrEmployeeImport(FyleEmployeeImport):
     def get_employee_exported_at(self):
         return self.bamboohr.employee_exported_at
 
-    def sync_hrms_employees(self, schedule):
+    def sync_hrms_employees(self, is_incremental_sync):
         sync_employee_from = None
-        if schedule:
+        if is_incremental_sync:
             sync_employee_from = Org.objects.get(id=self.org_id).created_at
             sync_employee_from = sync_employee_from.replace(microsecond=0).isoformat()
-        employees = self.bamboohr_sdk.employees.get_all(schedule=schedule, sync_employee_from=sync_employee_from)
+        employees = self.bamboohr_sdk.employees.get_all(is_incremental_sync=is_incremental_sync, sync_employee_from=sync_employee_from)
         self.upsert_employees(employees)
     
     def sync_with_webhook(self, employee):

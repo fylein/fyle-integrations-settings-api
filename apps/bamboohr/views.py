@@ -202,7 +202,7 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
     def post(self, request, *args, **kwargs):
     
-        async_task('apps.bamboohr.tasks.refresh_employees', kwargs['org_id'])
+        async_task('apps.bamboohr.tasks.import_employees', kwargs['org_id'])
 
         return Response(
             data = {'message': 'success'},
