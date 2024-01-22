@@ -1,5 +1,5 @@
 from .api_base import ApiBase
-
+from datetime import datetime
 
 class Employee(ApiBase):
     
@@ -7,11 +7,17 @@ class Employee(ApiBase):
     GET_EMPLOYEE = '/v1/employees/{}/?fields=workEmail&onlyCurrent=false'
     payload = { "fields": ["displayName", "firstName", "lastName", "department", "workEmail", "supervisorEmail", "status"] }
 
-    def get_all(self):
+    def get_all(self, is_incremental_sync: bool, sync_employee_from: datetime = None):
         """Get the list of employees from bambooHr
         Returns:
             List with dicts in Employee schema.
         """
+
+        if is_incremental_sync:
+            self.payload['filters'] = { "lastChanged": {
+            "includeNull": "yes",
+            "value": sync_employee_from
+        }}
         return self._post_request(self.GET_EMPLOYEE_REPORT, payload=self.payload)
 
     def get(self, id):
