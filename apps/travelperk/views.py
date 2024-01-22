@@ -13,7 +13,7 @@ from admin_settings.utils import LookupFieldMixin
 from apps.names import TRAVELPERK
 from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties, post_folder, post_package
-from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer, TravelperkProfileMappingSerializer
+from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer, TravelperkProfileMappingSerializer, SyncPaymentProfileSerializer
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem, TravelperkProfileMapping
 from apps.travelperk.actions import connect_travelperk
 from apps.travelperk.connector import TravelperkConnector
@@ -341,3 +341,14 @@ class TravelperkPaymentProfileMappingView(LookupFieldMixin, generics.ListCreateA
 
     serializer_class = TravelperkProfileMappingSerializer
     queryset = TravelperkProfileMapping.objects.all()
+
+
+class SyncPaymentProfiles(generics.ListAPIView):
+    """
+    API Call to sync payment profiles
+    """
+
+    serializer_class = SyncPaymentProfileSerializer
+
+    def get_queryset(self):
+        return SyncPaymentProfileSerializer().sync_payment_profiles(self.kwargs['org_id'])

@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 from workato import Workato
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, InvoiceLineItem, TravelperkProfileMapping
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, InvoiceLineItem, TravelperkProfileMapping, TravelperkCredential
+from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.models import Org
 
 
@@ -70,3 +71,19 @@ class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
         )
 
         return travelperk_profile_mapping
+
+
+class SyncPaymentProfileSerializer(serializers.Serializer):
+    """
+    Serializer for Sync Payment Profile
+    """
+
+    def sync_payment_profiles(self, org_id):
+        """
+        Sync Payment Profile
+        """
+
+        travelperk_credentials = TravelperkCredential.objects.get(org_id=org_id)
+
+        travelperk_connection = TravelperkConnector(travelperk_credentials, org_id)
+        travelperk_connection.sync_invoice_profile()
