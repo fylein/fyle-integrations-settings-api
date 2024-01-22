@@ -12,6 +12,7 @@ from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
 from apps.bamboohr.actions import disconnect_bamboohr, sync_employees
 from apps.names import BAMBOO_HR
+from apps.bamboohr.tasks import delete_sync_employee_schedule
 
 from django_q.tasks import async_task
 
@@ -102,8 +103,6 @@ class BambooHrConnection(generics.CreateAPIView):
                 'sub_domain': sub_domain
             })
 
-            async_task('apps.bamboohr.tasks.schedule_sync_employees', org.id)
-
             return Response(
             data="BambooHr is connected",
             status=status.HTTP_200_OK
@@ -172,7 +171,7 @@ class DisconnectView(generics.CreateAPIView):
         try:
             bamboohr_queryset = BambooHr.objects.filter(org__id=kwargs['org_id'])
             bamboohr_queryset.update(api_token=None, sub_domain=None)
-            async_task('apps.bamboohr.tasks.delete_sync_employee_schedule', kwargs['org_id'])
+            delete_sync_employee_schedule(org_id=kwargs['org_id'])
             return Response(
                 data='Successfully Disconneted!',
                 status=status.HTTP_200_OK
