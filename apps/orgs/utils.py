@@ -3,7 +3,8 @@ from datetime import datetime, timezone
 from fyle.platform import Platform
 
 import jwt
-from apps.orgs.models import FyleCredential
+from apps.orgs.models import FyleCredential, Org
+from apps.users.helpers import PlatformConnector
 from apps.orgs.exceptions import handle_workato_exception
 from django.conf import settings
 
@@ -57,3 +58,16 @@ def create_fyle_connection(org_id: str):
     )
 
     return connection
+
+
+def import_categories(org_id: str):
+    """
+    Import Categories From Fyle
+    """
+
+    org = Org.objects.get(id=org_id)
+    fyle_creds = FyleCredential.objects.get(org_id=org.id)
+    platform_connection = PlatformConnector(fyle_creds.refresh_token, org.cluster_domain)
+
+    categories = platform_connection.sync_categories(org_id=org.id)
+    return categories

@@ -1,6 +1,7 @@
 from django.urls import path, include
 
-from .views import  OrgsView, ReadyView, CreateManagedUserInWorkato, FyleConnection, SendgridConnection, WorkspaceAdminsView, GenerateToken
+from .views import  OrgsView, ReadyView, CreateManagedUserInWorkato, FyleConnection, SendgridConnection, \
+    WorkspaceAdminsView, GenerateToken, SyncCategories
 
 org_app_path = [
     path('', OrgsView.as_view(), name='orgs'),
@@ -10,7 +11,7 @@ org_app_path = [
     path('<int:org_id>/sendgrid_connection/', SendgridConnection.as_view(), name='sendgrid'),
     path('<int:org_id>/admins/', WorkspaceAdminsView.as_view(), name='admin-view'),
     path('<int:org_id>/generate_token/', GenerateToken.as_view(), name='generate-token'),
-
+    path('<int:org_id>/sync_categories/', SyncCategories.as_view(), name='sync-categories')
 ]
 
 integration_paths = [
