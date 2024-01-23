@@ -1,8 +1,14 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 from apps.orgs.models import Org
 
-# Create your models here.
+
+LINEITEM_STRUCTURE_CHOICE = (
+    ('MULTIPLE', 'MULTIPLE'),
+    ('SINGLE', 'SINGLE'),
+)
+
 
 class TravelperkCredential(models.Model):
     """
@@ -212,3 +218,26 @@ class ImportedExpenseDetail(models.Model):
 
     class Meta:
         db_table = 'imported_expense_details'
+
+
+class TravelperkAdvanceSetting(models.Model):
+    """
+    Advance Settings for travelperk
+    """
+
+    id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Advance Settings')
+    org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
+    default_employee_name = models.CharField(max_length=255, null=True, help_text='Default Employee Name')
+    default_employee_id = models.CharField(max_length=255, null=True, help_text='Default Employee Id')
+    default_category_name = models.CharField(max_length=255, null=True, help_text='Default Category Name')
+    default_category_id = models.CharField(max_length=255, null=True, help_text='Default Category Id')
+    invoice_lineitem_structure = models.CharField(choices=LINEITEM_STRUCTURE_CHOICE, default='MULTIPLE', max_length=255, help_text='Invoice Lineitem Structure')
+    description_structure = ArrayField(
+        models.CharField(max_length=255), help_text='Array of fields in memo', null=True
+    )
+    emails_added = models.JSONField(default=list, null=True, help_text='Emails Selected For Email Notification')
+    created_at = models.DateField(auto_now_add=True, help_text='Created at datetime')
+    updated_at = models.DateField(auto_now=True, help_text='Updated at datetime')
+
+    class Meta:
+        db_table = 'travelperk_advance_settings'
