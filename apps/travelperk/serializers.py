@@ -1,9 +1,15 @@
 from rest_framework import serializers
 
 from workato import Workato
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, InvoiceLineItem, TravelperkProfileMapping, TravelperkCredential
 from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.models import Org
+from apps.travelperk.models import (
+    TravelPerk, 
+    TravelPerkConfiguration, 
+    InvoiceLineItem, 
+    TravelperkProfileMapping, 
+    TravelperkCredential
+)
 
 
 class TravelperkSerializer(serializers.ModelSerializer):

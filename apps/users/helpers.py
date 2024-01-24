@@ -22,6 +22,17 @@ class PlatformConnector:
             refresh_token=refresh_token
         )
     
+    def get_employee_by_email(self, email: str):
+        """
+        Get employee by email
+        """
+        return self.connection.v1beta.admin.employees.list({
+            'user->email': 'eq.{}'.format(email),
+            'offset': 0,
+            'limit': 1,
+            'order': 'updated_at.desc'
+        })['data']
+    
     def bulk_post_employees(self, employees_payload):
         self.connection.v1beta.admin.employees.invite_bulk({'data': employees_payload})
 

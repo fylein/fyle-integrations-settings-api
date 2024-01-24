@@ -53,3 +53,14 @@ class WebhooksSubscriptions(ApiBase):
             Dict in Webhooks Subscriptions schema.
         """
         return self._delete_request(WebhooksSubscriptions.DELETE_WEBHOOK_SUBSCRIPTIONS.format(subscription_id))
+
+    def test(self, subscription_id):
+        """Test a Webhooks Subscription in the Organization.
+
+        Args:
+            subscription_id (str): The id of the Webhooks Subscription.
+
+        Returns:
+            Dict in Webhooks Subscriptions schema.
+        """
+        return self._post_request(WebhooksSubscriptions.TEST_WEBHOOK_SUBSCRIPTIONS.format(subscription_id))

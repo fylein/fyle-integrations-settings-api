@@ -1,5 +1,8 @@
 import logging
 import traceback
+import hmac
+import hashlib
+import json
 from django.conf import settings
 from django.db import transaction
 from rest_framework import generics
@@ -252,7 +255,6 @@ class ConnectTravelperkView(generics.CreateAPIView):
     """
     Api Call to make Travelperk Connection in workato
     """
-
     permission_classes = []
     authentication_classes = []
 
@@ -269,12 +271,12 @@ class ConnectTravelperkView(generics.CreateAPIView):
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
                     'url': settings.API_URL + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
-                    'secret': 'some secret',
+                    'secret': settings.TKWEBHOOKS_SECRET,
                     'events': [
                         'invoice.issued'
                     ]
                 }
-                
+
                 connector = Workato()
                 configuration: TravelPerkConfiguration = TravelPerkConfiguration.objects.filter(org__id=kwargs['org_id']).first()
 
@@ -311,21 +313,33 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
     
     authentication_classes = []
     permission_classes = []
-    
+
     @handle_fyle_exceptions()
     def create(self, request, *args, **kwargs):
+        
+        payload = request.data
+        secret = settings.TKWEBHOOKS_SECRET
+        signature = hmac.new(secret.encode(), json.dumps(payload).encode(), hashlib.sha256).hexdigest()
 
-        # Custom processing of the webhook event data
-        with transaction.atomic():
-            # Extract invoice line items from the request data
-            logger.info("webhook data: {}".format(request.data))
-            invoice_lineitems_data = request.data.pop('lines')
+        if signature != request.META['HTTP_TK_WEBHOOK_HMAC_SHA256']:
+            return Response(
+                data={
+                    'message': 'Invalid Signature'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            # Custom processing of the webhook event data
+            with transaction.atomic():
+                # Extract invoice line items from the request data
+                logger.info("webhook data: {}".format(request.data))
+                invoice_lineitems_data = request.data.pop('lines')
 
-            # Create or update Invoice and related line items
-            invoice = Invoice.create_or_update_invoices(request.data)
-            invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
+                # Create or update Invoice and related line items
+                invoice = Invoice.create_or_update_invoices(request.data)
+                invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
 
-        create_expense_in_fyle(kwargs['org_id'], invoice, invoice_linteitmes)
+            create_expense_in_fyle(kwargs['org_id'], invoice, invoice_linteitmes)
 
         return Response(
             data={

@@ -1,13 +1,9 @@
-
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
-
-from workato import Workato
 from apps.bamboohr.models import BambooHrConfiguration
-from apps.orgs.models import Org
+from apps.bamboohr.tasks import schedule_sync_employees
 
-@receiver(pre_save, sender=BambooHrConfiguration)
-def run_pre_save_configuration_triggers(sender, instance: BambooHrConfiguration, **kwargs):
-    connector = Workato()
-    org = Org.objects.get(id=instance.org_id)
-    connector.recipes.post(org.managed_user_id, instance.recipe_id, None, 'stop')
+
+@receiver(post_save, sender=BambooHrConfiguration)
+def run_post_save_configurations(sender, instance: BambooHrConfiguration, *args, **kwargs):
+    schedule_sync_employees(org_id=instance.org.id)
