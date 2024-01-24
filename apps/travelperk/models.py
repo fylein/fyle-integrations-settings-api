@@ -37,6 +37,7 @@ class Invoice(models.Model):
     billing_information = models.JSONField(help_text='Billing information associated with the invoice.')
     billing_period = models.CharField(max_length=20, help_text='Billing period type (e.g., instant).')
     currency = models.CharField(max_length=3, help_text='Currency code (e.g., GBP).')
+    org_id = models.ForeignKey(Org, on_delete=models.CASCADE, help_text='Reference to Org table')
     due_date = models.DateField(help_text='Due date for the invoice.')
     from_date = models.DateField(help_text='Start date for the billing period.')
     to_date = models.DateField(help_text='End date for the billing period.')
@@ -59,11 +60,12 @@ class Invoice(models.Model):
 
     exported_to_fyle = models.BooleanField(default=False, help_text='If the invoice is exported to Fyle')
 
+
     class Meta:
         db_table = 'invoices'
         
     @staticmethod
-    def create_or_update_invoices(invoice_data):
+    def create_or_update_invoices(invoice_data, org_id):
         """
         Create or update invoice object
         """
@@ -71,6 +73,7 @@ class Invoice(models.Model):
         # Create or update Invoice object based on serial_number
         invoice_object, _ = Invoice.objects.update_or_create(
             serial_number=invoice_data['serial_number'],
+            org_id=org_id,
             defaults={
                 'billing_information': invoice_data['billing_information'],
                 'billing_period': invoice_data['billing_period'],
