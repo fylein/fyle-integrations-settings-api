@@ -16,8 +16,8 @@ from admin_settings.utils import LookupFieldMixin
 from apps.names import TRAVELPERK
 from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties, post_folder, post_package
-from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer, TravelperkProfileMappingSerializer, SyncPaymentProfileSerializer
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem, TravelperkProfileMapping
+from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer, TravelperkProfileMappingSerializer, SyncPaymentProfileSerializer, TravelperkAdvancedSettingSerializer
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem, TravelperkProfileMapping, TravelperkAdvancedSetting
 from apps.travelperk.actions import connect_travelperk
 from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.exceptions import handle_fyle_exceptions
@@ -345,7 +345,20 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
             data={
                 'message': 'expenses created successfully'
             },
-            status=status.HTTP_200_OK)
+            status=status.HTTP_200_OK
+        )
+
+
+class AdvancedSettingView(generics.CreateAPIView, generics.RetrieveAPIView):
+    """
+    Retrieve or Create Advanced Settings
+    """
+
+    serializer_class = TravelperkAdvancedSettingSerializer
+    lookup_field = 'org_id'
+    lookup_url_kwarg = 'org_id'
+
+    queryset = TravelperkAdvancedSetting.objects.all()
 
 
 class TravelperkPaymentProfileMappingView(LookupFieldMixin, generics.ListCreateAPIView):

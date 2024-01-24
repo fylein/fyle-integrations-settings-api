@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from workato import Workato
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, InvoiceLineItem, TravelperkAdvancedSetting
 from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.models import Org
 from apps.travelperk.models import (
@@ -14,7 +15,7 @@ from apps.travelperk.models import (
 
 class TravelperkSerializer(serializers.ModelSerializer):
     """
-     Serializer for the Travelperk API
+    Serializer for the Travelperk API
     """
     class Meta:
         model = TravelPerk
@@ -61,6 +62,38 @@ class InvoiceLineItemSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Travelperk Advanced Settings
+    """
+
+    class Meta:
+        model = TravelperkAdvancedSetting
+        fields = '__all__'
+
+    def create(self, validated_data):
+        """
+        Create Advanced Settings
+        """
+        org_id = self.context['request'].parser_context.get('kwargs').get('org_id')
+        advanced_setting = TravelperkAdvancedSetting.objects.filter(
+            org_id=org_id
+        ).first()
+
+        if not advanced_setting:
+            if 'description_structure' not in validated_data:
+                validated_data['description_structure'] = [
+                    'trip_id',
+                    'trip_name',
+                    'traveller_name',
+                    'merchant_name',
+                    'booker_name',
+                ]
+
+        advanced_setting, _ = TravelperkAdvancedSetting.objects.update_or_create(
+            org_id=org_id,
+            defaults=validated_data
+        )
 class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
 
     class Meta:
