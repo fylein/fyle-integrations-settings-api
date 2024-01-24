@@ -1,4 +1,3 @@
-import os
 from unittest import mock
 from datetime import datetime, timezone
 import pytest
@@ -8,26 +7,13 @@ from admin_settings import settings
 
 from tests.fixture import fixture
 from apps.orgs.models import Org, FyleCredential
-from workato import Workato
-from tests.test_workato.common.utils import get_mock_workato
-from apps.gusto.models import Gusto, GustoConfiguration
-from apps.orgs.models import Org, FyleCredential
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration
+from apps.travelperk.models import TravelPerk
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 
 @pytest.fixture
 def api_client():
     return APIClient()
 
-@pytest.fixture(scope='module')
-def workato():
-    connection = Workato()
-
-    return connection
-
-@pytest.fixture
-def mock_workato():
-    return get_mock_workato()
 
 @pytest.fixture(scope="session", autouse=True)
 def default_session_fixture(request):
@@ -124,30 +110,15 @@ def get_org_id():
     )
     return org.id
 
-@pytest.fixture()
-def get_gusto_id(get_org_id):
-    gusto = Gusto.objects.create(
-        org = Org.objects.get(id = get_org_id),
-        folder_id = "dummy",
-        package_id = "dummy"
-    )
-    gusto_conf = GustoConfiguration.objects.create(
-        org = Org.objects.get(id = get_org_id)
-    )
-    return gusto.id
 
 @pytest.fixture()
 def get_bamboohr_id(mocker, get_org_id):
-    mocker.patch(
-        'workato.workato.Recipes.post',
-        return_value=None
-    )
     bamboohr = BambooHr.objects.create(
         org = Org.objects.get(id = get_org_id),
         folder_id = "1234",
         package_id = "1234"
     )
-    bamboohr_conf = BambooHrConfiguration.objects.create(
+    BambooHrConfiguration.objects.create(
         org = Org.objects.get(id = get_org_id)
     )
     return bamboohr.id
@@ -172,7 +143,5 @@ def get_travelperk_id(get_org_id):
         package_id = "dummy",
         is_travelperk_connected = True
     )
-    travelperk_conf = TravelPerkConfiguration.objects.create(
-        org = Org.objects.get(id = get_org_id)
-    )
+
     return travelperk.id
