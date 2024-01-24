@@ -4,13 +4,10 @@ from apps.orgs.models import Org
 
 
 USER_ROLE_CHOICES = (
-    ('TRAVELLER', 'TRAVERLLER'),
+    ('TRAVELLER', 'TRAVELLER'),
     ('BOOKER', 'BOOKER'),
     ('CARD_HOLDER', 'CARD_HOLDER')
 )
-
-def get_default_user_role():
-    return 'CARD_HOLDER'
 
 
 class TravelperkCredential(models.Model):
@@ -234,7 +231,7 @@ class TravelperkProfileMapping(models.Model):
     id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Profile Mapping')
     org = models.ForeignKey(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
     profile_name = models.CharField(max_length=255, help_text='Profile Name')
-    user_role = models.CharField(max_length=255, default=get_default_user_role, choices=USER_ROLE_CHOICES, null=True, help_text='User Role')
+    user_role = models.CharField(max_length=255, choices=USER_ROLE_CHOICES, null=True, help_text='User Role')
     is_import_enabled = models.BooleanField(default=False, help_text='If Import Is Enabled')
     country = models.CharField(max_length=255, null=True, help_text='Country of the payment profile')
     currency = models.CharField(max_length=100, null=True, help_text='Currency of the payment profile')
