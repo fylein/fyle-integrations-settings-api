@@ -92,6 +92,8 @@ FYLE_REST_AUTH_SERIALIZERS = {
     'USER_DETAILS_SERIALIZER': 'apps.users.serializers.UserSerializer'
 }
 
+FYLE_REST_AUTH_SETTINGS = {'async_update_user': True}
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -219,10 +221,8 @@ FYLE_TOKEN_URI = os.environ.get('FYLE_TOKEN_URI')
 FYLE_CLIENT_ID = os.environ.get('FYLE_CLIENT_ID')
 FYLE_CLIENT_SECRET = os.environ.get('FYLE_CLIENT_SECRET')
 FYLE_BASE_URL = os.environ.get('FYLE_BASE_URL')
-FYLE_APP_URL = os.environ.get('APP_URL')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDGRID_EMAIL = os.environ.get('SENDGRID_EMAIL')
-BASE_URI = os.environ.get('BASE_URI')
 WK_JWT_PRIVATE_KEY = os.environ.get('WK_JWT_PRIVATE_KEY')
 WK_API_KEY = os.environ.get('WK_API_KEY')
 
