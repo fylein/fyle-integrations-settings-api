@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from workato import Workato
 from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, InvoiceLineItem, TravelperkAdvancedSetting
-from apps.travelperk.connector import TravelPerkConnector
+from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.models import Org
 from apps.travelperk.models import (
     TravelPerk, 
@@ -124,5 +124,5 @@ class SyncPaymentProfileSerializer(serializers.Serializer):
 
         travelperk_credentials = TravelperkCredential.objects.get(org_id=org_id)
 
-        travelperk_connection = TravelPerkConnector(travelperk_credentials, org_id)
+        travelperk_connection = TravelperkConnector(travelperk_credentials, org_id)
         travelperk_connection.sync_invoice_profile()
