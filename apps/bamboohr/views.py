@@ -12,8 +12,9 @@ from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
 from apps.bamboohr.actions import disconnect_bamboohr, sync_employees
 from apps.names import BAMBOO_HR
+from apps.bamboohr.tasks import delete_sync_employee_schedule
 
-from rest_framework.views import APIView
+from django_q.tasks import async_task
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -64,63 +65,23 @@ class BambooHrView(generics.ListAPIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-class PostFolder(generics.CreateAPIView):
-    """
-    API Call to Create Folder in Workato
-    """
-    serializer_class = BambooHrSerializer
+class WebhookCallbackAPIView(generics.CreateAPIView):
+
+    permission_classes = []
+    authentication_classes = []
 
     def post(self, request, *args, **kwargs):
-        org = Org.objects.filter(id=kwargs['org_id']).first()
 
-        folder = post_folder(
-            org_id=kwargs['org_id'],
-            folder_name='Bamboo HR'
-        )
+        org_id = kwargs['org_id']
+        payload = request.data
 
-        # in case of an error response
-        if isinstance(folder, Response):
-            return folder
-        
-        bamboohr, _ = BambooHr.objects.update_or_create(
-            org=org,
-            defaults={
-                'folder_id': folder['id']
-            }
-        )
+        async_task('apps.bamboohr.tasks.update_employee', org_id, payload)
 
         return Response(
-            data=BambooHrSerializer(bamboohr).data,
-            status=status.HTTP_200_OK
-        )
-
-class PostPackage(generics.CreateAPIView):
-    """
-    API Call to Post Package in Workato
-    """
-
-    def post(self, request, *args, **kwargs):
-        org = Org.objects.filter(id=kwargs['org_id']).first()
-        bamboohr = BambooHr.objects.filter(org__id=org.id).first()
-
-        package = post_package(
-            org_id=kwargs['org_id'],
-            folder_id=bamboohr.folder_id,
-            package_path='assets/bamboohr_package.zip'
-        )
-
-        # in case of an error response
-        if isinstance(package, Response):
-            return package
-        
-        bamboohr.package_id = package['id']
-        bamboohr.save()
-
-        return Response(
-            data={
-                'message': 'package uploaded successfully',
+            {
+                'status': 'success'
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_201_CREATED
         )
 
 class BambooHrConnection(generics.CreateAPIView):
@@ -130,43 +91,32 @@ class BambooHrConnection(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         org = Org.objects.filter(id=kwargs['org_id']).first()
-        bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
 
-        # creating bamboo connection for cron job that will look for new employee in bamboohr
-        bamboo_connection = create_connection_in_workato(org.id, BAMBOO_HR['connections'][0], org.managed_user_id, request.data)
-        
-        # if the connection if successfull we will go on to create the second bamboohr connection
-        # that is used for the complete sync recipe in bamboohr
-        if 'authorization_status' in bamboo_connection and bamboo_connection['authorization_status'] == 'success':
-            connection_payload = {
-                "input": {
-                    "ssl_params": "false",
-                    "auth_type": "basic",
-                    "basic_user": request.data['input']['api_token'],
-                    "basic_password": "x"
-                }
-            }
-            bamboo_sync_connection = create_connection_in_workato(org.id, BAMBOO_HR['connections'][1], org.managed_user_id, connection_payload)
-            bamboohr.api_token = request.data['input']['api_token']
-            bamboohr.sub_domain = request.data['input']['subdomain']
-            bamboohr.save()
+        api_token = request.data['input']['api_token']
+        sub_domain = request.data['input']['subdomain']
+
+        bamboohrsdk = BambooHrSDK(api_token=api_token, sub_domain=sub_domain)
+        timeoff = bamboohrsdk.time_off.get()
+        if timeoff.get('timeOffTypes', None):
+            bamboohr, _ = BambooHr.objects.update_or_create(org=org, defaults={
+                'api_token': api_token,
+                'sub_domain': sub_domain
+            })
 
             return Response(
-                data=bamboo_sync_connection,
-                status=status.HTTP_200_OK
-            )
-        elif 'authorization_status' in bamboo_connection:
+            data="BambooHr is connected",
+            status=status.HTTP_200_OK
+        )
+        else:
             return Response(
-                bamboo_connection,
-                status = status.HTTP_400_BAD_REQUEST
+                data = {
+                    'message': 'Invalid token'
+                },
+                status=status.HTTP_400_BAD_REQUEST
             )
-        return bamboo_connection
 
 
 class BambooHrConfigurationView(generics.ListCreateAPIView):
-
-    serializer_class = BambooHrConfigurationSerializer
-    queryset = BambooHrConfiguration.objects.all()
 
     def get(self, request, *args, **kwargs):
         try:
@@ -183,6 +133,30 @@ class BambooHrConfigurationView(generics.ListCreateAPIView):
                 data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+    def post(self, request, *args, **kwargs):
+        try:
+            org_id = self.request.data['org']
+
+            configuration, _ = BambooHrConfiguration.objects.update_or_create(
+            org_id=org_id,
+            defaults={
+                'additional_email_options': request.data['additional_email_options'],
+                'emails_selected': request.data['emails_selected']
+                }
+            )
+
+            return Response(
+                data=BambooHrConfigurationSerializer(configuration).data,
+                status=status.HTTP_200_OK
+            )
+
+        except BambooHrConfiguration.DoesNotExist:
+            return Response(
+                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
 
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
@@ -195,17 +169,11 @@ class DisconnectView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         try:
-            configuration = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
-            bamboohr = BambooHr.objects.filter(org__id=kwargs['org_id']).first()
-
-            connection = disconnect_bamboohr(kwargs['org_id'], configuration, bamboohr)
-
-            # in case of an error response
-            if isinstance(connection, Response):
-                return connection
-            
+            bamboohr_queryset = BambooHr.objects.filter(org__id=kwargs['org_id'])
+            bamboohr_queryset.update(api_token=None, sub_domain=None)
+            delete_sync_employee_schedule(org_id=kwargs['org_id'])
             return Response(
-                data=connection,
+                data='Successfully Disconneted!',
                 status=status.HTTP_200_OK
             )
         except BambooHr.DoesNotExist:
@@ -230,20 +198,9 @@ class SyncEmployeesView(generics.UpdateAPIView):
 
     def post(self, request, *args, **kwargs):
     
-        try:
-            config = BambooHrConfiguration.objects.get(org__id=kwargs['org_id'])
-            sync_recipe = sync_employees(kwargs['org_id'], config)
+        async_task('apps.bamboohr.tasks.import_employees', kwargs['org_id'])
 
-            # in case of an error response
-            if isinstance(sync_recipe, Response):
-                return sync_recipe
-            
-            return Response(
-                data=sync_recipe,
-                status=status.HTTP_200_OK
-            )
-        except BambooHrConfiguration.DoesNotExist:
-            return Response(
-                data={'message': 'BambooHr Configuration does not exist for this Workspace'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        return Response(
+            data = {'message': 'success'},
+            status=status.HTTP_201_CREATED
+        )

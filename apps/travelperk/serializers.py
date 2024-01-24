@@ -1,8 +1,16 @@
 from rest_framework import serializers
 
 from workato import Workato
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, InvoiceLineItem, TravelperkAdvanceSetting
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, InvoiceLineItem, TravelperkAdvancedSetting
+from apps.travelperk.connector import TravelPerkConnector
 from apps.orgs.models import Org
+from apps.travelperk.models import (
+    TravelPerk, 
+    TravelPerkConfiguration, 
+    InvoiceLineItem, 
+    TravelperkProfileMapping, 
+    TravelperkCredential
+)
 
 
 class TravelperkSerializer(serializers.ModelSerializer):
@@ -60,7 +68,7 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = TravelperkAdvanceSetting
+        model = TravelperkAdvancedSetting
         fields = '__all__'
 
     def create(self, validated_data):
@@ -68,7 +76,7 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
         Create Advanced Settings
         """
         org_id = self.context['request'].parser_context.get('kwargs').get('org_id')
-        advanced_setting = TravelperkAdvanceSetting.objects.filter(
+        advanced_setting = TravelperkAdvancedSetting.objects.filter(
             org_id=org_id
         ).first()
 
@@ -82,7 +90,39 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
                     'booker_name',
                 ]
 
-        advanced_setting, _ = TravelperkAdvanceSetting.objects.update_or_create(
+        advanced_setting, _ = TravelperkAdvancedSetting.objects.update_or_create(
             org_id=org_id,
             defaults=validated_data
         )
+class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TravelperkProfileMapping
+        fields = '__all__'
+
+    def create(self, validated_data):
+        
+        org_id = self.context['request'].parser_context.get('kwargs').get('org_id')
+        travelperk_profile_mapping, _ = TravelperkProfileMapping.objects.update_or_create(
+            org_id=org_id,
+            profile_name=validated_data['profile_name'],
+            defaults=validated_data
+        )
+
+        return travelperk_profile_mapping
+
+
+class SyncPaymentProfileSerializer(serializers.Serializer):
+    """
+    Serializer for Sync Payment Profile
+    """
+
+    def sync_payment_profiles(self, org_id):
+        """
+        Sync Payment Profile
+        """
+
+        travelperk_credentials = TravelperkCredential.objects.get(org_id=org_id)
+
+        travelperk_connection = TravelPerkConnector(travelperk_credentials, org_id)
+        travelperk_connection.sync_invoice_profile()

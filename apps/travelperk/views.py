@@ -11,12 +11,13 @@ from rest_framework.views import status
 
 from workato import Workato
 from workato.exceptions import *
+from admin_settings.utils import LookupFieldMixin
 
 from apps.names import TRAVELPERK
 from apps.orgs.models import Org
 from apps.orgs.actions import create_connection_in_workato, upload_properties, post_folder, post_package
-from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer, TravelperkAdvancedSettingSerializer
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem, TravelperkAdvanceSetting
+from apps.travelperk.serializers import TravelperkSerializer, TravelPerkConfigurationSerializer, TravelperkProfileMappingSerializer, SyncPaymentProfileSerializer, TravelperkAdvancedSettingSerializer
+from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem, TravelperkProfileMapping, TravelperkAdvancedSetting
 from apps.travelperk.actions import connect_travelperk
 from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.exceptions import handle_fyle_exceptions
@@ -357,4 +358,24 @@ class AdvancedSettingView(generics.CreateAPIView, generics.RetrieveAPIView):
     lookup_field = 'org_id'
     lookup_url_kwarg = 'org_id'
 
-    queryset = TravelperkAdvanceSetting.objects.all()
+    queryset = TravelperkAdvancedSetting.objects.all()
+
+
+class TravelperkPaymentProfileMappingView(LookupFieldMixin, generics.ListCreateAPIView):
+    """
+    API Call to store payment profile mapping
+    """
+
+    serializer_class = TravelperkProfileMappingSerializer
+    queryset = TravelperkProfileMapping.objects.all()
+
+
+class SyncPaymentProfiles(generics.ListAPIView):
+    """
+    API Call to sync payment profiles
+    """
+
+    serializer_class = SyncPaymentProfileSerializer
+
+    def get_queryset(self):
+        return SyncPaymentProfileSerializer().sync_payment_profiles(self.kwargs['org_id'])
