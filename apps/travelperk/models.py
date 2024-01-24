@@ -110,12 +110,12 @@ class InvoiceLineItem(models.Model):
     invoice_line_id = models.CharField(max_length=255, help_text='id for invoice line')
     expense_date = models.DateField(help_text='Date of the expense for this line item.')
     description = models.CharField(max_length=255, help_text='Description of the product or service.')
-    quantity = models.IntegerField(help_text='Quantity of the product or service.')
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2, help_text='Unit price of the product or service.')
-    non_taxable_unit_price = models.DecimalField(max_digits=10, decimal_places=2, help_text='Non-taxable unit price.')
-    tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text='Tax percentage applied.')
-    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text='Total tax amount for this line item.')
-    tax_regime = models.CharField(max_length=20, help_text='Tax regime for this line item.')
+    quantity = models.IntegerField(null=True, help_text='Quantity of the product or service.')
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, help_text='Unit price of the product or service.')
+    non_taxable_unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, help_text='Non-taxable unit price.')
+    tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, help_text='Tax percentage applied.')
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, help_text='Total tax amount for this line item.')
+    tax_regime = models.CharField(max_length=20, null=True, help_text='Tax regime for this line item.')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text='Total amount including taxes.')
 
     # Metadata
@@ -124,11 +124,15 @@ class InvoiceLineItem(models.Model):
     service = models.CharField(max_length=50, help_text='Type of service (e.g., PREMIUM).')
 
     # Booker
-    booker_name = models.CharField(max_length=100, help_text='Name of the person who booked the service.')
-    booker_email = models.EmailField(help_text='Email address of the person who booked the service.')
-    
+    booker_name = models.CharField(max_length=100, null=True, help_text='Name of the person who booked the service.')
+    booker_email = models.EmailField(help_text='Email address of the person who booked the service.', null=True)
+
+    # Traveller
+    traveller_name = models.CharField(max_length=100, null=True, help_text='Name of the person who travelled.')
+    traveller_email = models.EmailField(null=True, help_text='Email address of the person who travelled.')
+
     # Cost Center
-    cost_center = models.CharField(max_length=20, help_text='Cost center associated with this line item.')
+    cost_center = models.CharField(max_length=255, null=True, help_text='Cost center associated with this line item.')
     vendor = models.CharField(max_length=255, null=True, help_text='Vendor name.')
 
     # Other Fields

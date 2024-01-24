@@ -6,12 +6,17 @@ from fyle.platform import Platform
 
 from workato import Workato
 
-from apps.travelperk.models import Invoice, InvoiceLineItem, TravelPerk, ImportedExpenseDetail
 from apps.orgs.models import Org
 from apps.orgs.utils import create_fyle_connection
 from apps.orgs.exceptions import handle_workato_exception
 from apps.names import TRAVELPERK
-
+from apps.travelperk.models import (
+    Invoice, 
+    InvoiceLineItem, 
+    TravelPerk, 
+    ImportedExpenseDetail,
+    TravelperkProfileMapping
+)
 
 CATEGORY_MAP = {
     'flight': 'Airlines',
@@ -99,44 +104,52 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
     """
     Create expense in Fyle
     """
-    org = Org.objects.get(id=org_id)
+    profile_mapping = TravelperkProfileMapping.objects.filter(org_id=org_id, profile_name=invoice.profile_name).first()
 
-    for expense in invoice_lineitems:
-        payload = {
-            'data': {
-                'currency': invoice.currency,
-                'purpose': expense.description,
-                'merchant': expense.vendor['name'] if expense.vendor else '',
-                'claim_amount': expense.total_amount,
-                'spent_at': str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)),
-                'source': 'CORPORATE_CARD',
-            }
-        }
+    if profile_mapping and profile_mapping.is_import_enabled:
+        for expense in invoice_lineitems:
+            
+            if profile_mapping.user_role == 'TRAVELLER':
+                employee_email = expense.traveller_email
+            elif profile_mapping.user_role == 'BOOKER':
+                employee_email = expense.booker_email
 
-        platform_connection = create_fyle_connection(org.id)
-        if expense.service in CATEGORY_MAP:
-            category_name = CATEGORY_MAP[expense.service]
 
-            query_params = {
-                'limit': 1,
-                'offset': 0,
-                'order': "updated_at.asc",
-                'system_category': "eq.{}".format(category_name),
-                'is_enabled': "eq.True"
+            payload = {
+                'data': {
+                    'currency': invoice.currency,
+                    'purpose': expense.description,
+                    'merchant': expense.vendor['name'] if expense.vendor else '',
+                    'claim_amount': expense.total_amount,
+                    'spent_at': str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)),
+                    'source': 'CORPORATE_CARD',
+                }
             }
 
-            category = platform_connection.v1beta.admin.categories.list(query_params=query_params)
+            platform_connection = create_fyle_connection(org_id)
+            if expense.service in CATEGORY_MAP:
+                category_name = CATEGORY_MAP[expense.service]
 
-            if category['count'] > 0:
-                payload['data']['category_id'] = category['data'][0]['id']
+                query_params = {
+                    'limit': 1,
+                    'offset': 0,
+                    'order': "updated_at.asc",
+                    'system_category': "eq.{}".format(category_name),
+                    'is_enabled': "eq.True"
+                }
 
-        expense = platform_connection.v1beta.spender.expenses.post(payload)
-        if expense:
-            imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
-                expense_id=expense['data']['id'],
-                org_id=org_id
-            )
+                category = platform_connection.v1beta.admin.categories.list(query_params=query_params)
 
-            attach_reciept_to_expense(expense['data']['id'], invoice, imported_expense, platform_connection)
-            invoice.exported_to_fyle = True
-            invoice.save()
+                if category['count'] > 0:
+                    payload['data']['category_id'] = category['data'][0]['id']
+
+            expense = platform_connection.v1beta.spender.expenses.post(payload)
+            if expense:
+                imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
+                    expense_id=expense['data']['id'],
+                    org_id=org_id
+                )
+
+                attach_reciept_to_expense(expense['data']['id'], invoice, imported_expense, platform_connection)
+                invoice.exported_to_fyle = True
+                invoice.save()
