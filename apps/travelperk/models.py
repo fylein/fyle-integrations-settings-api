@@ -2,13 +2,19 @@ from django.db import models
 
 from apps.orgs.models import Org
 
-# Create your models here.
+
+USER_ROLE_CHOICES = (
+    ('TRAVELLER', 'TRAVELLER'),
+    ('BOOKER', 'BOOKER'),
+    ('CARD_HOLDER', 'CARD_HOLDER')
+)
+
 
 class TravelperkCredential(models.Model):
     """
     Travelperk Credential Model
     """
-    
+
     id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Credentials')
     org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org table')
     refresh_token = models.CharField(max_length=255, null=True, help_text='Travelperk Refresh Token')
@@ -215,3 +221,24 @@ class ImportedExpenseDetail(models.Model):
 
     class Meta:
         db_table = 'imported_expense_details'
+
+
+class TravelperkProfileMapping(models.Model):
+    """
+    Detail of profile mapping
+    """
+    
+    id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Profile Mapping')
+    org = models.ForeignKey(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
+    profile_name = models.CharField(max_length=255, help_text='Profile Name')
+    user_role = models.CharField(max_length=255, choices=USER_ROLE_CHOICES, null=True, help_text='User Role')
+    is_import_enabled = models.BooleanField(default=False, help_text='If Import Is Enabled')
+    country = models.CharField(max_length=255, null=True, help_text='Country of the payment profile')
+    currency = models.CharField(max_length=100, null=True, help_text='Currency of the payment profile')
+    source_id = models.CharField(max_length=255, help_text='Source Id of the payment profile')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
+    updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
+
+    class Meta:
+        db_table = 'travelperk_profile_mappings'
+
