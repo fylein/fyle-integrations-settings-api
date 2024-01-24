@@ -336,7 +336,7 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
                 invoice_lineitems_data = request.data.pop('lines')
 
                 # Create or update Invoice and related line items
-                invoice = Invoice.create_or_update_invoices(request.data)
+                invoice = Invoice.create_or_update_invoices(request.data, kwargs['org_id'])
                 invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
 
             create_expense_in_fyle(kwargs['org_id'], invoice, invoice_linteitmes)
