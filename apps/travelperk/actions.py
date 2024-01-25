@@ -16,7 +16,7 @@ from apps.travelperk.models import (
     ImportedExpenseDetail,
     TravelperkProfileMapping
 )
-from .helpers import create_expense_against_employee, get_email_from_credit_card
+from .helpers import create_expense_against_employee
 
 CATEGORY_MAP = {
     'flight': 'Airlines',
@@ -98,7 +98,6 @@ def attach_reciept_to_expense(expense_id: str, invoice: Invoice, imported_expens
         imported_expense.file_id = file['data']['id']
         imported_expense.is_reciept_attached = True
         imported_expense.save()
-
 
 
 def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: InvoiceLineItem):

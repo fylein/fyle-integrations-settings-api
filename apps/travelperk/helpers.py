@@ -45,12 +45,8 @@ def get_refresh_token_using_auth_code(code: str, org_id: str):
 
 
 def get_employee_email(org_id, employee_email):
-    """
-    function to check if employee is present in fyle
-    """
-
     query_params = {
-        'user->email': 'eq.{}'.format(employee_email),
+        'user->email': f'eq.{employee_email}',
         'order': "updated_at.asc",
         'offset': 0,
         'limit': 1
@@ -58,38 +54,38 @@ def get_employee_email(org_id, employee_email):
 
     platform_connection = create_fyle_connection(org_id)
     employee = platform_connection.v1beta.admin.employees.list(query_params)['data']
-
-    if employee:
-        return employee[0]['user']['email']
+    
+    return employee[0]['user']['email'] if employee else None
 
 
 def get_email_from_credit_card(org_id, credit_card_last_4_digits):
-    """
-    function to get email from credit card
-    """
-
     query_params = {
         'order': 'updated_at.asc',
-        'card_number': 'ilike.%{}%'.format(credit_card_last_4_digits),
+        'card_number': f'ilike.%{credit_card_last_4_digits}',
         'offset': 0,
         'limit': 1
     }
 
     platform_connection = create_fyle_connection(org_id)
-    credit_card_details = platform_connection.v1beta.admin.corporate_card_transactions.list(query_params)['data']
+    credit_card_details = platform_connection.v1beta.admin.corporate_cards.list(query_params)['data']
 
-    employee_email = None
-    if credit_card_details:
-        employee_email = credit_card_details[0]['user']['email']
+    user_id = credit_card_details[0]['user_id'] if credit_card_details else None
 
-    return employee_email
+    if user_id:
+        query_params = {
+            'user_id': f'eq.{user_id}',
+            'order': "updated_at.asc",
+            'offset': 0,
+            'limit': 1
+        }
+
+        employee = platform_connection.v1beta.admin.employees.list(query_params)['data']
+        return employee[0]['user']['email'] if employee else None
+
+    return None
 
 
 def construct_expense_payload(user_role: str, expense: dict, employee_email: str = None):
-    """
-    function to construct expense payload
-    """
-
     payload = {
         'data': {
             'source': 'CORPORATE_CARD',
@@ -103,7 +99,6 @@ def construct_expense_payload(user_role: str, expense: dict, employee_email: str
     if user_role in ['TRAVELLER', 'BOOKER', 'CARD_HOLDER'] and employee_email:
         payload['data']['assignee_user_email'] = employee_email
         payload['data']['admin_amount'] = expense.total_amount
-
     else:
         payload['data']['claim_amount'] = expense.total_amount
 
@@ -111,9 +106,10 @@ def construct_expense_payload(user_role: str, expense: dict, employee_email: str
 
 
 def create_expense_against_employee(org_id, invoice_lineitems, user_role):
+
     role_email_mapping = {
-        'TRAVELLER': 'traveller_email',
-        'BOOKER': 'booker_email',
+        'TRAVELLER': 'traveller_email', 
+        'BOOKER': 'booker_email'
     }
 
     for expense in invoice_lineitems:
