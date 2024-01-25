@@ -63,6 +63,28 @@ def get_employee_email(org_id, employee_email):
         return employee[0]['user']['email']
 
 
+def get_email_from_credit_card(org_id, credit_card_last_4_digits):
+    """
+    function to get email from credit card
+    """
+
+    query_params = {
+        'order': 'updated_at.asc',
+        'card_number': 'ilike.%{}%'.format(credit_card_last_4_digits),
+        'offset': 0,
+        'limit': 1
+    }
+
+    platform_connection = create_fyle_connection(org_id)
+    credit_card_details = platform_connection.v1beta.admin.corporate_card_transactions.list(query_params)['data']
+
+    employee_email = None
+    if credit_card_details:
+        employee_email = credit_card_details[0]['user']['email']
+
+    return employee_email
+
+
 def construct_expense_payload(user_role: str, expense: dict, employee_email: str = None):
     """
     function to construct expense payload
@@ -110,24 +132,3 @@ def create_expense_against_employee(org_id, invoice_lineitems, user_role):
             expense = platform_connection.v1beta.spender.expenses.post(payload)
 
         return expense
-
-
-def get_email_from_credit_card(org_id, credit_card_last_4_digits):
-    """
-    function to get email from credit card
-    """
-
-    query_params = {
-        'order': 'updated_at.asc',
-        'offset': 0,
-        'limit': 1
-    }
-
-    platform_connection = create_fyle_connection(org_id)
-    credit_card_details = platform_connection.v1beta.admin.corporate_card_transactions.list(query_params)['data']
-
-    employee_email = None
-    if credit_card_details:
-        employee_email = credit_card_details[0]['user']['email']
-
-    return employee_email
