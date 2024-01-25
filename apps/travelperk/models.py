@@ -26,7 +26,7 @@ class TravelperkCredential(models.Model):
     refresh_token = models.CharField(max_length=255, null=True, help_text='Travelperk Refresh Token')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
-    
+
     class Meta:
         db_table = 'travelperk_credentials'
 
@@ -169,6 +169,8 @@ class InvoiceLineItem(models.Model):
                     'service': line_item_data['metadata']['service'],
                     'booker_name': line_item_data['metadata']['booker']['name'],
                     'booker_email': line_item_data['metadata']['booker']['email'],
+                    'traveller_name': line_item_data['metadata']['travelers'][0]['name'],
+                    'traveller_email': line_item_data['metadata']['travelers'][0]['email'],
                     'cost_center': line_item_data['metadata']['cost_center'],
                     'vendor': line_item_data['metadata']['vendor'],
                     'credit_card_last_4_digits': line_item_data['metadata']['credit_card_last_4_digits'],
@@ -184,7 +186,7 @@ class TravelPerk(models.Model):
     """
     Travelperk Model
     """
-    
+
     id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Org')
     org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org table')
     folder_id = models.CharField(max_length=255, null=True, help_text='Travelperk Folder ID')
@@ -274,4 +276,3 @@ class TravelperkProfileMapping(models.Model):
 
     class Meta:
         db_table = 'travelperk_profile_mappings'
-
