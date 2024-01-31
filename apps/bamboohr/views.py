@@ -5,13 +5,9 @@ from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
 
-from workato.exceptions import *
 from apps.orgs.models import Org
-from apps.orgs.actions import create_connection_in_workato, post_folder, post_package
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
-from apps.bamboohr.actions import disconnect_bamboohr, sync_employees
-from apps.names import BAMBOO_HR
 from apps.bamboohr.tasks import delete_sync_employee_schedule
 
 from django_q.tasks import async_task
@@ -86,7 +82,7 @@ class WebhookCallbackAPIView(generics.CreateAPIView):
 
 class BambooHrConnection(generics.CreateAPIView):
     """
-    API Call to make Bamboo HR Connection in Workato
+    API Call to make Bamboo HR Connection
     """
 
     def post(self, request, *args, **kwargs):
@@ -164,7 +160,7 @@ class BambooHrConfigurationView(generics.ListCreateAPIView):
 class DisconnectView(generics.CreateAPIView):
 
     """
-    API Call to Start And Stop a Recipe in Workato
+    API call to disconnect bamboo connection
     """
 
     def post(self, request, *args, **kwargs):

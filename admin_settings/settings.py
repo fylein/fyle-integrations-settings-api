@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'apps.bamboohr',
     'apps.orgs',
     'apps.travelperk',
-    'apps.gusto',
     'apps.integrations',
     'apps.fyle_hrms_mappings',
 ]
@@ -254,8 +253,7 @@ FYLE_CLIENT_SECRET = os.environ.get('FYLE_CLIENT_SECRET')
 FYLE_BASE_URL = os.environ.get('FYLE_BASE_URL')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDGRID_EMAIL = os.environ.get('SENDGRID_EMAIL')
-WK_JWT_PRIVATE_KEY = os.environ.get('WK_JWT_PRIVATE_KEY')
-WK_API_KEY = os.environ.get('WK_API_KEY')
+BASE_URI = os.environ.get('BASE_URI')
 
 GUSTO_CLIENT_ID = os.environ.get('GUSTO_CLIENT_ID')
 GUSTO_CLIENT_SECRET = os.environ.get('GUSTO_CLIENT_SECRET')
@@ -268,8 +266,6 @@ TRAVELPERK_AUTH_URL = os.environ.get('TRAVELPERK_AUTH_URL')
 TRAVELPERK_TOKEN_URL = os.environ.get('TRAVELPERK_TOKEN_URL')
 TRAVELPERK_BASE_URL = os.environ.get('TRAVELPERK_BASE_URL')
 TRAVELPERK_REDIRECT_URI = os.environ.get('TRAVELPERK_REDIRECT_URI')
-WORKATO_ORIGIN_URL = os.environ.get('WORKATO_ORIGIN_URL')
-WORKATO_FRAME_ANCESTORS_URL = os.environ.get('WORKATO_FRAME_ANCESTORS_URL')
 FYLE_NOTIFICATIONS_EMAIL = os.environ.get('FYLE_NOTIFICATIONS_EMAIL')
 
 CORS_ORIGIN_ALLOW_ALL = True

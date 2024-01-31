@@ -1,10 +1,6 @@
-import json
 from rest_framework import serializers
-from django.conf import settings
 
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
-from apps.orgs.models import Org
-from workato import Workato
 
 
 class BambooHrSerializer(serializers.ModelSerializer):
