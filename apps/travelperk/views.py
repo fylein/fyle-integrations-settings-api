@@ -10,9 +10,23 @@ from rest_framework.response import Response
 from rest_framework.views import status
 
 
+from admin_settings.utils import LookupFieldMixin
+
 from apps.orgs.models import Org
-from apps.travelperk.serializers import TravelperkSerializer
-from apps.travelperk.models import TravelPerk, TravelPerkConfiguration, TravelperkCredential, Invoice, InvoiceLineItem
+from apps.travelperk.serializers import (
+    TravelperkSerializer, 
+    TravelperkProfileMappingSerializer, 
+    SyncPaymentProfileSerializer, 
+    TravelperkAdvancedSettingSerializer
+)
+from apps.travelperk.models import (
+    TravelPerk, 
+    TravelperkCredential, 
+    Invoice, 
+    InvoiceLineItem, 
+    TravelperkProfileMapping, 
+    TravelperkAdvancedSetting
+)
 from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.exceptions import handle_fyle_exceptions
 
@@ -89,7 +103,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
 
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
-                    'url': settings.API_URL + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
+                    'url': 'https://google.com/7657657/' + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
                     'secret': settings.TKWEBHOOKS_SECRET,
                     'events': [
                         'invoice.issued'
@@ -147,14 +161,46 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
                 invoice_lineitems_data = request.data.pop('lines')
 
                 # Create or update Invoice and related line items
-                invoice = Invoice.create_or_update_invoices(request.data)
+                invoice = Invoice.create_or_update_invoices(request.data, kwargs['org_id'])
                 invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
 
             create_expense_in_fyle(kwargs['org_id'], invoice, invoice_linteitmes)
 
-            return Response(
-                data={
-                    'message': 'expenses created successfully'
-                },
-                status=status.HTTP_200_OK
-            )
+        return Response(
+            data={
+                'message': 'expenses created successfully'
+            },
+            status=status.HTTP_200_OK
+        )
+
+
+class AdvancedSettingView(generics.CreateAPIView, generics.RetrieveAPIView):
+    """
+    Retrieve or Create Advanced Settings
+    """
+
+    serializer_class = TravelperkAdvancedSettingSerializer
+    lookup_field = 'org_id'
+    lookup_url_kwarg = 'org_id'
+
+    queryset = TravelperkAdvancedSetting.objects.all()
+
+
+class TravelperkPaymentProfileMappingView(LookupFieldMixin, generics.ListCreateAPIView):
+    """
+    API Call to store payment profile mapping
+    """
+
+    serializer_class = TravelperkProfileMappingSerializer
+    queryset = TravelperkProfileMapping.objects.all()
+
+
+class SyncPaymentProfiles(generics.ListAPIView):
+    """
+    API Call to sync payment profiles
+    """
+
+    serializer_class = SyncPaymentProfileSerializer
+
+    def get_queryset(self):
+        return SyncPaymentProfileSerializer().sync_payment_profiles(self.kwargs['org_id'])

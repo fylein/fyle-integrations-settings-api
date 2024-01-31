@@ -1,14 +1,26 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 from apps.orgs.models import Org
 
-# Create your models here.
+
+LINEITEM_STRUCTURE_CHOICE = (
+    ('MULTIPLE', 'MULTIPLE'),
+    ('SINGLE', 'SINGLE'),
+)
+
+USER_ROLE_CHOICES = (
+    ('TRAVELLER', 'TRAVELLER'),
+    ('BOOKER', 'BOOKER'),
+    ('CARD_HOLDER', 'CARD_HOLDER')
+)
+
 
 class TravelperkCredential(models.Model):
     """
     Travelperk Credential Model
     """
-    
+
     id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Credentials')
     org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org table')
     refresh_token = models.CharField(max_length=255, null=True, help_text='Travelperk Refresh Token')
@@ -64,7 +76,7 @@ class Invoice(models.Model):
         # Create or update Invoice object based on serial_number
         invoice_object, _ = Invoice.objects.update_or_create(
             serial_number=invoice_data['serial_number'],
-            org_id=org_id,
+            org_id_id=org_id,
             defaults={
                 'billing_information': invoice_data['billing_information'],
                 'billing_period': invoice_data['billing_period'],
@@ -215,3 +227,47 @@ class ImportedExpenseDetail(models.Model):
 
     class Meta:
         db_table = 'imported_expense_details'
+
+
+class TravelperkAdvancedSetting(models.Model):
+    """
+    Advance Settings for travelperk
+    """
+
+    id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Advance Settings')
+    org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
+    default_employee_name = models.CharField(max_length=255, null=True, help_text='Default Employee Name')
+    default_employee_id = models.CharField(max_length=255, null=True, help_text='Default Employee Id')
+    default_category_name = models.CharField(max_length=255, null=True, help_text='Default Category Name')
+    default_category_id = models.CharField(max_length=255, null=True, help_text='Default Category Id')
+    invoice_lineitem_structure = models.CharField(choices=LINEITEM_STRUCTURE_CHOICE, default='MULTIPLE', max_length=255, help_text='Invoice Lineitem Structure')
+    description_structure = ArrayField(
+        models.CharField(max_length=255), help_text='Array of fields in memo', null=True
+    )
+    emails_added = models.JSONField(default=list, null=True, help_text='Emails Selected For Email Notification')
+    created_at = models.DateField(auto_now_add=True, help_text='Created at datetime')
+    updated_at = models.DateField(auto_now=True, help_text='Updated at datetime')
+
+    class Meta:
+        db_table = 'travelperk_advanced_settings'
+
+
+class TravelperkProfileMapping(models.Model):
+    """
+    Detail of profile mapping
+    """
+    
+    id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Profile Mapping')
+    org = models.ForeignKey(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
+    profile_name = models.CharField(max_length=255, help_text='Profile Name')
+    user_role = models.CharField(max_length=255, choices=USER_ROLE_CHOICES, null=True, help_text='User Role')
+    is_import_enabled = models.BooleanField(default=False, help_text='If Import Is Enabled')
+    country = models.CharField(max_length=255, null=True, help_text='Country of the payment profile')
+    currency = models.CharField(max_length=100, null=True, help_text='Currency of the payment profile')
+    source_id = models.CharField(max_length=255, help_text='Source Id of the payment profile')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
+    updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
+
+    class Meta:
+        db_table = 'travelperk_profile_mappings'
+
