@@ -81,6 +81,32 @@ class PlatformConnector:
         
         self.bulk_create_or_update_expense_attributes(employee_attributes, attribute_type, org_id, True)
 
+    def sync_categories(self, org_id):
+        """
+        Sync Categories in Expense Attribute Table
+        """
+        query_params = {'is_enabled': 'eq.true', 'order': "updated_at.desc"}
+        attribute_type = 'CATEGORY'
+        categories_generator = self.connection.v1beta.admin.categories.list_all(query_params)
+        categories = []
+
+        for items in categories_generator:
+            for category in items['data']:
+                if category['sub_category'] and category['name'] != category['sub_category']:
+                    category['name'] = '{0} / {1}'.format(category['name'], category['sub_category'])
+
+                categories.append({
+                    'attribute_type': attribute_type,
+                    'display_name': attribute_type.replace('_', ' ').title(),
+                    'value': category['name'],
+                    'source_id': category['id'],
+                    'active': category['is_enabled'],
+                    'detail': None
+                })
+
+        self.bulk_create_or_update_expense_attributes(categories, attribute_type, org_id, True)
+
+
 def post_request(url: str, body: Dict, api_headers: Dict) -> Dict:
     """
     Create a HTTP post request.

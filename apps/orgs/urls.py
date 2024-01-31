@@ -1,11 +1,12 @@
 from django.urls import path, include
 
-from .views import  OrgsView, ReadyView, WorkspaceAdminsView
+from .views import  OrgsView, ReadyView, WorkspaceAdminsView, SyncCategories
 
 org_app_path = [
     path('', OrgsView.as_view(), name='orgs'),
     path('ready/', ReadyView.as_view(), name='ready'),
     path('<int:org_id>/admins/', WorkspaceAdminsView.as_view(), name='admin-view'),
+    path('<int:org_id>/sync_categories/', SyncCategories.as_view(), name='sync-categories')
 ]
 
 integration_paths = [

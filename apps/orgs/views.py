@@ -1,6 +1,7 @@
 
 import logging
 
+from django_q.tasks import async_task
 from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
@@ -8,6 +9,8 @@ from django.contrib.auth import get_user_model
 
 from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User
+from apps.orgs.utils import import_categories
+from apps.orgs.exceptions import handle_fyle_exceptions
 from apps.orgs.actions import get_admin_employees
 from apps.names import *
 
@@ -78,3 +81,19 @@ class WorkspaceAdminsView(generics.ListAPIView):
             status=status.HTTP_200_OK
         )
 
+
+class SyncCategories(generics.CreateAPIView):
+    """
+    API Call to Sync Categories in Workato
+    """
+
+    authentication_classes = []
+    permission_classes = []
+
+    @handle_fyle_exceptions()
+    def create(self, request, *args, **kwargs):
+
+        async_task(import_categories, org_id=kwargs['org_id'])
+        return Response(
+            status=status.HTTP_200_OK
+        )
