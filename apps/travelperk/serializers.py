@@ -58,22 +58,14 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
             org_id=org_id,
             defaults=validated_data
         )
+
+
 class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TravelperkProfileMapping
         fields = '__all__'
 
-    def create(self, validated_data):
-        
-        org_id = self.context['request'].parser_context.get('kwargs').get('org_id')
-        travelperk_profile_mapping, _ = TravelperkProfileMapping.objects.update_or_create(
-            org_id=org_id,
-            profile_name=validated_data['profile_name'],
-            defaults=validated_data
-        )
-
-        return travelperk_profile_mapping
 
 
 class SyncPaymentProfileSerializer(serializers.Serializer):
