@@ -14,7 +14,8 @@ from apps.travelperk.models import (
     InvoiceLineItem, 
     TravelPerk, 
     ImportedExpenseDetail,
-    TravelperkProfileMapping
+    TravelperkProfileMapping,
+    TravelperkAdvancedSetting
 )
 from .helpers import create_expense_against_employee
 
@@ -105,10 +106,11 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
     Create expense in Fyle
     """
     profile_mapping = TravelperkProfileMapping.objects.filter(org_id=org_id, profile_name=invoice.profile_name).first()
+    advanced_settings = TravelperkAdvancedSetting.objects.filter(org_id=org_id).first()
     platform_connection = create_fyle_connection(org_id)
 
     if profile_mapping and profile_mapping.is_import_enabled:
-        expense = create_expense_against_employee(org_id, invoice_lineitems, profile_mapping.user_role)
+        expense = create_expense_against_employee(org_id, invoice_lineitems, profile_mapping.user_role, advanced_settings)
         if expense:
             imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
                 expense_id=expense['data']['id'],
