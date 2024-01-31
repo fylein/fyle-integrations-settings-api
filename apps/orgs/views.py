@@ -5,14 +5,10 @@ from rest_framework.response import Response
 from rest_framework.views import status
 from rest_framework import generics
 from django.contrib.auth import get_user_model
-from django.conf import settings
 
-from workato.exceptions import *
 from apps.orgs.serializers import OrgSerializer
 from apps.orgs.models import Org, User
-from apps.orgs.actions import get_admin_employees, create_connection_in_workato, \
-        create_managed_user_and_set_properties
-from .utils import get_signed_api_key
+from apps.orgs.actions import get_admin_employees
 from apps.names import *
 
 logger = logging.getLogger(__name__)
@@ -68,94 +64,6 @@ class OrgsView(generics.RetrieveUpdateAPIView):
         return self.get(self)
 
 
-class CreateManagedUserInWorkato(generics.RetrieveUpdateAPIView):
-    """
-    Create and Get Managed User In Workato
-    """
-
-    def update(self, request, *args, **kwargs):
-
-        org = Org.objects.get(id=kwargs['org_id'])
-        managed_user = create_managed_user_and_set_properties(kwargs['org_id'], org)
-
-        # in case of an error response
-        if isinstance(managed_user, Response):
-            return managed_user
-        
-        return Response(
-            data=managed_user,
-            status=status.HTTP_200_OK
-        )
-        
-
-
-class FyleConnection(generics.CreateAPIView):
-    """
-    Api Call to make Fyle Connection in workato
-    """
-
-    def post(self, request, *args, **kwargs):
-
-
-        org = Org.objects.get(id=kwargs['org_id'])
-        data={
-                "input": {
-                    "key": "***"
-                }
-        }
-
-        # Creating Fyle Connection In Workato COMMON_CONNECTIONS['fyle']
-        connection = create_connection_in_workato(org.id, COMMON_CONNECTIONS['fyle'], org.managed_user_id, data)
-
-        # in case of an error response
-        if isinstance(connection, Response):
-            return connection
-        
-        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        if 'authorization_status' in connection and connection['authorization_status'] == 'success':
-            org.is_fyle_connected = True
-            org.save()
-            status_code = status.HTTP_200_OK
-
-        return Response(
-            data=connection,
-            status=status_code
-        )
-
-
-class SendgridConnection(generics.CreateAPIView):
-    """
-    API Call To Make Sendgrid Connection
-    """
-
-    def post(self, request, *args, **kwargs):
-
-        org = Org.objects.get(id=kwargs['org_id'])
-        data = {
-            "input": {
-                "api_key": settings.SENDGRID_API_KEY
-            }
-        }
-
-        # Creating Fyle Sendgrid Connection
-        connection = create_connection_in_workato(org.id, COMMON_CONNECTIONS['sendgrid'], org.managed_user_id, data)
-
-        # in case of an error response
-        if isinstance(connection, Response):
-            return connection
-        
-        status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-        if 'authorization_status' in connection and connection['authorization_status'] == 'success':
-            org.is_sendgrid_connected = True
-            org.save()
-            status_code = status.HTTP_200_OK
-
-        return Response(
-            data=connection,
-            status=status_code
-        )
-
-
 class WorkspaceAdminsView(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
@@ -170,17 +78,3 @@ class WorkspaceAdminsView(generics.ListAPIView):
             status=status.HTTP_200_OK
         )
 
-
-class GenerateToken(generics.RetrieveAPIView):
-    def get(self, request, *args, **kwargs):
-        managed_user_id = self.request.query_params.get('managed_user_id')
-        token = get_signed_api_key(managed_user_id)
-
-        # in case of an error response
-        if isinstance(token, Response):
-            return token
-        
-        return Response(
-            data={'token':token},
-            status=status.HTTP_200_OK
-        )

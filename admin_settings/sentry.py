@@ -18,12 +18,13 @@ class Sentry:
             attach_stacktrace=True,
             before_send=Sentry.before_send,
             request_bodies='small',
-            in_app_include=['apps.users',
-            'apps.bamboohr',
-            'apps.orgs',
-            'apps.travelperk',
-            'apps.gusto'
-            'fyle_rest_auth'],
+            in_app_include=[
+                'apps.users',
+                'apps.bamboohr',
+                'apps.orgs',
+                'apps.travelperk',
+                'fyle_rest_auth'
+            ],
         )
 
     @staticmethod

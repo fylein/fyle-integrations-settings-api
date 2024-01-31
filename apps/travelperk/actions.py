@@ -3,20 +3,18 @@ import logging
 from io import BytesIO
 from fyle.platform import Platform
 
-from workato import Workato
 
-from apps.orgs.models import Org
 from apps.orgs.utils import create_fyle_connection
-from apps.orgs.exceptions import handle_workato_exception
-from apps.names import TRAVELPERK
 from apps.travelperk.models import (
     Invoice, 
     InvoiceLineItem, 
-    TravelPerk, 
     ImportedExpenseDetail,
     TravelperkProfileMapping
 )
-from .helpers import create_expense_against_employee
+from apps.travelperk.helpers import create_expense_against_employee
+from apps.travelperk.models import Invoice, InvoiceLineItem, ImportedExpenseDetail
+from apps.orgs.utils import create_fyle_connection
+
 
 CATEGORY_MAP = {
     'flight': 'Airlines',
@@ -28,19 +26,6 @@ CATEGORY_MAP = {
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
-
-
-@handle_workato_exception(task_name = 'Travelperk Connection')
-def connect_travelperk(org_id):
-    connector = Workato()
-    org = Org.objects.get(id=org_id)
-    travelperk = TravelPerk.objects.get(org_id=org.id)
-    connections = connector.connections.get(managed_user_id=org.managed_user_id)['result']
-    connection_id = next(connection for connection in connections if connection['name'] == TRAVELPERK['connection'])['id']
-
-    travelperk.travelperk_connection_id = connection_id
-    travelperk.save()
-    return connection_id
 
 
 def download_file(remote_url):
