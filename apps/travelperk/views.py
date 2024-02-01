@@ -5,10 +5,11 @@ import hashlib
 import json
 from django.conf import settings
 from django.db import transaction
+
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
-
+from django_q.tasks import async_task
 
 from admin_settings.utils import LookupFieldMixin
 
@@ -29,9 +30,7 @@ from apps.travelperk.models import (
 )
 from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.exceptions import handle_fyle_exceptions
-
-from .actions import create_expense_in_fyle
-from .helpers import get_refresh_token_using_auth_code
+from apps.travelperk.helpers import get_refresh_token_using_auth_code
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -103,7 +102,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
 
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
-                    'url': 'https://google.com/7657657/' + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
+                    'url': settings.API_URL + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
                     'secret': settings.TKWEBHOOKS_SECRET,
                     'events': [
                         'invoice.issued'
@@ -164,7 +163,8 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
                 invoice = Invoice.create_or_update_invoices(request.data, kwargs['org_id'])
                 invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
 
-            create_expense_in_fyle(kwargs['org_id'], invoice, invoice_linteitmes)
+            if invoice and invoice_linteitmes:
+                async_task('apps.travelperk.actions.create_expense_in_fyle', kwargs['org_id'], invoice, invoice_linteitmes)
 
         return Response(
             data={
