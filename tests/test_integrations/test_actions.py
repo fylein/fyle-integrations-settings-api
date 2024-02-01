@@ -3,7 +3,7 @@ import json
 import pytest
 from unittest.mock import MagicMock, patch
 
-from apps.integrations.actions import get_integration, get_org_id_name_from_access_token
+from apps.integrations.actions import get_integration, get_org_id_and_name_from_access_token
 
 from .fixture import post_integration_hrms
 
@@ -12,8 +12,8 @@ from .fixture import post_integration_hrms
 def test_get_integration(mocker, access_token, create_integrations):
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
-        'apps.integrations.actions.get_org_id_name_from_access_token',
-        return_value=(dummy_org_id, "Dummy Org")
+        'apps.integrations.actions.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
     )
     mocker.patch(
         'apps.integrations.actions.get_cluster_domain',
@@ -33,7 +33,7 @@ def test_get_integration(mocker, access_token, create_integrations):
 
 @pytest.mark.django_db(databases=['default'])
 @patch('apps.integrations.actions.requests')
-def test_get_org_id_name_from_access_token(api_client, mocker, access_token, create_integrations):
+def get_org_id_and_name_from_access_token(api_client, mocker, access_token, create_integrations):
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
         'apps.users.helpers.get_cluster_domain',
@@ -56,11 +56,11 @@ def test_get_org_id_name_from_access_token(api_client, mocker, access_token, cre
 
     api_client.get.return_value = mock_response
 
-    get_org_id_name_from_access_token(access_token)
+    get_org_id_and_name_from_access_token(access_token)
 
     mock_response = MagicMock()
     mock_response.status_code = 400
     api_client.get.return_value = mock_response
 
     with pytest.raises(Exception):
-        get_org_id_name_from_access_token(access_token)
+        get_org_id_and_name_from_access_token(access_token)
