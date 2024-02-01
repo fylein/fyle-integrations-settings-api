@@ -17,6 +17,7 @@ logger.level = logging.INFO
 class IntegrationsView(generics.ListCreateAPIView):
     permission_classes = []
     authentication_classes = []
+    pagination_class = None
     serializer_class = IntegrationSerializer
     queryset = Integration.objects.filter(is_active=True, is_beta=True)
     filterset_fields = {'type': {'exact'}, 'org_id': {'exact'}}

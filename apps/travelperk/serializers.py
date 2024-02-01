@@ -33,12 +33,24 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TravelperkAdvancedSetting
-        fields = '__all__'
+        fields = [
+            'default_employee_name',
+            'default_employee_id',
+            'default_category_name',
+            'default_category_id',
+            'invoice_lineitem_structure',
+            'description_structure',
+            'category_mappings',
+            'org'
+        ]
+        read_only_fields = ('id', 'org', 'created_at', 'updated_at')
+
 
     def create(self, validated_data):
         """
         Create Advanced Settings
         """
+
         org_id = self.context['request'].parser_context.get('kwargs').get('org_id')
         advanced_setting = TravelperkAdvancedSetting.objects.filter(
             org_id=org_id
@@ -58,6 +70,10 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
             org_id=org_id,
             defaults=validated_data
         )
+
+        return advanced_setting
+
+
 class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
 
     class Meta:

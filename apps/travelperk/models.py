@@ -15,6 +15,10 @@ USER_ROLE_CHOICES = (
     ('CARD_HOLDER', 'CARD_HOLDER')
 )
 
+def default_category_mappings():
+    "Default Category Mappings"
+    return {'Flights': None, 'Stays': None, 'Trains': None, 'Cars': None}
+
 
 class TravelperkCredential(models.Model):
     """
@@ -247,6 +251,7 @@ class TravelperkAdvancedSetting(models.Model):
     default_category_name = models.CharField(max_length=255, null=True, help_text='Default Category Name')
     default_category_id = models.CharField(max_length=255, null=True, help_text='Default Category Id')
     invoice_lineitem_structure = models.CharField(choices=LINEITEM_STRUCTURE_CHOICE, default='MULTIPLE', max_length=255, help_text='Invoice Lineitem Structure')
+    category_mappings = models.JSONField(default=default_category_mappings, help_text='Category mappings for travelperk')
     description_structure = ArrayField(
         models.CharField(max_length=255), help_text='Array of fields in memo', null=True
     )
