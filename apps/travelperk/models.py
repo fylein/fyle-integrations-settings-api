@@ -1,4 +1,6 @@
-from django.db import models
+from typing import Dict, List
+
+from django.db import models, transaction
 from django.contrib.postgres.fields import ArrayField
 
 from apps.orgs.models import Org
@@ -271,3 +273,24 @@ class TravelperkProfileMapping(models.Model):
     class Meta:
         db_table = 'travelperk_profile_mappings'
 
+    @staticmethod
+    def bulk_create_profile_mappings(mappings: List[Dict], org_id: str):
+        """
+        Bulk update or create profile mappings
+        """
+
+        travelperk_profile_mappings = []
+        with transaction.atomic():
+            for mapping in mappings:
+                profile_mappings, _ = TravelperkProfileMapping.objects.update_or_create(
+                    org_id=org_id,
+                    profile_name=mapping['profile_name'],
+                    defaults={
+                        'user_role': mapping['user_role'],
+                        'is_import_enabled': mapping['is_import_enabled'],
+                    }
+                )
+
+                travelperk_profile_mappings.append(profile_mappings)
+
+        return travelperk_profile_mappings

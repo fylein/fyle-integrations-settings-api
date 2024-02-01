@@ -18,6 +18,7 @@ class IntegrationsView(generics.ListCreateAPIView):
     permission_classes = []
     authentication_classes = []
     serializer_class = IntegrationSerializer
+    pagination_class = None
     queryset = Integration.objects.filter(is_active=True, is_beta=True)
     filterset_fields = {'type': {'exact'}, 'org_id': {'exact'}}
 

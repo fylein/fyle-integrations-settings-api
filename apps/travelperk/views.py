@@ -3,6 +3,7 @@ import traceback
 import hmac
 import hashlib
 import json
+from typing import Dict, List
 from django.conf import settings
 from django.db import transaction
 from rest_framework import generics
@@ -193,6 +194,25 @@ class TravelperkPaymentProfileMappingView(LookupFieldMixin, generics.ListCreateA
 
     serializer_class = TravelperkProfileMappingSerializer
     queryset = TravelperkProfileMapping.objects.all()
+
+    def post(self, request, *args, **kwargs):
+
+        try:
+            mappings: List[Dict] = request.data
+
+            travelperk_profile_mapping = TravelperkProfileMapping.bulk_create_profile_mappings(
+                mappings=mappings,
+                org_id=kwargs['org_id']
+            )
+
+            return Response(data=self.serializer_class(travelperk_profile_mapping, many=True).data, status=status.HTTP_200_OK)
+
+        except Exception as exception:
+            logger.error(exception)
+            return Response(
+                data=exception,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class SyncPaymentProfiles(generics.ListAPIView):
