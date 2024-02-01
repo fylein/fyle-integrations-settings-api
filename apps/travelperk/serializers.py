@@ -58,7 +58,11 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
             org_id=org_id,
             defaults=validated_data
         )
-
+        
+        travelperk = TravelPerk.objects.filter(org_id=org_id).first()
+        if travelperk.onboarding_state == 'ADVANCED_SETTINGS':
+            travelperk.onboarding_state = 'COMPLETE'
+            travelperk.save()
 
 class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
 
