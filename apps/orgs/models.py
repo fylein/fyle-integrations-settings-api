@@ -14,12 +14,7 @@ class Org(models.Model):
     name = models.CharField(max_length=255, help_text='Name of the org')
     user = models.ManyToManyField(User, help_text='Reference to users table')
     fyle_org_id = models.CharField(max_length=255, help_text='org id', unique=True)
-    managed_user_id = models.CharField(max_length=255, null=True, help_text='Managed User Id')
     cluster_domain = models.CharField(max_length=255, help_text='Fyle cluster domain')
-    is_fyle_connected = models.BooleanField(null=True, help_text='Is Fyle API Connected')
-    is_sendgrid_connected = models.BooleanField(null=True, help_text='Is Sendgrid Connected')
-    allow_travelperk = models.BooleanField(default=True, help_text='Allow Travelperk')
-    allow_gusto = models.BooleanField(default=False, help_text='Allow Gusto')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
 
