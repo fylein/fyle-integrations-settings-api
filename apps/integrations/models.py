@@ -8,6 +8,7 @@ class Integration(models.Model):
     tpa_id = models.CharField(max_length=255, help_text='Third Party App Id')
     tpa_name = models.CharField(max_length=255, help_text='Third Party App Name')
     org_id = models.CharField(max_length=255, help_text='Org Id')
+    org_name = models.CharField(max_length=255, help_text='Org Name', null=True)
     type = models.CharField(max_length=255, help_text='Type of Integration', choices=INTEGRATION_TYPE)
     is_active = models.BooleanField(default=False, help_text='Is Integration Active')
     is_beta = models.BooleanField(default=True, help_text='Is Beta')
