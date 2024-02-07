@@ -53,7 +53,7 @@ class Invoice(models.Model):
     billing_information = models.JSONField(help_text='Billing information associated with the invoice.')
     billing_period = models.CharField(max_length=20, help_text='Billing period type (e.g., instant).')
     currency = models.CharField(max_length=3, help_text='Currency code (e.g., GBP).')
-    org_id = models.ForeignKey(Org, on_delete=models.CASCADE, help_text='Reference to Org table')
+    org = models.ForeignKey(Org, on_delete=models.CASCADE, help_text='Reference to Org table')
     due_date = models.DateField(help_text='Due date for the invoice.')
     from_date = models.DateField(help_text='Start date for the billing period.')
     to_date = models.DateField(help_text='End date for the billing period.')
