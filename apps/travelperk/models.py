@@ -1,4 +1,6 @@
-from django.db import models
+from typing import Dict, List
+
+from django.db import models, transaction
 from django.contrib.postgres.fields import ArrayField
 
 from apps.orgs.models import Org
@@ -9,12 +11,29 @@ LINEITEM_STRUCTURE_CHOICE = (
     ('SINGLE', 'SINGLE'),
 )
 
+USER_ROLE_CHOICES = (
+    ('TRAVELLER', 'TRAVELLER'),
+    ('BOOKER', 'BOOKER'),
+    ('CARD_HOLDER', 'CARD_HOLDER')
+)
+
+ONBOARDING_STATE = (
+    ('CONNECTION', 'CONNECTION'),
+    ('PAYMENT_PROFILE_SETTINGS', 'PAYMENT_PROFILE_SETTINGS'),
+    ('ADVANCED_SETTINGS', 'ADVANCED_SETTINGS'),
+    ('COMPLETE', 'COMPLETE')
+)
+
+
+def get_default_onboarding_state():
+    return 'CONNECTION'
+
 
 class TravelperkCredential(models.Model):
     """
     Travelperk Credential Model
     """
-    
+
     id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Credentials')
     org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org table')
     refresh_token = models.CharField(max_length=255, null=True, help_text='Travelperk Refresh Token')
@@ -34,6 +53,7 @@ class Invoice(models.Model):
     billing_information = models.JSONField(help_text='Billing information associated with the invoice.')
     billing_period = models.CharField(max_length=20, help_text='Billing period type (e.g., instant).')
     currency = models.CharField(max_length=3, help_text='Currency code (e.g., GBP).')
+    org = models.ForeignKey(Org, on_delete=models.CASCADE, help_text='Reference to Org table')
     due_date = models.DateField(help_text='Due date for the invoice.')
     from_date = models.DateField(help_text='Start date for the billing period.')
     to_date = models.DateField(help_text='End date for the billing period.')
@@ -56,11 +76,12 @@ class Invoice(models.Model):
 
     exported_to_fyle = models.BooleanField(default=False, help_text='If the invoice is exported to Fyle')
 
+
     class Meta:
         db_table = 'invoices'
         
     @staticmethod
-    def create_or_update_invoices(invoice_data):
+    def create_or_update_invoices(invoice_data, org_id):
         """
         Create or update invoice object
         """
@@ -68,6 +89,7 @@ class Invoice(models.Model):
         # Create or update Invoice object based on serial_number
         invoice_object, _ = Invoice.objects.update_or_create(
             serial_number=invoice_data['serial_number'],
+            org_id_id=org_id,
             defaults={
                 'billing_information': invoice_data['billing_information'],
                 'billing_period': invoice_data['billing_period'],
@@ -178,6 +200,7 @@ class TravelPerk(models.Model):
     package_id = models.CharField(max_length=255, null=True, help_text="Travelperk Package ID")
     is_s3_connected = models.BooleanField(null=True, help_text='If S3 Is Connectoed')
     is_travelperk_connected = models.BooleanField(null=True, help_text='If Travelperk Is Connected')
+    onboarding_state = models.CharField(choices=ONBOARDING_STATE, default=get_default_onboarding_state, max_length=255, help_text='Onboarding State')
     travelperk_connection_id = models.IntegerField(null=True, help_text='Travelperk Connection Id')
     webhook_subscription_id = models.CharField(max_length=255, null=True, help_text='Webhook Subscription Id')
     webhook_enabled = models.BooleanField(null=True, help_text='If Webhook Is Enabled')
@@ -220,7 +243,7 @@ class ImportedExpenseDetail(models.Model):
         db_table = 'imported_expense_details'
 
 
-class TravelperkAdvanceSetting(models.Model):
+class TravelperkAdvancedSetting(models.Model):
     """
     Advance Settings for travelperk
     """
@@ -240,4 +263,46 @@ class TravelperkAdvanceSetting(models.Model):
     updated_at = models.DateField(auto_now=True, help_text='Updated at datetime')
 
     class Meta:
-        db_table = 'travelperk_advance_settings'
+        db_table = 'travelperk_advanced_settings'
+
+
+class TravelperkProfileMapping(models.Model):
+    """
+    Detail of profile mapping
+    """
+    
+    id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Profile Mapping')
+    org = models.ForeignKey(Org, on_delete=models.PROTECT, help_text='Reference to Org Table')
+    profile_name = models.CharField(max_length=255, help_text='Profile Name')
+    user_role = models.CharField(max_length=255, choices=USER_ROLE_CHOICES, null=True, help_text='User Role')
+    is_import_enabled = models.BooleanField(default=False, help_text='If Import Is Enabled')
+    country = models.CharField(max_length=255, null=True, help_text='Country of the payment profile')
+    currency = models.CharField(max_length=100, null=True, help_text='Currency of the payment profile')
+    source_id = models.CharField(max_length=255, help_text='Source Id of the payment profile')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
+    updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
+
+    class Meta:
+        db_table = 'travelperk_profile_mappings'
+
+    @staticmethod
+    def bulk_create_profile_mappings(mappings: List[Dict], org_id: str):
+        """
+        Bulk update or create profile mappings
+        """
+
+        travelperk_profile_mappings = []
+        with transaction.atomic():
+            for mapping in mappings:
+                profile_mappings, _ = TravelperkProfileMapping.objects.update_or_create(
+                    org_id=org_id,
+                    profile_name=mapping['profile_name'],
+                    defaults={
+                        'user_role': mapping['user_role'],
+                        'is_import_enabled': mapping['is_import_enabled'],
+                    }
+                )
+
+                travelperk_profile_mappings.append(profile_mappings)
+
+        return travelperk_profile_mappings

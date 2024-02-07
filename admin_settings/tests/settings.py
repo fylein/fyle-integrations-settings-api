@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'apps.bamboohr',
     'apps.orgs',
     'apps.travelperk',
-    'apps.gusto',
     'apps.integrations',
     'apps.fyle_hrms_mappings',
 ]
@@ -92,6 +91,8 @@ FYLE_REST_AUTH_SERIALIZERS = {
     'USER_DETAILS_SERIALIZER': 'apps.users.serializers.UserSerializer'
 }
 
+FYLE_REST_AUTH_SETTINGS = {'async_update_user': True}
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -100,6 +101,8 @@ REST_FRAMEWORK = {
         'fyle_rest_auth.authentication.FyleJWTAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 100
 }
 
 
@@ -219,24 +222,16 @@ FYLE_TOKEN_URI = os.environ.get('FYLE_TOKEN_URI')
 FYLE_CLIENT_ID = os.environ.get('FYLE_CLIENT_ID')
 FYLE_CLIENT_SECRET = os.environ.get('FYLE_CLIENT_SECRET')
 FYLE_BASE_URL = os.environ.get('FYLE_BASE_URL')
-FYLE_APP_URL = os.environ.get('APP_URL')
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDGRID_EMAIL = os.environ.get('SENDGRID_EMAIL')
 BASE_URI = os.environ.get('BASE_URI')
-WK_JWT_PRIVATE_KEY = os.environ.get('WK_JWT_PRIVATE_KEY')
-WK_API_KEY = os.environ.get('WK_API_KEY')
 
-GUSTO_CLIENT_ID = os.environ.get('GUSTO_CLIENT_ID')
-GUSTO_CLIENT_SECRET = os.environ.get('GUSTO_CLIENT_SECRET')
-GUSTO_ENVIRONMENT = os.environ.get('GUSTO_ENVIRONMENT')
 TRAVELPERK_CLIENT_ID = os.environ.get('TRAVELPERK_CLIENT_ID')
 TRAVELPERK_CLIENT_SECRET = os.environ.get('TRAVELPERK_CLIENT_SECRET')
 TRAVELPERK_AUTH_URL = os.environ.get('TRAVELPERK_AUTH_URL')
 TRAVELPERK_TOKEN_URL = os.environ.get('TRAVELPERK_TOKEN_URL')
 TRAVELPERK_BASE_URL = os.environ.get('TRAVELPERK_BASE_URL')
 TRAVELPERK_REDIRECT_URI = os.environ.get('TRAVELPERK_REDIRECT_URI')
-WORKATO_ORIGIN_URL = os.environ.get('WORKATO_ORIGIN_URL')
-WORKATO_FRAME_ANCESTORS_URL = os.environ.get('WORKATO_FRAME_ANCESTORS_URL')
 FYLE_NOTIFICATIONS_EMAIL = os.environ.get('FYLE_NOTIFICATIONS_EMAIL')
 
 FYLE_REFRESH_TOKEN = os.environ.get('FYLE_REFRESH_TOKEN')

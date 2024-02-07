@@ -19,6 +19,8 @@ class BambooHr(models.Model):
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
     employee_exported_at = models.DateTimeField(auto_now_add=True, help_text='Employee exported to Fyle at datetime')
     is_credentials_expired = models.BooleanField(default=False, help_text='BambooHr Credential Status')
+    webhook_id = models.IntegerField(null=True, help_text='ID of the webhook created by BambooHr')
+    private_key = models.CharField(max_length=255, null=True, help_text='Private key to verify webhook calls')
 
     class Meta:
         db_table = 'bamboohr'

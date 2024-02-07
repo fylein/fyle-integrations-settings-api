@@ -12,8 +12,8 @@ def test_integrations_view_post_accounting(api_client, mocker, access_token):
     """
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
-        'apps.integrations.views.get_org_id_from_access_token',
-        return_value=dummy_org_id
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
     )
     mocker.patch(
         'apps.integrations.actions.get_cluster_domain',
@@ -45,8 +45,8 @@ def test_integrations_view_post(api_client, mocker, access_token):
     """
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
-        'apps.integrations.views.get_org_id_from_access_token',
-        return_value=dummy_org_id
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
     )
     mocker.patch(
         'apps.integrations.actions.get_cluster_domain',
@@ -91,8 +91,8 @@ def test_integrations_view_get(api_client, mocker, access_token, create_integrat
     """
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
-        'apps.integrations.views.get_org_id_from_access_token',
-        return_value=dummy_org_id
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
     )
     mocker.patch(
         'apps.integrations.actions.get_cluster_domain',
@@ -158,8 +158,8 @@ def test_integrations_view_mark_inactive_post(api_client, mocker, access_token, 
     """
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
-        'apps.integrations.views.get_org_id_from_access_token',
-        return_value=dummy_org_id
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
     )
     mocker.patch(
         'apps.integrations.actions.get_cluster_domain',

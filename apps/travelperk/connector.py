@@ -2,7 +2,7 @@ import logging
 from django.conf import settings
 
 
-from apps.travelperk.models import TravelperkCredential, TravelPerk
+from apps.travelperk.models import TravelperkCredential, TravelPerk, TravelperkProfileMapping
 from connectors.travelperk import Travelperk
 
 
@@ -47,6 +47,7 @@ class TravelperkConnector:
 
         return response
 
+
     def delete_webhook_connection(self, webhook_subscription_id: str):
         """
         Delete Webhook in Travelperk
@@ -55,4 +56,25 @@ class TravelperkConnector:
         """
 
         response = self.connection.webhooks.delete(webhook_subscription_id)        
+        return response
+
+
+    def sync_invoice_profile(self):
+        """
+        Sync Invoice Profile
+        :return: Dict
+        """
+
+        response = self.connection.invoice_profiles.get_all()
+        for invoice_profile in response:
+            TravelperkProfileMapping.objects.update_or_create(
+                org_id=self.org_id,
+                profile_name=invoice_profile['name'],
+                source_id=invoice_profile['id'],
+                defaults={
+                    'country': invoice_profile['billing_information']['country_name'],
+                    'currency': invoice_profile['currency'],
+                }
+            )
+
         return response

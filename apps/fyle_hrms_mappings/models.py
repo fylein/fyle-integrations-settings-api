@@ -109,15 +109,15 @@ class DestinationAttribute(models.Model):
                         or
                         ('active' in attribute and attribute['active'] != primary_key_map[attribute['destination_id']]['active'])
                     ):
-                    attributes_to_be_updated.append(
-                        DestinationAttribute(
-                            id=primary_key_map[attribute['destination_id']]['id'],
-                            value=attribute['value'],
-                            detail=attribute['detail'] if 'detail' in attribute else None,
-                            active=attribute['active'] if 'active' in attribute else None,
-                            updated_at=datetime.now()
+                        attributes_to_be_updated.append(
+                            DestinationAttribute(
+                                id=primary_key_map[attribute['destination_id']]['id'],
+                                value=attribute['value'],
+                                detail=attribute['detail'] if 'detail' in attribute else None,
+                                active=attribute['active'] if 'active' in attribute else None,
+                                updated_at=datetime.now()
+                            )
                         )
-                    )
         if attributes_to_be_created:
             DestinationAttribute.objects.bulk_create(attributes_to_be_created, batch_size=50)
 
