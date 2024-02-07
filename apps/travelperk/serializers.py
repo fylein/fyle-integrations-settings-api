@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
+from apps.travelperk.models import TravelPerk, InvoiceLineItem
 from apps.travelperk.connector import TravelperkConnector
-from apps.orgs.models import Org
 from apps.travelperk.models import (
     TravelPerk, 
     InvoiceLineItem, 
@@ -64,12 +64,12 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
             travelperk.onboarding_state = 'COMPLETE'
             travelperk.save()
 
+
 class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TravelperkProfileMapping
         fields = '__all__'
-
 
 
 class SyncPaymentProfileSerializer(serializers.Serializer):
@@ -85,4 +85,5 @@ class SyncPaymentProfileSerializer(serializers.Serializer):
         travelperk_credentials = TravelperkCredential.objects.get(org_id=org_id)
 
         travelperk_connection = TravelperkConnector(travelperk_credentials, org_id)
-        travelperk_connection.sync_invoice_profile()
+        payment_profiles = travelperk_connection.sync_invoice_profile()
+        return payment_profiles

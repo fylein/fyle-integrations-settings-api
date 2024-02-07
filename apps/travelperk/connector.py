@@ -66,7 +66,6 @@ class TravelperkConnector:
         """
 
         response = self.connection.invoice_profiles.get_all()
-
         for invoice_profile in response:
             TravelperkProfileMapping.objects.update_or_create(
                 org_id=self.org_id,

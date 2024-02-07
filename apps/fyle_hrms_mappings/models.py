@@ -229,3 +229,51 @@ class ExpenseAttribute(models.Model):
         if attributes_to_be_updated:
             ExpenseAttribute.objects.bulk_update(
                 attributes_to_be_updated, fields=['source_id', 'detail', 'active'], batch_size=50)
+
+
+class Mapping(models.Model):
+    """
+    Mappings
+    """
+    id = models.AutoField(primary_key=True)
+    source_type = models.CharField(max_length=255, help_text='Fyle Enum')
+    destination_type = models.CharField(max_length=255, help_text='Destination Enum')
+    source = models.ForeignKey(ExpenseAttribute, on_delete=models.PROTECT, related_name='mapping')
+    destination = models.ForeignKey(DestinationAttribute, on_delete=models.PROTECT, related_name='mapping')
+    org = models.ForeignKey(Org, on_delete=models.PROTECT, help_text='Reference to Org model')
+    created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
+    updated_at = models.DateTimeField(auto_now=True, help_text='Updated at datetime')
+
+    class Meta:
+        db_table = 'mappings'
+
+    @staticmethod
+    def create_or_update_mapping(source_type: str, destination_type: str, source_value: str, 
+        destination_value: str, destination_id: str, org_id: int):
+        """
+        Bulk update or create mappings
+        source_type = 'Type of Source attribute, eg. CATEGORY',
+        destination_type = 'Type of Destination attribute, eg. ACCOUNT',
+        source_value = 'Source value to be mapped, eg. category name',
+        destination_value = 'Destination value to be mapped, eg. account name'
+        workspace_id = Unique Workspace id
+        """
+
+        mapping, _ = Mapping.objects.update_or_create(
+            source_type=source_type,
+            source=ExpenseAttribute.objects.filter(
+                attribute_type=source_type, value__iexact=source_value, org_id=org_id
+            ).first() if source_value else None,
+            destination_type=destination_type,
+            org=Org.objects.get(pk=org_id),
+            defaults={
+                'destination': DestinationAttribute.objects.get(
+                    attribute_type=destination_type,
+                    value=destination_value,
+                    destination_id=destination_id,
+                    org_id=org_id
+                )
+            }
+        )
+
+        return mapping

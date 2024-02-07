@@ -14,12 +14,14 @@ from rest_framework.views import status
 from admin_settings.utils import LookupFieldMixin
 
 from apps.orgs.models import Org
+
 from apps.travelperk.serializers import (
     TravelperkSerializer, 
     TravelperkProfileMappingSerializer, 
     SyncPaymentProfileSerializer, 
     TravelperkAdvancedSettingSerializer
 )
+
 from apps.travelperk.models import (
     TravelPerk, 
     TravelperkCredential, 
@@ -104,7 +106,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
 
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
-                    'url': settings.API_URL + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
+                    'url': 'https://google.com/' + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
                     'secret': settings.TKWEBHOOKS_SECRET,
                     'events': [
                         'invoice.issued'
@@ -219,6 +221,18 @@ class TravelperkPaymentProfileMappingView(LookupFieldMixin, generics.ListCreateA
                 data=exception,
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class AdvancedSettingView(generics.CreateAPIView, generics.RetrieveAPIView):
+    """
+    Retrieve or Create Advanced Settings
+    """
+
+    serializer_class = TravelperkAdvancedSettingSerializer
+    lookup_field = 'org_id'
+    lookup_url_kwarg = 'org_id'
+
+    queryset = TravelperkAdvancedSetting.objects.all()
 
 
 class SyncPaymentProfiles(generics.ListAPIView):
