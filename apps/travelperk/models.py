@@ -89,7 +89,7 @@ class Invoice(models.Model):
         # Create or update Invoice object based on serial_number
         invoice_object, _ = Invoice.objects.update_or_create(
             serial_number=invoice_data['serial_number'],
-            org_id_id=org_id,
+            org_id=org_id,
             defaults={
                 'billing_information': invoice_data['billing_information'],
                 'billing_period': invoice_data['billing_period'],
