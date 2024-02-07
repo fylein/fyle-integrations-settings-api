@@ -116,7 +116,8 @@ class ConnectTravelperkView(generics.CreateAPIView):
                     org=org,
                     defaults={
                         'webhook_id': created_webhook['id'],
-                        'is_travelperk_connected': True
+                        'is_travelperk_connected': True,
+                        'onboarding_state': 'PAYMENT_PROFILE_SETTINGS'
                     }
                 )
 
@@ -204,6 +205,11 @@ class TravelperkPaymentProfileMappingView(LookupFieldMixin, generics.ListCreateA
                 mappings=mappings,
                 org_id=kwargs['org_id']
             )
+                        
+            travelperk = TravelPerk.objects.filter(org_id=kwargs['org_id']).first()
+            if travelperk.onboarding_state == 'PAYMENT_PROFILE_SETTINGS':
+                travelperk.onboarding_state = 'ADVANCED_SETTINGS'
+                travelperk.save()
 
             return Response(data=self.serializer_class(travelperk_profile_mapping, many=True).data, status=status.HTTP_200_OK)
 

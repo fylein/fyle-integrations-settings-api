@@ -17,6 +17,17 @@ USER_ROLE_CHOICES = (
     ('CARD_HOLDER', 'CARD_HOLDER')
 )
 
+ONBOARDING_STATE = (
+    ('CONNECTION', 'CONNECTION'),
+    ('PAYMENT_PROFILE_SETTINGS', 'PAYMENT_PROFILE_SETTINGS'),
+    ('ADVANCED_SETTINGS', 'ADVANCED_SETTINGS'),
+    ('COMPLETE', 'COMPLETE')
+)
+
+
+def get_default_onboarding_state():
+    return 'CONNECTION'
+
 
 class TravelperkCredential(models.Model):
     """
@@ -189,6 +200,7 @@ class TravelPerk(models.Model):
     package_id = models.CharField(max_length=255, null=True, help_text="Travelperk Package ID")
     is_s3_connected = models.BooleanField(null=True, help_text='If S3 Is Connectoed')
     is_travelperk_connected = models.BooleanField(null=True, help_text='If Travelperk Is Connected')
+    onboarding_state = models.CharField(choices=ONBOARDING_STATE, default=get_default_onboarding_state, max_length=255, help_text='Onboarding State')
     travelperk_connection_id = models.IntegerField(null=True, help_text='Travelperk Connection Id')
     webhook_subscription_id = models.CharField(max_length=255, null=True, help_text='Webhook Subscription Id')
     webhook_enabled = models.BooleanField(null=True, help_text='If Webhook Is Enabled')
