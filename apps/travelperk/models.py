@@ -24,9 +24,12 @@ ONBOARDING_STATE = (
     ('COMPLETE', 'COMPLETE')
 )
 
-
 def get_default_onboarding_state():
     return 'CONNECTION'
+
+def default_category_mappings():
+    "Default Category Mappings"
+    return {'Flights': None, 'Stays': None, 'Trains': None, 'Cars': None}
 
 
 class TravelperkCredential(models.Model):
@@ -39,7 +42,7 @@ class TravelperkCredential(models.Model):
     refresh_token = models.CharField(max_length=255, null=True, help_text='Travelperk Refresh Token')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
-    
+
     class Meta:
         db_table = 'travelperk_credentials'
 
@@ -123,12 +126,12 @@ class InvoiceLineItem(models.Model):
     invoice_line_id = models.CharField(max_length=255, help_text='id for invoice line')
     expense_date = models.DateField(help_text='Date of the expense for this line item.')
     description = models.CharField(max_length=255, help_text='Description of the product or service.')
-    quantity = models.IntegerField(help_text='Quantity of the product or service.')
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2, help_text='Unit price of the product or service.')
-    non_taxable_unit_price = models.DecimalField(max_digits=10, decimal_places=2, help_text='Non-taxable unit price.')
-    tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, help_text='Tax percentage applied.')
-    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text='Total tax amount for this line item.')
-    tax_regime = models.CharField(max_length=20, help_text='Tax regime for this line item.')
+    quantity = models.IntegerField(null=True, help_text='Quantity of the product or service.')
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, help_text='Unit price of the product or service.')
+    non_taxable_unit_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, help_text='Non-taxable unit price.')
+    tax_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, help_text='Tax percentage applied.')
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, help_text='Total tax amount for this line item.')
+    tax_regime = models.CharField(max_length=20, null=True, help_text='Tax regime for this line item.')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text='Total amount including taxes.')
 
     # Metadata
@@ -137,11 +140,15 @@ class InvoiceLineItem(models.Model):
     service = models.CharField(max_length=50, help_text='Type of service (e.g., PREMIUM).')
 
     # Booker
-    booker_name = models.CharField(max_length=100, help_text='Name of the person who booked the service.')
-    booker_email = models.EmailField(help_text='Email address of the person who booked the service.')
-    
+    booker_name = models.CharField(max_length=100, null=True, help_text='Name of the person who booked the service.')
+    booker_email = models.EmailField(help_text='Email address of the person who booked the service.', null=True)
+
+    # Traveller
+    traveller_name = models.CharField(max_length=100, null=True, help_text='Name of the person who travelled.')
+    traveller_email = models.EmailField(null=True, help_text='Email address of the person who travelled.')
+
     # Cost Center
-    cost_center = models.CharField(max_length=20, help_text='Cost center associated with this line item.')
+    cost_center = models.CharField(max_length=255, null=True, help_text='Cost center associated with this line item.')
     vendor = models.CharField(max_length=255, null=True, help_text='Vendor name.')
 
     # Other Fields
@@ -178,6 +185,8 @@ class InvoiceLineItem(models.Model):
                     'service': line_item_data['metadata']['service'],
                     'booker_name': line_item_data['metadata']['booker']['name'],
                     'booker_email': line_item_data['metadata']['booker']['email'],
+                    'traveller_name': line_item_data['metadata']['travelers'][0]['name'],
+                    'traveller_email': line_item_data['metadata']['travelers'][0]['email'],
                     'cost_center': line_item_data['metadata']['cost_center'],
                     'vendor': line_item_data['metadata']['vendor'],
                     'credit_card_last_4_digits': line_item_data['metadata']['credit_card_last_4_digits'],
@@ -193,7 +202,7 @@ class TravelPerk(models.Model):
     """
     Travelperk Model
     """
-    
+
     id = models.AutoField(primary_key=True, help_text='Unique Id to indentify a Org')
     org = models.OneToOneField(Org, on_delete=models.PROTECT, help_text='Reference to Org table')
     folder_id = models.CharField(max_length=255, null=True, help_text='Travelperk Folder ID')
@@ -255,6 +264,7 @@ class TravelperkAdvancedSetting(models.Model):
     default_category_name = models.CharField(max_length=255, null=True, help_text='Default Category Name')
     default_category_id = models.CharField(max_length=255, null=True, help_text='Default Category Id')
     invoice_lineitem_structure = models.CharField(choices=LINEITEM_STRUCTURE_CHOICE, default='MULTIPLE', max_length=255, help_text='Invoice Lineitem Structure')
+    category_mappings = models.JSONField(default=default_category_mappings, help_text='Category mappings for travelperk')
     description_structure = ArrayField(
         models.CharField(max_length=255), help_text='Array of fields in memo', null=True
     )

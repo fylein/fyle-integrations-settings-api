@@ -1,12 +1,19 @@
 import requests
-from datetime import datetime, timezone
 import logging
 from io import BytesIO
 from fyle.platform import Platform
 
 
+from apps.orgs.utils import create_fyle_connection
+from apps.travelperk.models import (
+    Invoice, 
+    InvoiceLineItem, 
+    ImportedExpenseDetail,
+    TravelperkProfileMapping,
+    TravelperkAdvancedSetting
+)
+from apps.travelperk.helpers import create_expense_against_employee
 from apps.travelperk.models import Invoice, InvoiceLineItem, ImportedExpenseDetail
-from apps.orgs.models import Org
 from apps.orgs.utils import create_fyle_connection
 
 
@@ -83,38 +90,12 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
     """
     Create expense in Fyle
     """
-    org = Org.objects.get(id=org_id)
+    profile_mapping = TravelperkProfileMapping.objects.filter(org_id=org_id, profile_name=invoice.profile_name).first()
+    advanced_settings = TravelperkAdvancedSetting.objects.filter(org_id=org_id).first()
+    platform_connection = create_fyle_connection(org_id)
 
-    for expense in invoice_lineitems:
-        payload = {
-            'data': {
-                'currency': invoice.currency,
-                'purpose': expense.description,
-                'merchant': expense.vendor['name'] if expense.vendor else '',
-                'claim_amount': expense.total_amount,
-                'spent_at': str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)),
-                'source': 'CORPORATE_CARD',
-            }
-        }
-
-        platform_connection = create_fyle_connection(org.id)
-        if expense.service in CATEGORY_MAP:
-            category_name = CATEGORY_MAP[expense.service]
-
-            query_params = {
-                'limit': 1,
-                'offset': 0,
-                'order': "updated_at.asc",
-                'system_category': "eq.{}".format(category_name),
-                'is_enabled': "eq.True"
-            }
-
-            category = platform_connection.v1beta.admin.categories.list(query_params=query_params)
-
-            if category['count'] > 0:
-                payload['data']['category_id'] = category['data'][0]['id']
-
-        expense = platform_connection.v1beta.spender.expenses.post(payload)
+    if profile_mapping and profile_mapping.is_import_enabled:
+        expense = create_expense_against_employee(org_id, invoice_lineitems, profile_mapping.user_role, advanced_settings)
         if expense:
             imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
                 expense_id=expense['data']['id'],
