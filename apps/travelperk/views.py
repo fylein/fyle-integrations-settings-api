@@ -230,11 +230,11 @@ class AdvancedSettingView(generics.CreateAPIView, generics.RetrieveAPIView):
     """
 
     serializer_class = TravelperkAdvancedSettingSerializer
+    queryset = TravelperkAdvancedSetting.objects.all()
+
     lookup_field = 'org_id'
     lookup_url_kwarg = 'org_id'
-    queryset = TravelperkAdvancedSetting.objects.all()
-    permission_classes = []
-    authentication_classes = []
+
     
     def get_object(self):
         # Retrieve the value from the request
