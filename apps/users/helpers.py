@@ -81,7 +81,6 @@ class PlatformConnector:
         
         self.bulk_create_or_update_expense_attributes(employee_attributes, attribute_type, org_id, True)
 
-
     def sync_categories(self, org_id):
         """
         Sync Categories in Expense Attribute Table

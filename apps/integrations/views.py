@@ -17,6 +17,7 @@ logger.level = logging.INFO
 class IntegrationsView(generics.ListCreateAPIView):
     permission_classes = []
     authentication_classes = []
+    pagination_class = None
     serializer_class = IntegrationSerializer
     pagination_class = None
     queryset = Integration.objects.filter(is_active=True, is_beta=True)
