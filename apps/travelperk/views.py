@@ -240,14 +240,14 @@ class AdvancedSettingView(generics.CreateAPIView, generics.RetrieveAPIView):
         # Retrieve the value from the request
         org_id = self.kwargs['org_id']
         org = Org.objects.filter(id=org_id).first()
-        fyle_credentials = FyleCredential.objects.filter(org_id=org_id).first()
-        platform_connector = PlatformConnector(fyle_credentials.refresh_token, org.cluster_domain)
-
-        user_profile = platform_connector.connection.v1beta.spender.my_profile.get()
 
         # Attempt to retrieve the object based on the given condition
         advanced_settings, created = TravelperkAdvancedSetting.objects.get_or_create(org_id=org_id)
         if not advanced_settings.default_employee_name:
+            fyle_credentials = FyleCredential.objects.filter(org_id=org_id).first()
+            platform_connector = PlatformConnector(fyle_credentials.refresh_token, org.cluster_domain)
+
+            user_profile = platform_connector.connection.v1beta.spender.my_profile.get()
             advanced_settings.default_employee_name = user_profile['data']['user']['email']
             advanced_settings.default_employee_id = user_profile['data']['user']['id']
 
