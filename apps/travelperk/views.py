@@ -13,7 +13,7 @@ from rest_framework.views import status
 
 from admin_settings.utils import LookupFieldMixin
 
-from apps.orgs.models import Org
+from apps.orgs.models import Org, FyleCredential
 
 from apps.travelperk.serializers import (
     TravelperkSerializer, 
@@ -32,6 +32,7 @@ from apps.travelperk.models import (
 )
 from apps.travelperk.connector import TravelperkConnector
 from apps.orgs.exceptions import handle_fyle_exceptions
+from apps.users.helpers import PlatformConnector
 
 from .actions import create_expense_in_fyle
 from .helpers import get_refresh_token_using_auth_code
@@ -231,8 +232,33 @@ class AdvancedSettingView(generics.CreateAPIView, generics.RetrieveAPIView):
     serializer_class = TravelperkAdvancedSettingSerializer
     lookup_field = 'org_id'
     lookup_url_kwarg = 'org_id'
-
     queryset = TravelperkAdvancedSetting.objects.all()
+    permission_classes = []
+    authentication_classes = []
+    
+    def get_object(self):
+        # Retrieve the value from the request
+        org_id = self.kwargs['org_id']
+        org = Org.objects.filter(id=org_id).first()
+        fyle_credentials = FyleCredential.objects.filter(org_id=org_id).first()
+        platform_connector = PlatformConnector(fyle_credentials.refresh_token, org.cluster_domain)
+
+        user_profile = platform_connector.connection.v1beta.spender.my_profile.get()
+
+        # Attempt to retrieve the object based on the given condition
+        advanced_settings, created = TravelperkAdvancedSetting.objects.get_or_create(org_id=org_id)
+        if not advanced_settings.default_employee_name:
+            advanced_settings.default_employee_name = user_profile['data']['user']['email']
+            advanced_settings.default_employee_id = user_profile['data']['user']['id']
+
+        # If the object was created, return 201 Created status code
+        if created:
+            self.status_code = status.HTTP_201_CREATED
+        else:
+            self.status_code = status.HTTP_200_OK
+
+        return advanced_settings
+
 
 
 class SyncPaymentProfiles(generics.ListAPIView):
