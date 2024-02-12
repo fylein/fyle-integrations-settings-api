@@ -122,6 +122,18 @@ def get_email_from_credit_card(org_id, credit_card_last_4_digits):
     return None
 
 
+def get_category_id(org_id:str, service: str):
+    """
+    get category id for the expense.
+    """
+    advance_settings = TravelperkAdvancedSetting.objects.filter(org_id=org_id).first()
+
+    if service in advance_settings.category_mappings and advance_settings.category_mappings[service]:
+        return advance_settings.category_mappings[service]['id']
+    else:
+        return advance_settings.default_category_id
+
+
 def construct_expense_payload(user_role: str, expense: dict, amount: int, employee_email: str = None):
     """
     Construct a payload for creating an expense.
@@ -136,13 +148,15 @@ def construct_expense_payload(user_role: str, expense: dict, amount: int, employ
         dict: Expense payload.
     """
 
+    category_id = get_category_id(expense.service)
+
     payload = {
         'data': {
             'source': 'CORPORATE_CARD',
             'spent_at': str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)),
             'purpose': expense.description,
             'merchant': expense.vendor.name if expense.vendor else '',
-            'category_id': 142039
+            'category_id': category_id,
         }
     }
 
