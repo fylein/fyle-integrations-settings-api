@@ -135,11 +135,13 @@ def get_category_id(org_id:str, service: str):
         return advance_settings.default_category_id
 
 
-def get_expense_purpose(lineitem, advance_settings) -> str:
+def get_expense_purpose(org_id, lineitem) -> str:
     """
     purpose for expense in fyle
     """
-    memo_structure = advance_settings.description_structure
+
+    advanced_settings = TravelperkAdvancedSetting.objects.filter(org_id=org_id).first()
+    memo_structure = advanced_settings.description_structure
 
     details = {
         'trip_id': lineitem.trip_id if lineitem.trip_id else '',
