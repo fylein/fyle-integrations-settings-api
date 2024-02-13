@@ -135,6 +135,35 @@ def get_category_id(org_id:str, service: str):
         return advance_settings.default_category_id
 
 
+def get_expense_purpose(lineitem, advance_settings) -> str:
+    """
+    purpose for expense in fyle
+    """
+    memo_structure = advance_settings.description_structure
+
+    details = {
+        'trip_id': lineitem.trip_id if lineitem.trip_id else '',
+        'trip_name': '{0}'.format(lineitem.trip_name) if lineitem.trip_name else '',
+        'traveller_name': '{0}'.format(lineitem.traveller_name) if lineitem.traveller_name else '',
+        'booker_name': '{0}'.format(lineitem.booker_name) if lineitem.booker_name else '',
+        'merchant_name': '{0}'.format(lineitem.vendor['name']) if lineitem.vendor else '',
+    }
+
+    purpose = ''
+
+    for id, field in enumerate(memo_structure):
+        if field in details:
+            purpose += details[field]
+            if id + 1 != len(memo_structure):
+                if details[field]:
+                    purpose = '{0} - '.format(purpose)
+
+    purpose = purpose.replace('<', '')
+    purpose = purpose.replace('>', '')
+
+    return purpose
+
+
 def construct_expense_payload(org_id: str, user_role: str, expense: dict, amount: int, employee_email: str = None):
     """
     Construct a payload for creating an expense.
@@ -149,12 +178,14 @@ def construct_expense_payload(org_id: str, user_role: str, expense: dict, amount
         dict: Expense payload.
     """
 
+    purpose = get_expense_purpose(org_id, expense)
     category_id = get_category_id(org_id, expense.service.lower())
+
     payload = {
         'data': {
             'source': 'CORPORATE_CARD',
             'spent_at': str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)),
-            'purpose': expense.description,
+            'purpose': purpose,
             'merchant': expense.vendor['name'] if expense.vendor else '',
             'category_id': category_id,
         }
