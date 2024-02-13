@@ -88,28 +88,7 @@ def attach_reciept_to_expense(expense_id: str, invoice: Invoice, imported_expens
         imported_expense.save()
 
 
-def create_expense_in_fyle_v1(org_id: str, invoice: Invoice, invoice_lineitems: InvoiceLineItem):
-    """
-    Create expense in Fyle
-    """
-    profile_mapping = TravelperkProfileMapping.objects.filter(org_id=org_id, profile_name=invoice.profile_name).first()
-    advanced_settings = TravelperkAdvancedSetting.objects.filter(org_id=org_id).first()
-    platform_connection = create_fyle_connection(org_id)
-
-    if profile_mapping and profile_mapping.is_import_enabled:
-        expense = create_expense_against_employee(org_id, invoice_lineitems, profile_mapping.user_role, advanced_settings)
-        if expense:
-            imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
-                expense_id=expense['data']['id'],
-                org_id=org_id
-            )
-
-            attach_reciept_to_expense(expense['data']['id'], invoice, imported_expense, platform_connection)
-            invoice.exported_to_fyle = True
-            invoice.save()
-
-
-def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: InvoiceLineItem):
+def create_expense_in_fyle_v2(org_id: str, invoice: Invoice, invoice_lineitems: InvoiceLineItem):
     """
     Create expense in Fyle
     """
@@ -154,3 +133,26 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
                 attach_reciept_to_expense(expense['data']['id'], invoice, imported_expense, platform_connection)
                 invoice.exported_to_fyle = True
                 invoice.save()
+
+
+def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: InvoiceLineItem):
+    """
+    Create expense in Fyle
+    """
+    profile_mapping = TravelperkProfileMapping.objects.filter(org_id=org_id, profile_name=invoice.profile_name).first()
+    advanced_settings = TravelperkAdvancedSetting.objects.filter(org_id=org_id).first()
+    platform_connection = create_fyle_connection(org_id)
+
+    if profile_mapping:
+        expense = create_expense_against_employee(org_id, invoice_lineitems, profile_mapping.user_role, advanced_settings)
+        if expense:
+            imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
+                expense_id=expense['data']['id'],
+                org_id=org_id
+            )
+
+            attach_reciept_to_expense(expense['data']['id'], invoice, imported_expense, platform_connection)
+            invoice.exported_to_fyle = True
+            invoice.save()
+    else:
+        create_expense_in_fyle_v2(org_id, invoice, invoice_lineitems)
