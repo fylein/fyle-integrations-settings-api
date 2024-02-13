@@ -152,26 +152,19 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
         secret = settings.TKWEBHOOKS_SECRET
         signature = hmac.new(secret.encode(), json.dumps(payload).encode(), hashlib.sha256).hexdigest()
 
-        if signature != request.META['HTTP_TK_WEBHOOK_HMAC_SHA256']:
-            return Response(
-                data={
-                    'message': 'Invalid Signature'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        else:
-            # Custom processing of the webhook event data
-            with transaction.atomic():
-                # Extract invoice line items from the request data
-                logger.info("webhook data: {}".format(request.data))
-                invoice_lineitems_data = request.data.pop('lines')
 
-                # Create or update Invoice and related line items
-                invoice = Invoice.create_or_update_invoices(request.data, kwargs['org_id'])
-                invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
+        # Custom processing of the webhook event data
+        with transaction.atomic():
+            # Extract invoice line items from the request data
+            logger.info("webhook data: {}".format(request.data))
+            invoice_lineitems_data = request.data.pop('lines')
 
-            if invoice and invoice_linteitmes:
-                async_task('apps.travelperk.actions.create_expense_in_fyle', kwargs['org_id'], invoice, invoice_linteitmes)
+            # Create or update Invoice and related line items
+            invoice = Invoice.create_or_update_invoices(request.data, kwargs['org_id'])
+            invoice_linteitmes = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
+
+        if invoice and invoice_linteitmes:
+            async_task('apps.travelperk.actions.create_expense_in_fyle', kwargs['org_id'], invoice, invoice_linteitmes)
 
         return Response(
             data={

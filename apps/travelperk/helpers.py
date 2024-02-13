@@ -144,9 +144,9 @@ def get_expense_purpose(org_id, lineitem) -> str:
     memo_structure = advanced_settings.description_structure
 
     details = {
-        'trip_id': lineitem.trip_id if lineitem.trip_id else '',
+        'trip_id': str(lineitem.trip_id) if lineitem.trip_id else '',
         'trip_name': '{0}'.format(lineitem.trip_name) if lineitem.trip_name else '',
-        'traveller_name': '{0}'.format(lineitem.traveller_name) if lineitem.traveller_name else '',
+        'traveler_name': '{0}'.format(lineitem.traveller_name) if lineitem.traveller_name else '',
         'booker_name': '{0}'.format(lineitem.booker_name) if lineitem.booker_name else '',
         'merchant_name': '{0}'.format(lineitem.vendor['name']) if lineitem.vendor else '',
     }
@@ -163,7 +163,7 @@ def get_expense_purpose(org_id, lineitem) -> str:
     purpose = purpose.replace('<', '')
     purpose = purpose.replace('>', '')
 
-    return purpose
+    return purpose.rstrip(' - ')
 
 
 def construct_expense_payload(org_id: str, user_role: str, expense: dict, amount: int, employee_email: str = None):
