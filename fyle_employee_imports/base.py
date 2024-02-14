@@ -105,9 +105,9 @@ class FyleEmployeeImport():
                 incomplete_employee_count += 1
                 incomplete_employees.append({'name': employee.detail['full_name'], 'id':employee.destination_id})
         
-        admin_email = self.get_admin_email()
-        if incomplete_employee_count > 0:
-            send_failure_notification_email(employees=incomplete_employees, number_of_employees=incomplete_employee_count, admin_email=admin_email)
+        # admin_email = self.get_admin_email()
+        # if incomplete_employee_count > 0:
+        #     send_failure_notification_email(employees=incomplete_employees, number_of_employees=incomplete_employee_count, admin_email=admin_email)
 
         existing_approver_emails = ExpenseAttribute.objects.filter(
             org_id=self.org_id, attribute_type='EMPLOYEE', value__in=approver_emails
