@@ -25,7 +25,11 @@ class IntegrationsView(generics.ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         # This block is for authenticating the user
-        access_token = self.request.META.get('HTTP_AUTHORIZATION').split(' ')[1]
+        http_authorization = self.request.META.get('HTTP_AUTHORIZATION')
+        if not http_authorization:
+            raise AuthenticationFailed('No access token provided')
+
+        access_token = http_authorization.split(' ')[1]
         try:
             org_id = get_org_id_and_name_from_access_token(access_token)['id']
 
