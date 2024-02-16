@@ -1,20 +1,17 @@
 import json
 import logging
 import requests
-from datetime import datetime, timezone
-from django.conf import settings
 
-from apps.travelperk.models import TravelperkCredential, TravelperkAdvancedSetting
+from django.conf import settings
+from io import BytesIO
+
+from apps.travelperk.models import TravelperkCredential
 from apps.orgs.models import Org
-from apps.orgs.utils import create_fyle_connection
+
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
 
-ROLE_EMAIL_MAPPING = {
-    'TRAVELLER': 'traveller_email',
-    'BOOKER': 'booker_email'
-}
 
 def get_refresh_token_using_auth_code(code: str, org_id: str):
     """
@@ -61,7 +58,38 @@ def get_refresh_token_using_auth_code(code: str, org_id: str):
         raise Exception(api_response)
 
 
-def get_employee_email(org_id, employee_email):
+def download_file(remote_url):
+    # Send a GET request to the remote URL with streaming enabled
+    response = requests.get(remote_url, stream=True)
+
+    # Check if the response status code is 200 (OK)
+    if response.status_code == 200:
+        logger.info(f'Successfully downloaded the file. Status code: {response.status_code}')
+        return BytesIO(response.content)
+    else:
+        # Print an error message if the file download fails
+        logger.info(f'Failed to download the file. Status code: {response.status_code}')
+
+
+def upload_to_s3_presigned_url(file_content, presigned_url):
+    # Open the local file in binary read mode
+    headers = {
+        'Content-Type': 'application/pdf'
+    }
+
+    # Send a PUT request to the S3 pre-signed URL with the file data
+    response = requests.put(presigned_url, data=file_content, headers=headers)
+
+    # Check if the response status code is 200 (OK)
+    if response.status_code == 200:
+        # Print a success message if the file is uploaded successfully
+        logger.info(f'Successfully uploaded to S3.')
+    else:
+        # Print an error message if the file upload fails
+        logger.info(f'Failed to upload to S3. Status code: {response.status_code}')
+
+
+def get_employee_email(platform_connection, employee_email):
     """
     Get an employee's email using their email address.
 
@@ -79,13 +107,12 @@ def get_employee_email(org_id, employee_email):
         'limit': 1
     }
 
-    platform_connection = create_fyle_connection(org_id)
     employee = platform_connection.v1beta.admin.employees.list(query_params)['data']
 
     return employee[0]['user']['email'] if employee else None
 
 
-def get_email_from_credit_card(org_id, credit_card_last_4_digits):
+def get_email_from_credit_card(platform_connection, credit_card_last_4_digits):
     """
     Get an email associated with a credit card based on its last 4 digits.
 
@@ -103,7 +130,6 @@ def get_email_from_credit_card(org_id, credit_card_last_4_digits):
         'limit': 1
     }
 
-    platform_connection = create_fyle_connection(org_id)
     credit_card_details = platform_connection.v1beta.admin.corporate_cards.list(query_params)['data']
 
     user_id = credit_card_details[0]['user_id'] if credit_card_details else None
@@ -120,151 +146,3 @@ def get_email_from_credit_card(org_id, credit_card_last_4_digits):
         return employee[0]['user']['email'] if employee else None
 
     return None
-
-
-def get_category_id(org_id:str, service: str):
-    """
-    get category id for the expense.
-    """
-    advance_settings = TravelperkAdvancedSetting.objects.filter(org_id=org_id).first()
-
-    service  = '{}s'.format(service.capitalize())
-    if service in advance_settings.category_mappings and advance_settings.category_mappings[service]:
-        return advance_settings.category_mappings[service]['id']
-    else:
-        return advance_settings.default_category_id
-
-
-def get_expense_purpose(org_id, lineitem) -> str:
-    """
-    purpose for expense in fyle
-    """
-
-    advanced_settings = TravelperkAdvancedSetting.objects.filter(org_id=org_id).first()
-    memo_structure = advanced_settings.description_structure
-
-    details = {
-        'trip_id': str(lineitem.trip_id) if lineitem.trip_id else '',
-        'trip_name': '{0}'.format(lineitem.trip_name) if lineitem.trip_name else '',
-        'traveler_name': '{0}'.format(lineitem.traveller_name) if lineitem.traveller_name else '',
-        'booker_name': '{0}'.format(lineitem.booker_name) if lineitem.booker_name else '',
-        'merchant_name': '{0}'.format(lineitem.vendor['name']) if lineitem.vendor else '',
-    }
-
-    purpose = ''
-
-    for id, field in enumerate(memo_structure):
-        if field in details:
-            purpose += details[field]
-            if id + 1 != len(memo_structure):
-                if details[field]:
-                    purpose = '{0} - '.format(purpose)
-
-    purpose = purpose.replace('<', '')
-    purpose = purpose.replace('>', '')
-
-    return purpose.rstrip(' - ')
-
-
-def construct_expense_payload(org_id: str, user_role: str, expense: dict, amount: int, employee_email: str = None):
-    """
-    Construct a payload for creating an expense.
-
-    Parameters:
-        user_role (str): Role of the user (e.g., 'TRAVELLER', 'BOOKER').
-        expense (dict): Expense details.
-        amount (int): Amount of the expense.
-        employee_email (str): Employee's email address.
-
-    Returns:
-        dict: Expense payload.
-    """
-
-    purpose = get_expense_purpose(org_id, expense)
-    category_id = get_category_id(org_id, expense.service.lower())
-
-    payload = {
-        'data': {
-            'source': 'CORPORATE_CARD',
-            'spent_at': str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)),
-            'purpose': purpose,
-            'merchant': expense.vendor['name'] if expense.vendor else '',
-            'category_id': category_id,
-        }
-    }
-
-    if user_role in ['TRAVELLER', 'BOOKER', 'CARD_HOLDER'] and employee_email:
-        payload['data']['assignee_user_email'] = employee_email
-        payload['data']['admin_amount'] = amount
-    else:
-        payload['data']['claim_amount'] = amount
-
-    return payload
-
-
-def create_invoice_lineitems(org_id, expense, user_role, amount):
-    """
-    Function to create a single or multiple line expenses based on the user role.
-
-    Parameters:
-        org_id (str): Organization ID.
-        expense (object): Expense object.
-        user_role (str): Role of the user (e.g., 'TRAVELLER', 'BOOKER').
-        amount (int): Amount of the expense.
-
-    Returns:
-        object: Created expense object.
-    """
-
-    # Determine the employee's email based on the user role
-    if user_role in ['TRAVELLER', 'BOOKER']:
-        travelperk_employee = getattr(expense, ROLE_EMAIL_MAPPING.get(user_role, None))
-        employee_email = get_employee_email(org_id, travelperk_employee)
-    else:
-        employee_email = get_email_from_credit_card(org_id, expense.credit_card_last_4_digits)
-
-    # Create the payload for the expense
-    payload = construct_expense_payload(org_id, user_role, expense, amount, employee_email)
-
-    # Establish a connection to the Fyle platform
-    platform_connection = create_fyle_connection(org_id)
-
-    # Post the expense to the appropriate endpoint based on the presence of an employee email
-    if employee_email:
-        expense = platform_connection.v1beta.admin.expenses.post(payload)
-    else:
-        expense = platform_connection.v1beta.spender.expenses.post(payload)
-
-    return expense
-
-
-def create_expense_against_employee(org_id, invoice_lineitems, user_role, advanced_settings):
-    """
-    Function to create expenses against an employee based on the invoice line item structure.
-
-    Parameters:
-        org_id (str): Organization ID.
-        invoice_lineitems (list): List of expense objects.
-        user_role (str): Role of the user (e.g., 'TRAVELLER', 'BOOKER').
-        advanced_settings (object): Advanced settings object.
-
-    Returns:
-        object: Created expense object.
-    """
-
-    # Check if the invoice line item structure is 'MULTIPLE'
-    if advanced_settings.invoice_lineitem_structure == 'MULTIPLE':
-        for expense in invoice_lineitems:
-            created_expense = create_invoice_lineitems(org_id, expense, user_role, expense.total_amount)
-
-    else:
-        # Calculate the total amount for multiple line items
-        total_amount = sum([float(expense.total_amount) for expense in invoice_lineitems])
-
-        # Use the first expense as a representative for creating the expense against an employee
-        expense = invoice_lineitems[0]
-
-        # Create the expense against the employee with the total amount
-        created_expense = create_invoice_lineitems(org_id, expense, user_role, total_amount)
-
-    return created_expense
