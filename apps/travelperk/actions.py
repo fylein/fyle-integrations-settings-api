@@ -181,7 +181,7 @@ def construct_expense_payload(org_id: str, expense: dict, amount: int):
             'source': 'CORPORATE_CARD',
             'spent_at': str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)),
             'purpose': purpose,
-            'merchant': expense.vendor['name'] if expense.vendor else '',
+            'merchant': 'Travelperk',
             'category_id': category_id,
             'claim_amount': amount
         }
