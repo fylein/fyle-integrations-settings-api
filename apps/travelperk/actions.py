@@ -219,7 +219,7 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
     # Establish a connection to the Fyle platform
     
     created_expense = platform_connection.v1beta.spender.expenses.post(payload)
-    logger.info('expense created in fyle with payload: {}'.format(payload))
+    logger.info('expense created in fyle with org_id: {} and payload {}'.format(org_id, payload))
 
     if created_expense:
         imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
@@ -236,7 +236,7 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
                 }
             }
             created_expense = platform_connection.v1beta.admin.expenses.post(assign_payload)
-            logger.info('expense assigned to the traveller / booker: {}'.format(assign_payload))
+            logger.info('expense assigned to the traveller / booker with org_id:{} and payload {}'.format(org_id, assign_payload))
 
     return created_expense
 
