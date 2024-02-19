@@ -159,7 +159,7 @@ def get_expense_purpose(org_id, lineitem) -> str:
     return purpose.rstrip(' - ')
 
 
-def construct_expense_payload(org_id: str, user_role: str, expense: dict, amount: int, employee_email: str = None):
+def construct_expense_payload(org_id: str, expense: dict, amount: int):
     """
     Construct a payload for creating an expense.
 
@@ -214,12 +214,12 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
         employee_email = get_email_from_credit_card(platform_connection, expense.credit_card_last_4_digits)
 
     # Create the payload for the expense
-    payload = construct_expense_payload(org_id, user_role, expense, amount)
+    payload = construct_expense_payload(org_id, expense, amount)
 
     # Establish a connection to the Fyle platform
-    
-    created_expense = platform_connection.v1beta.spender.expenses.post(payload)
+
     logger.info('expense created in fyle with org_id: {} and payload {}'.format(org_id, payload))
+    created_expense = platform_connection.v1beta.spender.expenses.post(payload)
 
     if created_expense:
         imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
@@ -235,8 +235,9 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
                 'assignee_user_email': employee_email
                 }
             }
-            created_expense = platform_connection.v1beta.admin.expenses.post(assign_payload)
+
             logger.info('expense assigned to the traveller / booker with org_id:{} and payload {}'.format(org_id, assign_payload))
+            created_expense = platform_connection.v1beta.admin.expenses.post(assign_payload)
 
     return created_expense
 
