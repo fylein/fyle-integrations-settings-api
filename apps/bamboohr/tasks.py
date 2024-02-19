@@ -31,6 +31,15 @@ def update_employee(org_id: int, payload: dict):
     bamboohr_importer = BambooHrEmployeeImport(org_id=org_id)
     bamboohr_importer.sync_with_webhook(employee=employee)
 
+
+def send_employee_email_missing_failure_notification(org_id: int):
+    """
+    Send failure email to employees who don't have email associated with them
+    """
+    bamboo_hr_importer = BambooHrEmployeeImport(org_id=org_id)
+    bamboo_hr_importer.send_employee_email_missing_failure_notification()
+
+
 def schedule_sync_employees(org_id):
     """
     Create schedule to sync employees every 6 hours
@@ -56,3 +65,20 @@ def delete_sync_employee_schedule(org_id):
 
     if schedule:
         schedule.delete()
+
+
+def schedule_failure_emails_for_employees(org_id):
+    """
+    Schedule failure emails for employees who don't have email associated with them
+    Runs once every week
+    """
+
+    Schedule.objects.update_or_create(
+        func = 'apps.bamboohr.tasks.send_employee_email_missing_failure_notification',
+        args = '{}'.format(org_id),
+        defaults={
+                'schedule_type': Schedule.MINUTES,
+                'minutes': 7 * 24 * 60,
+                'next_run': datetime.now()
+        }
+    )

@@ -8,7 +8,7 @@ from rest_framework import generics
 from apps.orgs.models import Org
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
-from apps.bamboohr.tasks import delete_sync_employee_schedule
+from apps.bamboohr.tasks import delete_sync_employee_schedule, schedule_failure_emails_for_employees
 
 from django_q.tasks import async_task
 
@@ -195,6 +195,8 @@ class SyncEmployeesView(generics.UpdateAPIView):
     def post(self, request, *args, **kwargs):
     
         async_task('apps.bamboohr.tasks.import_employees', kwargs['org_id'])
+
+        schedule_failure_emails_for_employees(kwargs['org_id'])
 
         return Response(
             data = {'message': 'success'},
