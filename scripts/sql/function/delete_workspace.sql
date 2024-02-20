@@ -25,6 +25,26 @@ BEGIN
     RAISE NOTICE 'Deleted % bamboohr_configurations', rcount;
 
     DELETE
+    FROM travelperk_credentials tcd
+    WHERE tcd.org_id = _org_id;
+    GET DIAGNOSTICS rcount = ROW_COUNT;
+    RAISE NOTICE 'Deleted % travelperk_credentials', rcount;
+
+    DELETE
+    FROM invoice_line_items ilt
+    WHERE ilt.invoice_id IN (
+        SELECT il.id FROM invoices il WHERE il.org_id = _org_id
+    );
+    GET DIAGNOSTICS rcount = ROW_COUNT;
+    RAISE NOTICE 'Deleted % invoice_line_items', rcount;
+
+    DELETE
+    FROM invoices i
+    WHERE i.org_id = _org_id;
+    GET DIAGNOSTICS rcount = ROW_COUNT;
+    RAISE NOTICE 'Deleted % invoices', rcount;
+
+    DELETE
     FROM travelperk_configurations tc
     WHERE tc.org_id = _org_id;
     GET DIAGNOSTICS rcount = ROW_COUNT;
@@ -35,6 +55,30 @@ BEGIN
     WHERE fc.org_id = _org_id;
     GET DIAGNOSTICS rcount = ROW_COUNT;
     RAISE NOTICE 'Deleted % fyle_credentials', rcount;
+
+    DELETE
+    FROM travelperk_profile_mappings tpm
+    WHERE tpm.org_id = _org_id;
+    GET DIAGNOSTICS rcount = ROW_COUNT;
+    RAISE NOTICE 'Deleted % travelperk_profile_mappings', rcount;
+
+    DELETE
+    FROM imported_expense_details ied
+    WHERE ied.org_id = _org_id;
+    GET DIAGNOSTICS rcount = ROW_COUNT;
+    RAISE NOTICE 'Deleted % imported_expense_details', rcount;
+
+    DELETE
+    FROM travelperk_advanced_settings tas
+    WHERE tas.org_id = _org_id;
+    GET DIAGNOSTICS rcount = ROW_COUNT;
+    RAISE NOTICE 'Deleted % travelperk_advanced_settings', rcount;
+
+    DELETE
+    FROM expense_attributes ea
+    WHERE ea.org_id = _org_id;
+    GET DIAGNOSTICS rcount = ROW_COUNT;
+    RAISE NOTICE 'Deleted % expense_attributes', rcount;
 
     DELETE
     FROM auth_tokens aut

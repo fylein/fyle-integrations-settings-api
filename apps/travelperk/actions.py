@@ -218,10 +218,8 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
 
     # Establish a connection to the Fyle platform
     
-    print('payload', payload, org_id)
     logger.info('expense created in fyle with org_id: {} and payload {}'.format(org_id, payload))
     created_expense = platform_connection.v1beta.spender.expenses.post(payload)
-    print('expense created', created_expense)
     if created_expense:
         imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
             expense_id=created_expense['data']['id'],
@@ -258,7 +256,6 @@ def create_expense_against_employee(org_id, invoice, invoice_lineitems, user_rol
     """
 
     # Check if the invoice line item structure is 'MULTIPLE'
-    print('creatin expense for org_id: ', org_id)
     if advanced_settings.invoice_lineitem_structure == 'MULTIPLE':
         for expense in invoice_lineitems:
             created_expense = create_invoice_lineitems(org_id, invoice, expense, user_role, expense.total_amount)
@@ -282,7 +279,6 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
     """
     profile_mapping = TravelperkProfileMapping.objects.filter(org_id=org_id, profile_name=invoice.profile_name).first()
     advanced_settings = TravelperkAdvancedSetting.objects.filter(org_id=org_id).first()
-    print('advanced settings', advanced_settings.invoice_lineitem_structure)
     if profile_mapping and advanced_settings:
         create_expense_against_employee(org_id, invoice, invoice_lineitems, profile_mapping.user_role, advanced_settings)
     else:
