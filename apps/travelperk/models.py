@@ -29,7 +29,7 @@ def get_default_onboarding_state():
 
 def default_category_mappings():
     "Default Category Mappings"
-    return {'Flights': None, 'Stays': None, 'Trains': None, 'Cars': None}
+    return {'Flights': None, 'Hotels': None, 'Trains': None, 'Cars': None}
 
 
 class TravelperkCredential(models.Model):
