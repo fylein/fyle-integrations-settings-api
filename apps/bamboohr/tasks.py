@@ -54,6 +54,9 @@ def schedule_sync_employees(org_id):
         }
     )
 
+    schedule_failure_emails_for_employees(org_id)
+
+
 def delete_sync_employee_schedule(org_id):
     """
     Delete schedule when bamboohr is disconnected

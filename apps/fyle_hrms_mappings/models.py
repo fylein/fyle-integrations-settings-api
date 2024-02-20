@@ -69,7 +69,7 @@ class DestinationAttribute(models.Model):
         }
 
         existing_attributes = DestinationAttribute.objects.filter(**filters)\
-            .values('id', 'destination_id', 'value', 'detail', 'active', 'is_failure_email_sent')
+            .values('id', 'destination_id', 'value', 'detail', 'active')
 
         existing_attribute_destination_ids = []
 
@@ -81,8 +81,7 @@ class DestinationAttribute(models.Model):
                 'id': existing_attribute['id'],
                 'value': existing_attribute['value'],
                 'detail': existing_attribute['detail'],
-                'active': existing_attribute['active'],
-                'is_failure_email_sent': existing_attribute['is_failure_email_sent']
+                'active': existing_attribute['active']
             }
 
         attributes_to_be_created = []
@@ -100,8 +99,7 @@ class DestinationAttribute(models.Model):
                         destination_id=attribute['destination_id'],
                         detail=attribute['detail'] if 'detail' in attribute else None,
                         org_id=org_id,
-                        active=attribute['active'] if 'active' in attribute else None,
-                        is_failure_email_sent=attribute['is_failure_email_sent'] if 'is_failure_email_sent' in attribute else False
+                        active=attribute['active'] if 'active' in attribute else None
                     )
                 )
             else:
@@ -111,10 +109,6 @@ class DestinationAttribute(models.Model):
                         ('detail' in attribute and attribute['detail'] != primary_key_map[attribute['destination_id']]['detail'])
                         or
                         ('active' in attribute and attribute['active'] != primary_key_map[attribute['destination_id']]['active'])
-                        or
-                        (
-                            'is_failure_email_sent' in attribute and attribute['is_failure_email_sent'] != primary_key_map[attribute['destination_id']]['is_failure_email_sent']
-                        )
                     ):
                         attributes_to_be_updated.append(
                             DestinationAttribute(
@@ -122,7 +116,6 @@ class DestinationAttribute(models.Model):
                                 value=attribute['value'],
                                 detail=attribute['detail'] if 'detail' in attribute else None,
                                 active=attribute['active'] if 'active' in attribute else None,
-                                is_failure_email_sent=attribute['is_failure_email_sent'] if 'is_failure_email_sent' in attribute else False,
                                 updated_at=datetime.now(),
                             )
                         )
@@ -131,7 +124,7 @@ class DestinationAttribute(models.Model):
 
         if attributes_to_be_updated:
             DestinationAttribute.objects.bulk_update(
-                attributes_to_be_updated, fields=['detail', 'value', 'active', 'is_failure_email_sent', 'updated_at',], batch_size=50)
+                attributes_to_be_updated, fields=['detail', 'value', 'active', 'updated_at',], batch_size=50)
 
 class ExpenseAttribute(models.Model):
     """

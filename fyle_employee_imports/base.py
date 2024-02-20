@@ -9,7 +9,7 @@ from fyle_rest_auth.models import AuthToken
 
 from apps.bamboohr.email import send_failure_notification_email
 from django.conf import settings
-
+from django.db.models import Q
 
 class FyleEmployeeImport():
 
@@ -172,29 +172,17 @@ class FyleEmployeeImport():
         self.fyle_employee_import(hrms_employees)
 
     def send_employee_email_missing_failure_notification(self):
-        self.sync_fyle_employees()
-        self.sync_hrms_employees(is_incremental_sync=False)
-
         hrms_employees = DestinationAttribute.objects.filter(
+            Q(detail__email=None) | Q(detail__email=''),
             attribute_type='EMPLOYEE',
             org_id=self.org_id,
             is_failure_email_sent=False
-        ).order_by('value', 'id')
+        ).values('detail__full_name', 'destination_id').order_by('value', 'id')
 
-        employee_to_be_notified: List = []
-        update_employee_payload: List = []
-
-        for employee in hrms_employees:
-            if not employee.detail['email']:
-                update_employee_payload.append({
-                    'destination_id': employee.destination_id,
-                    'is_failure_email_sent': True,
-                    'attribute_type': 'EMPLOYEE',
-                    'value': employee.value,
-                    'detail': employee.detail,
-                    'active': employee.active
-                })
-                employee_to_be_notified.append({'name': employee.detail['full_name'], 'id': employee.destination_id})
+        employee_to_be_notified = [
+            {'name': employee['detail__full_name'], 'id': employee['destination_id']}
+            for employee in hrms_employees
+        ]
 
         if len(employee_to_be_notified) > 0:
             send_failure_notification_email(
@@ -203,9 +191,4 @@ class FyleEmployeeImport():
                 admin_email=self.get_admin_email()
             )
 
-            DestinationAttribute.bulk_create_or_update_destination_attributes(
-                attributes=update_employee_payload,
-                attribute_type='EMPLOYEE',
-                org_id=self.org_id,
-                update=True
-            )
+            hrms_employees.update(is_failure_email_sent=True)
