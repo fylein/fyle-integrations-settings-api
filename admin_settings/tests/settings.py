@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'fyle_rest_auth',
     'django_filters',
+    'django_q',
 
     # User Created Apps
     'apps.users',
