@@ -108,7 +108,7 @@ class ConnectTravelperkView(generics.CreateAPIView):
 
                 travelperk_webhook_data = {
                     'name': 'travelperk webhook invoice',
-                    'url':  settings.API_URL + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
+                    'url':  'https://google.com' + '/orgs/{}/travelperk/travelperk_webhook/'.format(kwargs['org_id']),
                     'secret': settings.TKWEBHOOKS_SECRET,
                     'events': [
                         'invoice.issued'
