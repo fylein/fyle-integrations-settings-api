@@ -21,6 +21,7 @@ class DestinationAttribute(models.Model):
     destination_id = models.CharField(max_length=255, help_text='Destination ID')
     auto_created = models.BooleanField(default=False,
                                         help_text='Indicates whether the field is auto created by the integration')
+    is_failure_email_sent = models.BooleanField(default=False, help_text='Indicates whether the failure email is sent')
 
     class Meta:
         db_table = 'destination_attributes'
@@ -80,7 +81,7 @@ class DestinationAttribute(models.Model):
                 'id': existing_attribute['id'],
                 'value': existing_attribute['value'],
                 'detail': existing_attribute['detail'],
-                'active' : existing_attribute['active']
+                'active': existing_attribute['active']
             }
 
         attributes_to_be_created = []
