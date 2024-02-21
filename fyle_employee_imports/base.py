@@ -173,7 +173,7 @@ class FyleEmployeeImport():
 
     def send_employee_email_missing_failure_notification(self):
         hrms_employees = DestinationAttribute.objects.filter(
-            Q(detail__email=None) | Q(detail__email=''),
+            Q(detail__email=None),
             attribute_type='EMPLOYEE',
             org_id=self.org_id,
             is_failure_email_sent=False
