@@ -37,6 +37,15 @@ class IntegrationSerializer(serializers.ModelSerializer):
             integration.is_active=False
             integration.disconnected_at=datetime.now()
             integration.save()
+        elif integration and validated_data['is_active']:
+            integration = Integration.objects.create(
+                org_id=validated_data['org_id'],
+                org_name=validated_data['org_name'],
+                type=validated_data['type'],
+                is_active=True,
+                tpa_id=validated_data['tpa_id'],
+                tpa_name=validated_data['tpa_name']
+            )
 
         return integration
 
