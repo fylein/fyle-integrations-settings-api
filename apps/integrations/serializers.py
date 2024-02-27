@@ -17,12 +17,8 @@ class IntegrationSerializer(serializers.ModelSerializer):
         :param validated_data: Validated data
         :return: upserted integrations object
         """
-        integration = Integration.objects.filter(
-            org_id=validated_data['org_id'],
-            type=validated_data['type']
-        ).first()
 
-        if not integration and validated_data['is_active']:
+        if validated_data['is_active']:
             integration = Integration.objects.create(
                 org_id=validated_data['org_id'],
                 org_name=validated_data['org_name'],
