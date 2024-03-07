@@ -231,8 +231,8 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
         if employee_email:
             assign_payload = {
             'data': {
-                'id': created_expense['data']['id'],
-                'assignee_user_email': employee_email
+                    'id': created_expense['data']['id'],
+                    'assignee_user_email': employee_email
                 }
             }
 
@@ -269,7 +269,7 @@ def create_expense_against_employee(org_id, invoice, invoice_lineitems, user_rol
         expense = invoice_lineitems[0]
 
         # Create the expense against the employee with the total amount
-        created_expense = create_invoice_lineitems(org_id, expense, user_role, total_amount)
+        created_expense = create_invoice_lineitems(org_id, invoice, expense, user_role, total_amount)
 
     return created_expense
 
