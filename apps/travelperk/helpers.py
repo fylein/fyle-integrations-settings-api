@@ -123,7 +123,7 @@ def check_for_transaction_in_fyle(platform_connection, expense, corporate_card_i
     - corporate_card_id: ID of the corporate card used for the transaction.
 
     Returns:
-    - True if a duplicate transaction is found, False otherwise.
+    - corporate card transaction
     """
 
     # Prepare query parameters
@@ -131,7 +131,7 @@ def check_for_transaction_in_fyle(platform_connection, expense, corporate_card_i
         'order': 'updated_at.asc',
         'corporate_card_id': f'eq.{corporate_card_id}',
         'amount': f'eq.{amount}',
-        #'spent_at': f'eq.{str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc))}',
+        'spent_at': f'eq.{str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc))}',
         'offset': 0,
         'limit': 1
     }
@@ -139,11 +139,11 @@ def check_for_transaction_in_fyle(platform_connection, expense, corporate_card_i
     # Fetch expense details from Fyle
     expense_details = platform_connection.v1beta.admin.corporate_card_transactions.list(query_params)['data']
 
-    # Return True if any expense details are found, False otherwise
+    # Return expense details from Fyle
     return expense_details
 
 
-def get_email_from_credit_card(platform_connection, expense, amount):
+def get_email_from_credit_card_and_match_transaction(platform_connection, expense, amount):
     """
     Get an email associated with a credit card based on its last 4 digits.
 
@@ -169,7 +169,7 @@ def get_email_from_credit_card(platform_connection, expense, amount):
     corporate_credit_card_id = credit_card_details[0]['id'] if credit_card_details else None
 
     # Check for matched transaction
-    matched_transaction_found = check_for_transaction_in_fyle(platform_connection, expense, corporate_credit_card_id, amount)
+    matched_transaction = check_for_transaction_in_fyle(platform_connection, expense, corporate_credit_card_id, amount)
     logger.info('matched transaction found for this expense with card digit: {}'.format(expense.credit_card_last_4_digits))
 
     # If user ID is found and no matched transaction is found
@@ -185,10 +185,10 @@ def get_email_from_credit_card(platform_connection, expense, amount):
         employee = platform_connection.v1beta.admin.employees.list(query_params)['data']
 
         # Return user's email and matched transaction status
-        return (employee[0]['user']['email'], matched_transaction_found)
+        return employee[0]['user']['email'], matched_transaction_found
 
     # Return None and matched transaction status if user ID is not found or a matched transaction is found
-    return (None, matched_transaction_found)
+    return None, matched_transaction_found
 
 
 def construct_file_ids(platform_connection, url):

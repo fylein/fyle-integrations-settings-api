@@ -20,7 +20,7 @@ from apps.travelperk.helpers import (
     download_file,
     upload_to_s3_presigned_url,
     get_employee_email,
-    get_email_from_credit_card,
+    get_email_from_credit_card_and_match_transaction,
     construct_file_ids
 )
 
@@ -213,20 +213,20 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
 
     # Establish a connection to the Fyle platform
     platform_connection = create_fyle_connection(org_id)
-    matched_transaction_found = []
+    matched_transaction = []
 
     # Determine the employee's email based on the user role
     if user_role in ['TRAVELLER', 'BOOKER']:
         travelperk_employee = getattr(expense, ROLE_EMAIL_MAPPING.get(user_role, None))
         employee_email = get_employee_email(platform_connection, travelperk_employee)
     else:
-        employee_email, matched_transaction_found = get_email_from_credit_card(platform_connection, expense, amount)
+        employee_email, matched_transaction = get_email_from_credit_card_and_match_transaction(platform_connection, expense, amount)
 
     file_ids = construct_file_ids(platform_connection, invoice.pdf)
+    payload = construct_expense_payload(org_id, expense, amount, file_ids, employee_email)
 
-    if not len(matched_transaction_found):
+    if not matched_transaction_found:
         # Create the payload for the expense
-        payload = construct_expense_payload(org_id, expense, amount, file_ids, employee_email)
         logger.info('expense created in fyle with org_id: {} and payload {}'.format(org_id, payload))
 
         if employee_email:
@@ -235,7 +235,6 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
             created_expense = platform_connection.v1beta.spender.expenses.post(payload)
 
     else:
-        payload = construct_expense_payload(org_id, expense, amount, file_ids, employee_email)
         payload['data']['id'] = matched_transaction_found[0]['matched_expense_ids'][0]
         created_expense = platform_connection.v1beta.admin.expenses.post(payload)
 
