@@ -73,7 +73,9 @@ fixture = {
             'purpose':'10205 - Flight to West Lisaville, Apr 12 - Apr 13 - Nilesh Pant - Nilesh Pant - Vueling',
             'merchant':'Travelperk',
             'category_id':'1234',
-            'claim_amount':'120.63'
+            'admin_amount':'120.63',
+            'file_ids': ['123'],
+            'assignee_user_email': 'johndoe@gmail.com'
         }
     }
 }
