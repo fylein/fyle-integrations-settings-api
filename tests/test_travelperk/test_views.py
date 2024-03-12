@@ -2,7 +2,7 @@
 import json
 import pytest
 from django.urls import reverse
-
+from unittest.mock import MagicMock
 
 from tests.helper import dict_compare_keys
 from .fixtures import fixture
@@ -36,3 +36,103 @@ def test_travelperk_get_view(api_client, access_token, get_org_id, get_travelper
 
     response = json.loads(response.content)
     assert response['message'] != None
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_get_profile_mappings(api_client, access_token, get_org_id, get_travelperk_id, get_profile_mappings):
+    """
+    Test Get of Travelperk
+    """
+    url = reverse('travelperk:profile-mappings',
+        kwargs={
+                'org_id': get_org_id,
+            }
+    )
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    response = api_client.get(url)
+    assert response.status_code == 200
+
+    response = json.loads(response.content)
+    assert response['results'][0]['profile_name'] == 'Dummy Profile'
+    assert dict_compare_keys(response['results'][0], fixture['profile_mapping']['results'][0]) == []
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_get_advanced_settings(api_client, access_token, get_org_id, get_travelperk_id, get_advanced_settings):
+    """
+    Test Get of Travelperk
+    """
+    url = reverse('travelperk:advance-settings-view',
+        kwargs={
+                'org_id': get_org_id,
+            }
+    )
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    response = api_client.get(url)
+    assert response.status_code == 200
+
+    response = json.loads(response.content)
+    assert dict_compare_keys(response, fixture['advanced_settings']) == []
+
+@pytest.mark.django_db(databases=['default'])
+def test_disconnect_travelperk(mocker, api_client, access_token, get_org_id, get_travelperk_id, add_travelperk_cred):
+    """
+    Test Disconnect Travelperk
+    """
+    url = reverse('travelperk:disconnect-travelperk',
+        kwargs={
+                'org_id': get_org_id,
+            }
+    )
+
+    mock_connector = MagicMock()
+    mock_connector.delete_webhook_connection.return_value = {'message': 'success'}
+
+    mocker.patch(
+        'apps.travelperk.views.TravelperkConnector',
+        return_value=mock_connector
+    )
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    response = api_client.post(url)
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_connect_travelperk(mocker, api_client, access_token, get_org_id, get_travelperk_id, add_travelperk_cred):
+    """
+    Test Connect Travelperk
+    """
+
+    url = reverse('travelperk:connect-travelperk',
+        kwargs={
+                'org_id': get_org_id,
+            }
+    )
+
+    mock_connector = MagicMock()
+    mock_connector.create_webhook.return_value = {'id': 123}
+
+    mocker.patch(
+        'apps.travelperk.views.TravelperkConnector',
+        return_value=mock_connector
+    )
+
+    mocker.patch(
+        'apps.travelperk.views.get_refresh_token_using_auth_code',
+        return_value={'123e3rwer'}
+    )
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    response = api_client.post(url)
+
+    assert response.status_code == 200
+
+    response = json.loads(response.content)
+    assert response['id'] == 123
