@@ -20,7 +20,8 @@ from apps.travelperk.helpers import (
     download_file,
     upload_to_s3_presigned_url,
     get_employee_email,
-    get_email_from_credit_card
+    get_email_from_credit_card_and_match_transaction,
+    construct_file_ids
 )
 
 
@@ -159,7 +160,7 @@ def get_expense_purpose(org_id, lineitem) -> str:
     return purpose.rstrip(' - ')
 
 
-def construct_expense_payload(org_id: str, expense: dict, amount: int):
+def construct_expense_payload(org_id: str, expense: dict, amount: int, file_ids: list, employee_email: str):
     """
     Construct a payload for creating an expense.
 
@@ -183,9 +184,15 @@ def construct_expense_payload(org_id: str, expense: dict, amount: int):
             'purpose': purpose,
             'merchant': 'Travelperk',
             'category_id': category_id,
-            'claim_amount': amount
+            'file_ids': file_ids
         }
     }
+    
+    if employee_email:
+        payload['data']['admin_amount'] = amount
+        payload['data']['assignee_user_email'] = employee_email
+    else:
+        payload['data']['claim_amount'] = amount
 
     return payload
 
@@ -204,42 +211,41 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
         object: Created expense object.
     """
 
-    # Determine the employee's email based on the user role
+    # Establish a connection to the Fyle platform
     platform_connection = create_fyle_connection(org_id)
+    matched_transaction = []
 
+    # Determine the employee's email based on the user role
     if user_role in ['TRAVELLER', 'BOOKER']:
         travelperk_employee = getattr(expense, ROLE_EMAIL_MAPPING.get(user_role, None))
         employee_email = get_employee_email(platform_connection, travelperk_employee)
     else:
-        employee_email = get_email_from_credit_card(platform_connection, expense.credit_card_last_4_digits)
+        employee_email, matched_transaction = get_email_from_credit_card_and_match_transaction(platform_connection, expense, amount)
 
-    # Create the payload for the expense
-    payload = construct_expense_payload(org_id, expense, amount)
+    file_ids = construct_file_ids(platform_connection, invoice.pdf)
+    payload = construct_expense_payload(org_id, expense, amount, file_ids, employee_email)
 
-    # Establish a connection to the Fyle platform
-    
-    logger.info('expense created in fyle with org_id: {} and payload {}'.format(org_id, payload))
-    created_expense = platform_connection.v1beta.spender.expenses.post(payload)
-    if created_expense:
-        imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
-            expense_id=created_expense['data']['id'],
-            org_id=org_id
-        )
+    if not matched_transaction:
+        # Create the payload for the expense
+        logger.info('expense created in fyle with org_id: {} and payload {}'.format(org_id, payload))
 
-        attach_reciept_to_expense(created_expense['data']['id'], invoice, imported_expense, platform_connection)
         if employee_email:
-            assign_payload = {
-            'data': {
-                    'id': created_expense['data']['id'],
-                    'assignee_user_email': employee_email
-                }
-            }
+            created_expense = platform_connection.v1beta.admin.expenses.post(payload)
+        else:
+            created_expense = platform_connection.v1beta.spender.expenses.post(payload)
 
-            logger.info('expense assigned to the traveller / booker with org_id:{} and payload {}'.format(org_id, assign_payload))
-            created_expense = platform_connection.v1beta.admin.expenses.post(assign_payload)
+    else:
+        payload['data']['id'] = matched_transaction[0]['matched_expense_ids'][0]
+        created_expense = platform_connection.v1beta.admin.expenses.post(payload)
 
-    return created_expense
+    imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
+        expense_id=created_expense['data']['id'],
+        is_reciept_attached=True,
+        file_id=file_ids[0],
+        org_id=org_id
+    )
 
+    return imported_expense
 
 def create_expense_against_employee(org_id, invoice, invoice_lineitems, user_role, advanced_settings):
     """
