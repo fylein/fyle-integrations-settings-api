@@ -173,7 +173,7 @@ def get_email_from_credit_card_and_match_transaction(platform_connection, expens
     logger.info('matched transaction found for this expense with card digit: {}'.format(expense.credit_card_last_4_digits))
 
     # If user ID is found and no matched transaction is found
-    if user_id and not matched_transaction_found:
+    if user_id and not matched_transaction:
         # Query employee details based on user ID
         query_params = {
             'user_id': f'eq.{user_id}',
@@ -185,10 +185,10 @@ def get_email_from_credit_card_and_match_transaction(platform_connection, expens
         employee = platform_connection.v1beta.admin.employees.list(query_params)['data']
 
         # Return user's email and matched transaction status
-        return employee[0]['user']['email'], matched_transaction_found
+        return employee[0]['user']['email'], matched_transaction
 
     # Return None and matched transaction status if user ID is not found or a matched transaction is found
-    return None, matched_transaction_found
+    return None, matched_transaction
 
 
 def construct_file_ids(platform_connection, url):
