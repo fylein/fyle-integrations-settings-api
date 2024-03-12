@@ -65,5 +65,15 @@ fixture = {
             }
         },
         'org': 7
+    },
+    'payload': {
+        'data': {
+            'source':'CORPORATE_CARD',
+            'spent_at':'2024-03-10 00:00:00+00:00',
+            'purpose':'10205 - Flight to West Lisaville, Apr 12 - Apr 13 - Nilesh Pant - Nilesh Pant - Vueling',
+            'merchant':'Travelperk',
+            'category_id':'1234',
+            'claim_amount':'120.63'
+        }
     }
 }
