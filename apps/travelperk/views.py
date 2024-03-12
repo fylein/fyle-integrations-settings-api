@@ -101,7 +101,6 @@ class ConnectTravelperkView(generics.CreateAPIView):
         try:
             org = Org.objects.get(id=kwargs['org_id'])
             refresh_token = get_refresh_token_using_auth_code(request.data.get('code'), kwargs['org_id'])
-            print('resfres token', refresh_token)
             if refresh_token:
                 travelperk_credential = TravelperkCredential.objects.get(org=org)
                 travelperk_connection = TravelperkConnector(travelperk_credential, kwargs['org_id'])
