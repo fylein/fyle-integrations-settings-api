@@ -225,7 +225,7 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
     file_ids = construct_file_ids(platform_connection, invoice.pdf)
     payload = construct_expense_payload(org_id, expense, amount, file_ids, employee_email)
 
-    if not matched_transaction_found:
+    if not matched_transaction:
         # Create the payload for the expense
         logger.info('expense created in fyle with org_id: {} and payload {}'.format(org_id, payload))
 
@@ -235,7 +235,7 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
             created_expense = platform_connection.v1beta.spender.expenses.post(payload)
 
     else:
-        payload['data']['id'] = matched_transaction_found[0]['matched_expense_ids'][0]
+        payload['data']['id'] = matched_transaction[0]['matched_expense_ids'][0]
         created_expense = platform_connection.v1beta.admin.expenses.post(payload)
 
     imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
