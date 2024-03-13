@@ -39,7 +39,7 @@ def test_travelperk_get_view(api_client, access_token, get_org_id, get_travelper
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_get_profile_mappings(api_client, access_token, get_org_id, get_travelperk_id, get_profile_mappings):
+def test_get_profile_mappings(api_client, access_token, get_org_id, get_travelperk_id):
     """
     Test Get of Travelperk
     """
@@ -51,6 +51,21 @@ def test_get_profile_mappings(api_client, access_token, get_org_id, get_travelpe
 
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
+    payload = [
+            {
+                "profile_name": 'Dummy Profile',
+                "is_import_enabled": False,
+                "user_role": "CARD_HOLDER"
+            }
+        ]
+
+    response = api_client.post(url, payload, format='json')
+    assert response.status_code == 200
+
+    response = json.loads(response.content)
+    assert response[0]['profile_name'] == 'Dummy Profile'
+
+
     response = api_client.get(url)
     assert response.status_code == 200
 
@@ -60,7 +75,7 @@ def test_get_profile_mappings(api_client, access_token, get_org_id, get_travelpe
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_get_advanced_settings(api_client, access_token, get_org_id, get_travelperk_id, get_advanced_settings):
+def test_get_advanced_settings(mocker, api_client, access_token, get_org_id, get_travelperk_id, get_advanced_settings):
     """
     Test Get of Travelperk
     """
@@ -77,6 +92,27 @@ def test_get_advanced_settings(api_client, access_token, get_org_id, get_travelp
 
     response = json.loads(response.content)
     assert dict_compare_keys(response, fixture['advanced_settings']) == []
+
+    advanced_settings = get_advanced_settings
+    advanced_settings.default_employee_name = None
+    advanced_settings.default_employee_id = None
+    advanced_settings.save()
+
+    mock_connector = MagicMock()
+    mock_connector.connection.v1beta.spender.my_profile.get.return_value = {'data': {'user': {'email': 'janedoe@gmail.com', 'id': '1234'}}}
+
+    mocker.patch(
+        'apps.travelperk.views.PlatformConnector',
+        return_value=mock_connector
+    )
+
+    response = api_client.get(url)
+    assert response.status_code == 200
+
+    response = json.loads(response.content)
+    assert response['default_employee_name'] == 'janedoe@gmail.com'
+    assert response['default_employee_id'] == '1234'
+
 
 @pytest.mark.django_db(databases=['default'])
 def test_disconnect_travelperk(mocker, api_client, access_token, get_org_id, get_travelperk_id, add_travelperk_cred):

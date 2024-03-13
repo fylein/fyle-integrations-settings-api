@@ -184,6 +184,9 @@ def get_advanced_settings(get_org_id):
         description_structure='{trip_id,trip_name,traveler_name,booker_name,merchant_name}'
     )
 
+    return advanced_settings
+
+
 @pytest.fixture()
 def add_travelperk_cred(get_org_id):
     travelperk_cred = TravelperkCredential.objects.create(
