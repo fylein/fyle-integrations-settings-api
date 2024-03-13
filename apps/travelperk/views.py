@@ -32,7 +32,6 @@ from apps.travelperk.models import (
     TravelperkAdvancedSetting
 )
 from apps.travelperk.connector import TravelperkConnector
-from apps.orgs.exceptions import handle_fyle_exceptions
 from apps.travelperk.helpers import get_refresh_token_using_auth_code
 from apps.users.helpers import PlatformConnector
 
@@ -144,7 +143,6 @@ class TravelperkWebhookAPIView(generics.CreateAPIView):
     authentication_classes = []
     permission_classes = []
 
-    @handle_fyle_exceptions()
     def create(self, request, *args, **kwargs):
         
         payload = request.data
