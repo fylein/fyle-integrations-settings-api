@@ -77,5 +77,38 @@ fixture = {
             'file_ids': ['123'],
             'assignee_user_email': 'johndoe@gmail.com'
         }
+    },
+    'advance_setting_payload': {
+        "default_employee_name": "ashwin.t@fyle.in",
+        "default_employee_id": "usqywo0f3nBY",
+        "default_category_name": "Historical Adjustment",
+        "default_category_id": "292516",
+        "invoice_lineitem_structure": "MULTIPLE",
+        "description_structure": [
+            "trip_id",
+            "trip_name",
+            "traveler_name",
+            "booker_name",
+            "merchant_name"
+        ],
+        "category_mappings": {
+            "Cars": {
+                "name": "Wages Payable",
+                "id": "292527"
+            },
+            "Hotels": {
+                "name": "Taxes",
+                "id": "274629"
+            },
+            "Trains": {
+                "name": "Utilities",
+                "id": "135646"
+            },
+            "Flights": {
+                "name": "Unpaid Expense Claims",
+                "id": "292526"
+            }
+        },
+        "org": 360
     }
 }

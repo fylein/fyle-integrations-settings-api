@@ -147,7 +147,7 @@ def get_travelperk(get_org_id):
         is_travelperk_connected = True
     )
 
-    return travelperk.id
+    return travelperk
 
 @pytest.fixture()
 def get_travelperk_id(get_org_id):

@@ -4,6 +4,7 @@ import pytest
 from django.urls import reverse
 from unittest.mock import MagicMock
 
+from apps.travelperk.models import TravelperkAdvancedSetting
 from tests.helper import dict_compare_keys
 from .fixtures import fixture
 
@@ -75,7 +76,7 @@ def test_get_profile_mappings(api_client, access_token, get_org_id, get_travelpe
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_get_advanced_settings(mocker, api_client, access_token, get_org_id, get_travelperk_id, get_advanced_settings):
+def test_get_advanced_settings(mocker, api_client, access_token, get_org_id, get_travelperk):
     """
     Test Get of Travelperk
     """
@@ -85,15 +86,19 @@ def test_get_advanced_settings(mocker, api_client, access_token, get_org_id, get
             }
     )
 
+    travelperk = get_travelperk
+    travelperk.onboarding_state = 'ADVANCED_SETTINGS'
+    travelperk.save()
+
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    response = api_client.get(url)
-    assert response.status_code == 200
+    payload = fixture['advance_setting_payload']
+    payload['org'] = get_org_id
 
-    response = json.loads(response.content)
-    assert dict_compare_keys(response, fixture['advanced_settings']) == []
+    response = api_client.post(url, payload, format='json')
+    assert response.status_code == 201
 
-    advanced_settings = get_advanced_settings
+    advanced_settings = TravelperkAdvancedSetting.objects.get(org=get_org_id)
     advanced_settings.default_employee_name = None
     advanced_settings.default_employee_id = None
     advanced_settings.save()
