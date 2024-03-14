@@ -27,11 +27,13 @@ services:
       FYLE_REFRESH_TOKEN: dummy
       FYLE_TOKEN_URI: https://lolo.fyle.tech
       APP_WK_ORIGIN: https://app.workato.com
+      TRAVELPERK_ENVIRONMENT: sandbox
       WK_API_PLATFORM_KEY: ""
       WK_PARTNER_EMAIL: ""
       WK_JWT_PRIVATE_KEY: ""
       WK_API_KEY: ""
       WK_CUSTOMER_ID: ""
+      TKWEBHOOKS_SECRET: '12345'
       TRAVELPERK_REDIRECT_URI: https://lolo.fyle.tech
   db:
     image: "postgres:15"

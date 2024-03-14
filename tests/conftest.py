@@ -7,7 +7,7 @@ from admin_settings import settings
 
 from tests.fixture import fixture
 from apps.orgs.models import Org, FyleCredential
-from apps.travelperk.models import TravelPerk
+from apps.travelperk.models import TravelPerk, TravelperkProfileMapping, TravelperkAdvancedSetting, TravelperkCredential
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 
 @pytest.fixture
@@ -145,3 +145,30 @@ def get_travelperk_id(get_org_id):
     )
 
     return travelperk.id
+
+@pytest.fixture()
+def get_profile_mappings(get_org_id):
+    mappings = TravelperkProfileMapping.objects.create(
+        org=Org.objects.get(id=get_org_id),
+        profile_name='Dummy Profile',
+        user_role='BOOKER',
+        is_import_enabled=False,
+        source_id='1234',
+        currency='USD'
+    )
+
+@pytest.fixture()
+def get_advanced_settings(get_org_id):
+    advanced_settings = TravelperkAdvancedSetting.objects.create(
+        org=Org.objects.get(id=get_org_id),
+        default_employee_name='dummy@gmail.com',
+        default_employee_id='1234',
+        invoice_lineitem_structure='MULTIPLE',
+    )
+
+@pytest.fixture()
+def add_travelperk_cred(get_org_id):
+    travelperk_cred = TravelperkCredential.objects.create(
+        org=Org.objects.get(id=get_org_id),
+        refresh_token='12312rwer'
+    )
