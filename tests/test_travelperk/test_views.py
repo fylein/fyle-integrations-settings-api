@@ -8,6 +8,7 @@ from apps.travelperk.models import TravelperkAdvancedSetting
 from tests.helper import dict_compare_keys
 from .fixtures import fixture
 
+
 @pytest.mark.django_db(databases=['default'])
 def test_travelperk_get_view(api_client, access_token, get_org_id, get_travelperk_id):
     """
