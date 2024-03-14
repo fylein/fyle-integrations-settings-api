@@ -99,7 +99,7 @@ class SyncCategories(generics.CreateAPIView):
     authentication_classes = []
     permission_classes = []
 
-    @handle_fyle_exceptions()
+    @handle_fyle_exceptions(task_name='import categories name from fyle')
     def create(self, request, *args, **kwargs):
 
         async_task(import_categories, org_id=kwargs['org_id'])

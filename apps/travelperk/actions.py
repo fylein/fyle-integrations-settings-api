@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from fyle.platform import Platform
 
-
+from apps.orgs.exceptions import handle_fyle_exceptions
 from apps.travelperk.models import (
     Invoice, 
     InvoiceLineItem, 
@@ -197,6 +197,7 @@ def construct_expense_payload(org_id: str, expense: dict, amount: int, file_ids:
     return payload
 
 
+@handle_fyle_exceptions(task_name='create expense in fyle')
 def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
     """
     Function to create a single or multiple line expenses based on the user role.
@@ -246,6 +247,7 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
     )
 
     return imported_expense
+
 
 def create_expense_against_employee(org_id, invoice, invoice_lineitems, user_role, advanced_settings):
     """
