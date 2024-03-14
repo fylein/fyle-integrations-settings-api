@@ -10,6 +10,7 @@ from fyle_rest_auth.models import AuthToken
 from fyle_rest_auth.helpers import get_fyle_admin
 from apps.users.helpers import get_cluster_domain
 from apps.orgs.models import FyleCredential, Org, User
+from apps.fyle_hrms_mappings.models import ExpenseAttribute
 
 User = get_user_model()
 
@@ -57,3 +58,14 @@ class OrgSerializer(serializers.ModelSerializer):
             )
 
         return org
+
+
+class ExpenseAttributeSerializer(serializers.ModelSerializer):
+    """
+    Destination Attribute serializer
+    """
+    id = serializers.IntegerField(allow_null=True)
+
+    class Meta:
+        model = ExpenseAttribute
+        fields = '__all__'

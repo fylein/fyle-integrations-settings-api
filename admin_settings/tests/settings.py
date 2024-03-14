@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'fyle_rest_auth',
     'django_filters',
+    'django_q',
 
     # User Created Apps
     'apps.users',
@@ -91,7 +92,9 @@ FYLE_REST_AUTH_SERIALIZERS = {
     'USER_DETAILS_SERIALIZER': 'apps.users.serializers.UserSerializer'
 }
 
-FYLE_REST_AUTH_SETTINGS = {'async_update_user': True}
+FYLE_REST_AUTH_SETTINGS = {
+    'async_update_user_settings_api': True    
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -228,10 +231,12 @@ BASE_URI = os.environ.get('BASE_URI')
 
 TRAVELPERK_CLIENT_ID = os.environ.get('TRAVELPERK_CLIENT_ID')
 TRAVELPERK_CLIENT_SECRET = os.environ.get('TRAVELPERK_CLIENT_SECRET')
+TRAVELPERK_ENVIRONMENT = os.environ.get('TRAVELPERK_ENVIRONMENT')
 TRAVELPERK_AUTH_URL = os.environ.get('TRAVELPERK_AUTH_URL')
 TRAVELPERK_TOKEN_URL = os.environ.get('TRAVELPERK_TOKEN_URL')
 TRAVELPERK_BASE_URL = os.environ.get('TRAVELPERK_BASE_URL')
 TRAVELPERK_REDIRECT_URI = os.environ.get('TRAVELPERK_REDIRECT_URI')
+TKWEBHOOKS_SECRET = os.environ.get('TKWEBHOOKS_SECRET')
 FYLE_NOTIFICATIONS_EMAIL = os.environ.get('FYLE_NOTIFICATIONS_EMAIL')
 
 FYLE_REFRESH_TOKEN = os.environ.get('FYLE_REFRESH_TOKEN')

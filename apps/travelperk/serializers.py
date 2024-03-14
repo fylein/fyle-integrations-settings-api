@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
+from apps.travelperk.models import TravelPerk, InvoiceLineItem
 from apps.travelperk.connector import TravelperkConnector
-from apps.orgs.models import Org
 from apps.travelperk.models import (
     TravelPerk, 
     InvoiceLineItem, 
@@ -33,12 +33,24 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TravelperkAdvancedSetting
-        fields = '__all__'
+        fields = [
+            'default_employee_name',
+            'default_employee_id',
+            'default_category_name',
+            'default_category_id',
+            'invoice_lineitem_structure',
+            'description_structure',
+            'category_mappings',
+            'org'
+        ]
+        read_only_fields = ('id', 'org', 'created_at', 'updated_at')
+
 
     def create(self, validated_data):
         """
         Create Advanced Settings
         """
+
         org_id = self.context['request'].parser_context.get('kwargs').get('org_id')
         advanced_setting = TravelperkAdvancedSetting.objects.filter(
             org_id=org_id
@@ -58,6 +70,13 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
             org_id=org_id,
             defaults=validated_data
         )
+        
+        travelperk = TravelPerk.objects.filter(org_id=org_id).first()
+        if travelperk.onboarding_state == 'ADVANCED_SETTINGS':
+            travelperk.onboarding_state = 'COMPLETE'
+            travelperk.save()
+
+        return advanced_setting
 
 
 class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
@@ -65,7 +84,6 @@ class TravelperkProfileMappingSerializer(serializers.ModelSerializer):
     class Meta:
         model = TravelperkProfileMapping
         fields = '__all__'
-
 
 
 class SyncPaymentProfileSerializer(serializers.Serializer):
@@ -81,4 +99,5 @@ class SyncPaymentProfileSerializer(serializers.Serializer):
         travelperk_credentials = TravelperkCredential.objects.get(org_id=org_id)
 
         travelperk_connection = TravelperkConnector(travelperk_credentials, org_id)
-        travelperk_connection.sync_invoice_profile()
+        payment_profiles = travelperk_connection.sync_invoice_profile()
+        return payment_profiles

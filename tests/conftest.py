@@ -6,9 +6,23 @@ from rest_framework.test import APIClient
 from admin_settings import settings
 
 from tests.fixture import fixture
-from apps.orgs.models import Org, FyleCredential
-from apps.travelperk.models import TravelPerk
-from apps.bamboohr.models import BambooHr, BambooHrConfiguration
+from apps.orgs.models import (
+    Org,
+    FyleCredential
+)
+from apps.bamboohr.models import (
+    BambooHr,
+    BambooHrConfiguration
+)
+from apps.travelperk.models import (
+    TravelPerk,
+    TravelperkProfileMapping,
+    TravelperkAdvancedSetting,
+    TravelperkCredential,
+    Invoice,
+    InvoiceLineItem
+)
+
 
 @pytest.fixture
 def api_client():
@@ -133,7 +147,7 @@ def get_travelperk(get_org_id):
         is_travelperk_connected = True
     )
 
-    return travelperk.id
+    return travelperk
 
 @pytest.fixture()
 def get_travelperk_id(get_org_id):
@@ -145,3 +159,49 @@ def get_travelperk_id(get_org_id):
     )
 
     return travelperk.id
+
+@pytest.fixture()
+def get_profile_mappings(get_org_id):
+    profile_mappings = TravelperkProfileMapping.objects.create(
+        org=Org.objects.get(id=get_org_id),
+        profile_name='Dummy Profile',
+        user_role='BOOKER',
+        is_import_enabled=False,
+        source_id='1234',
+        currency='USD'
+    )
+
+    return profile_mappings
+
+
+@pytest.fixture()
+def get_advanced_settings(get_org_id):
+    advanced_settings = TravelperkAdvancedSetting.objects.create(
+        org=Org.objects.get(id=get_org_id),
+        default_employee_name='dummy@gmail.com',
+        default_employee_id='1234',
+        invoice_lineitem_structure='MULTIPLE',
+        description_structure='{trip_id,trip_name,traveler_name,booker_name,merchant_name}'
+    )
+
+    return advanced_settings
+
+
+@pytest.fixture()
+def add_travelperk_cred(get_org_id):
+    travelperk_cred = TravelperkCredential.objects.create(
+        org=Org.objects.get(id=get_org_id),
+        refresh_token='12312rwer'
+    )
+
+@pytest.fixture()
+def add_invoice_and_invoice_lineitems(get_org_id):
+
+    data = fixture['expense']
+    invoice_lineitems_data = data['lines']
+
+    # Create or update Invoice and related line items
+    invoice = Invoice.create_or_update_invoices(data, get_org_id)
+    invoice_lineitems = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
+
+    return invoice, invoice_lineitems

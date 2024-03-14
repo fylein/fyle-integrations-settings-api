@@ -9,6 +9,7 @@ class IntegrationSerializer(serializers.ModelSerializer):
      Serializer for the Integrations API
     """
     org_id = serializers.CharField(read_only=True)
+    org_name = serializers.CharField(read_only=True)
 
     def create(self, validated_data):
         """
@@ -16,14 +17,11 @@ class IntegrationSerializer(serializers.ModelSerializer):
         :param validated_data: Validated data
         :return: upserted integrations object
         """
-        integration = Integration.objects.filter(
-            org_id=validated_data['org_id'],
-            type=validated_data['type']
-        ).first()
 
-        if not integration and validated_data['is_active']:
+        if validated_data['is_active']:
             integration = Integration.objects.create(
                 org_id=validated_data['org_id'],
+                org_name=validated_data['org_name'],
                 type=validated_data['type'],
                 is_active=True,
                 tpa_id=validated_data['tpa_id'],
