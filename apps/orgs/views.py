@@ -18,7 +18,6 @@ from apps.orgs.actions import get_admin_employees
 from admin_settings.utils import LookupFieldMixin
 from apps.orgs.serializers import ExpenseAttributeSerializer
 from apps.orgs.utils import import_categories
-from apps.orgs.exceptions import handle_fyle_exceptions
 from apps.orgs.actions import get_admin_employees
 from apps.fyle_hrms_mappings.models import ExpenseAttribute
 from apps.names import *
@@ -99,7 +98,6 @@ class SyncCategories(generics.CreateAPIView):
     authentication_classes = []
     permission_classes = []
 
-    @handle_fyle_exceptions(task_name='import categories name from fyle')
     def create(self, request, *args, **kwargs):
 
         async_task(import_categories, org_id=kwargs['org_id'])
