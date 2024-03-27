@@ -1,6 +1,9 @@
 import os
 import sys
 import requests
+import hmac
+import hashlib
+import json
 from rest_framework import status
 
 # Create booking against the booker
@@ -13,7 +16,7 @@ def run_test(org_id):
     payload = {
             "serial_number": "INV-04-00442",
             "profile_id": "a72eccb0-85da-4ca3-ac8b-59242889eff8",
-            "profile_name": "Nilesh Pant",
+            "profile_name": "Fyle",
             "billing_information": {
                 "legal_name": "Fyle",
                 "vat_number": None,
@@ -43,7 +46,7 @@ def run_test(org_id):
             ],
             "reference": "Trip #10221",
             "travelperk_bank_account": None,
-            "pdf": "https://tk-sandbox-backend-data.s3.amazonaws.com/invoices/2067/INV-04-00442.pdf?AWSAccessKeyId=ASIA5MFYTLYHZAE5OIYY&Signature=xsVlI9G7fYUfyzBD0VaDVMaHk6U%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEFEaCWV1LXdlc3QtMSJHMEUCIBsrPxxN2FlaEmE4S8TK%2FSf9jiu0pxmAbba9la3X5q42AiEAi7GbK7i6vL7bNfgi1Fmtmr7WMIKluKOwUeHC%2BGRsPkIq5QMIWhABGgw5MTk1MTAxNDY1NzUiDKCqZ87uuy0o5qodUSrCAwtN%2BRBmaqvNhWqgJQnIsI4alaLRvCjZAKWlRHD3rWt8kUnYuT6ToT%2B01L0qgt9GkwTd1CGz55cW1uAFNmJK2%2Fa2WS3D1xRhRHlWDcLQK6hilxS3NLyil%2FPbIMYKVaIqO65%2FZUq7hXIQRlQOobgu8Uw6lGTunK1AXxvB21ZjsfFmeXgmvjllYh1FJ6JGvzlKNynA5cC%2FuheeBEtv9ILZ5gpTyXymFShn2NN7VH4R6Lnl4g0u5xvTmwlosRXiylbWCR9d56CFyRjtiA184DUe%2FG4cVtzws0AB9NVeYc9kfaiFveoRuewzCjuOODZ9QozsdbgADL89W5C0%2FFAbI9YXg1H889Ke3wYqmvDQUhf1iN6%2F7cp6c9qr6QoqO57qIgOfoTx9jMbLj110gRxreprcpooWGcJoN49pBw9r64JZntnL%2BVsbWxWulqwgTYrYda5dNqwsrGBrywoL8lvsjJP%2Bo1uMi4w80NyzB8cIpBdLAq4JJ%2BpxKdsdCzPQqkAKF5xsVKrCqKIXygzuIAKbRxDyOcdb0QOextYJmJVhlwOLB8IKMw0wQ4rHWchG%2B65gGTAayuJEWjIEJxcgVCyKLeqyBzRwUDCc28WvBjqlAaS%2BnFYFf82p1AtK2zY96kHTetm%2BaLECXX1Cr7%2BIqAK9qUz0blp0HS%2BQDkQETbi%2FZlkpvNshn%2F8K5eBm1hz%2FP3ldEQ%2FqmtK1fescuWPSnB1xIcVUGVovqZEESyV0h9rx5T6Lamra7WAWsW1BjG4Pc5Ay%2FIbb3ZcTd4BK25st6LD2x2PF9oImTTQF6P4dZ0iJN1lHoE8wMevKdUwvH2KbhJHbPU4G1w%3D%3D&Expires=1710324801",
+            "pdf": 'https://fyle-storage-prod-2.s3.amazonaws.com/2021-09-29/orwR4RVk6PUr/receipts/fiQK2ap6m3lA.receipt.pdf?response-content-disposition=attachment%3B%20filename%3Dreceipt.pdf&response-content-type=application%2Fpdf&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240327T101149Z&X-Amz-SignedHeaders=host&X-Amz-Expires=604800&X-Amz-Credential=AKIA54Z3LIXTXIFJ2EXF%2F20240327%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=e1e9da9bb64c2aeb52cbb7e2ef817c776f39412f9f5c9055bb144ca65a1d2232',
             "lines": [
                 {
                     "id": "a19bb44a-a611-49e5-bdd8-615024023a84",
@@ -138,9 +141,10 @@ def run_test(org_id):
         }
 
     api_url = os.environ.get('API_URL')
-    url = '{}/orgs/{0}/travelperk/travelperk_webhook/'.format(api_url, org_id)
+    url = '{}/orgs/{}/travelperk/travelperk_webhook/'.format(api_url, org_id)
 
-    signature = os.environ.get('TEST_SIGNATURE3')
+    secret = os.environ.get('TKWEBHOOKS_SECRET')
+    signature = hmac.new(secret.encode(), json.dumps(payload).encode(), hashlib.sha256).hexdigest()
 
     headers = {
         'tk-webhook-hmac-sha256': signature

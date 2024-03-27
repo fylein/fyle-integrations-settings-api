@@ -1,6 +1,9 @@
 import os
 import sys
 import requests
+import hmac
+import hashlib
+import json
 from rest_framework import status
 
 
@@ -14,7 +17,7 @@ def run_test(org_id):
     payload = {
         'serial_number': 'INV-04-00441',
         'profile_id': 'a72eccb0-85da-4ca3-ac8b-59242889eff8',
-        'profile_name': 'Nilesh Pant',
+        'profile_name': 'Fyle',
         'billing_information': {
             'legal_name': 'Fyle',
             'vat_number': None,
@@ -26,11 +29,11 @@ def run_test(org_id):
         },
         'mode': 'us-reseller',
         'status': 'paid',
-        'issuing_date': '2024-03-13',
+        'issuing_date': '2024-03-26',
         'billing_period': 'instant',
-        'from_date': '2024-03-13',
-        'to_date': '2024-03-13',
-        'due_date': '2024-03-13',
+        'from_date': '2024-03-26',
+        'to_date': '2024-03-26',
+        'due_date': '2024-03-26',
         'currency': 'USD',
         'total': '124.25',
         'taxes_summary': [
@@ -44,11 +47,11 @@ def run_test(org_id):
         ],
         'reference': 'Trip #10220',
         'travelperk_bank_account': None,
-        'pdf': 'https://tk-sandbox-backend-data.s3.amazonaws.com/invoices/2067/INV-04-00441.pdf?AWSAccessKeyId=ASIA5MFYTLYHYTL4CSYX&Signature=VbhXde%2FCN5rq%2B5Yj3V850bSxQcY%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEFAaCWV1LXdlc3QtMSJHMEUCIQDsjSjJyvm3irybBW7Dx1z2I02u8U5so8IgGsh1mZtsAgIgRd7PI1AtT2n6ggic3Vda9GCWh9FGbVzz%2BYiaDAxxXuoq5QMIWRABGgw5MTk1MTAxNDY1NzUiDLu8Jet4SjAOUlB96CrCA6uta149cgfzi64PMSZeu1OJWXTuPZbTeps6udD5v7zhTNEHeSS0X2MrQOPGSKFBHZsz0wGo3%2FncYVa%2FAT806ezEJIvonnysWJhiSPA0pEqn991qOySIDJLpvRqJUqaNkQwaLeY%2BIzj0JIgfrZQazGvbMrppKom2p4OAetVoeRTjHU8BaJZDUlFFw1PDHC2ds1gC1Gfp8jy5ooyEszRDKVbYtdTXO3aoHTW0k378ZNoOHQD4y4N7jcbCakVFTFtzr14nJ8rabQgZ20iLfanmzyl%2Fm8FmajH%2FFSgc2Edwi8DZGmTCB4Yg2iu0tCKyOCIa%2ByKqHwOsovScD6ELVtwZPP4gHE%2BLwYsKt3LZPddwqD2uYLB3Ibt%2B93OnnjaamI%2F5AhH96CBf0vSdgACGkG2ddBfdzyf%2Fvyxlk7iRG6MKB8of6vx2M%2BDa03EEF%2FPQGx43zYHVN0ZpxfOApDtbZICCuw3H4ZacOBOhWSvJ9mxsvSQ17bvK%2BPZXkCeASBgplRJC%2FyMlnO3vfCXMTWhj47HEBFa2naB0lpyMwAR6AfGSKjrPDvffbFAJxXM1HT1L5LsjieTU7cX0wt45H5fkr6Bgicr8dDD5tcWvBjqlASxNGzFgpg5nJtBDFr9zt4gVV8fLJtLd3fRAF0tOwVljI%2BfYNqQYw5Ez%2FQfH6plbFB130MKJTRS4eIFlzhsJp1a1owqGWVE5UvAueEMvKBgeyPnNi7uN5M8Yyu5iOn3NhQuVIIOnA01pgdvfASzQatrije2CDXrdKYJGA9qVc%2BjIdHuUELk7D7WGpCL5oZrDAeGmHwdn4eEVsZKn5iuxMQCoNXUSRQ%3D%3D&Expires=1710321334',
+        'pdf': 'https://fyle-storage-prod-2.s3.amazonaws.com/2021-09-29/orwR4RVk6PUr/receipts/fiQK2ap6m3lA.receipt.pdf?response-content-disposition=attachment%3B%20filename%3Dreceipt.pdf&response-content-type=application%2Fpdf&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20240327T101149Z&X-Amz-SignedHeaders=host&X-Amz-Expires=604800&X-Amz-Credential=AKIA54Z3LIXTXIFJ2EXF%2F20240327%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=e1e9da9bb64c2aeb52cbb7e2ef817c776f39412f9f5c9055bb144ca65a1d2232',
         'lines': [
             {
                 'id': '54b4f3c2-11a4-4cb5-a725-1e1346d54def',
-                'expense_date': '2024-03-13',
+                'expense_date': '2024-03-26',
                 'description': 'PRO for Trip 10220',
                 'quantity': 1,
                 'unit_price': '3.62',
@@ -87,7 +90,7 @@ def run_test(org_id):
             },
             {
                 'id': 'ee56fc53-4a4f-4a19-b3b0-fb60a8c94659',
-                'expense_date': '2024-03-13',
+                'expense_date': '2024-03-26',
                 'description': 'FLIGHT for Trip ID 10220',
                 'quantity': 1,
                 'unit_price': '120.63',
@@ -150,16 +153,18 @@ def run_test(org_id):
     }
 
     api_url = os.environ.get('API_URL')
-    url = '{}/orgs/{0}/travelperk/travelperk_webhook/'.format(api_url, org_id)
+    url = '{}/orgs/{}/travelperk/travelperk_webhook/'.format(api_url, org_id)
 
-    signature = os.environ.get('TEST_SIGNATURE1')
+    secret = os.environ.get('TKWEBHOOKS_SECRET')
+    signature = hmac.new(secret.encode(), json.dumps(payload).encode(), hashlib.sha256).hexdigest()
 
     headers = {
-        'tk-webhook-hmac-sha256': signature
+        'tk-webhook-hmac-sha256': signature,
+        'Content-Type': 'application/json'
     }
 
     # Send a POST request with valid signature
-    response = requests.request("POST", url, headers=headers, data=payload)
+    response = requests.request("POST", url, headers=headers, data=json.dumps(payload))
     # Assert the response status code and content
     if response.status_code == status.HTTP_200_OK:
         print("Success")
