@@ -152,10 +152,10 @@ def run_test(org_id):
         ]
     }
 
-    api_url = os.environ.get('API_URL')
+    api_url = os.environ.get('FYLE_PROD_API_URL')
     url = '{}/orgs/{}/travelperk/travelperk_webhook/'.format(api_url, org_id)
 
-    secret = os.environ.get('TKWEBHOOKS_SECRET')
+    secret = os.environ.get('TkWEBHOOK_TEST_SECRET')
     signature = hmac.new(secret.encode(), json.dumps(payload).encode(), hashlib.sha256).hexdigest()
 
     headers = {

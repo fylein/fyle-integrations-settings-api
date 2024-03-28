@@ -37,3 +37,5 @@ Django Rest Framework API for Fyle integrations settings API
     python webhook_tests/executor.py booker 123
 
 * Make sure to follow the steps mentioned in the test cases file, to simulate the behaviour.
+
+* You can edit the payload to change the values of email, expense date, booker, traveller etc.
