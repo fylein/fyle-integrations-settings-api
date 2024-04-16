@@ -67,13 +67,15 @@ class TravelperkConnector:
 
         response = self.connection.invoice_profiles.get_all()
         for invoice_profile in response:
+            country_name = invoice_profile['billing_information']['country_name'] if 'country_name' in invoice_profile['billing_information'] else None
+            currency = invoice_profile['currency'] if 'currency' in invoice_profile else None
             TravelperkProfileMapping.objects.update_or_create(
                 org_id=self.org_id,
                 profile_name=invoice_profile['name'],
                 source_id=invoice_profile['id'],
                 defaults={
-                    'country': invoice_profile['billing_information']['country_name'],
-                    'currency': invoice_profile['currency'],
+                    'country': country_name,
+                    'currency': currency,
                 }
             )
 
