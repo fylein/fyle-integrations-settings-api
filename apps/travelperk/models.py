@@ -70,12 +70,12 @@ class Invoice(models.Model):
     pdf = models.TextField(help_text='URL to the PDF version of the invoice.')
     profile_id = models.CharField(max_length=255, help_text='ID of the profile associated with the invoice.')
     profile_name = models.CharField(max_length=255, help_text='Name of the profile associated with the invoice.')
-    reference = models.CharField(max_length=50, help_text='Reference information for the invoice (e.g., Trip #9876543).')
+    reference = models.CharField(max_length=255, help_text='Reference information for the invoice (e.g., Trip #9876543).')
     serial_number = models.CharField(max_length=20, help_text='Serial number of the invoice.')
     status = models.CharField(max_length=20, help_text='Status of the invoice (e.g., paid).')
     taxes_summary = models.JSONField(help_text='Summary of taxes applied to the invoice.')
     total = models.DecimalField(max_digits=10, decimal_places=2, help_text='Total amount of the invoice.')
-    travelperk_bank_account = models.CharField(max_length=50, null=True, blank=True, help_text='TravelPerk bank account information if available.')
+    travelperk_bank_account = models.CharField(max_length=255, null=True, blank=True, help_text='TravelPerk bank account information if available.')
 
     exported_to_fyle = models.BooleanField(default=False, help_text='If the invoice is exported to Fyle')
 
