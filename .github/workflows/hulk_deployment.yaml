@@ -25,7 +25,7 @@ jobs:
       - name: Get Release branch name if workflow_run
         if: github.event_name == 'workflow_run'
         run: |
-          echo "release_branch=qbo_api_release_$(date +%Y_%m_%d)" >> $GITHUB_ENV
+          echo "release_branch=integration_settings_api_release_$(date +%Y_%m_%d)" >> $GITHUB_ENV
 
       - name: Checkout to Release branch if workflow_run
         uses: actions/checkout@v4
