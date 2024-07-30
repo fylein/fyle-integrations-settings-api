@@ -95,7 +95,7 @@ class BambooHrConnection(generics.CreateAPIView):
 
         bamboohrsdk = BambooHrSDK(api_token=api_token, sub_domain=sub_domain)
         timeoff = bamboohrsdk.time_off.get()
-        logger.info('Bamboo HR Connection Timeoff Payload | Content: {0}'.format(timeoff))
+        logger.info('Bamboo HR Connection Timeoff Response | Content: {0}'.format(timeoff))
         if timeoff.get('timeOffTypes', None):
             bamboohr, _ = BambooHr.objects.update_or_create(org=org, defaults={
                 'api_token': api_token,
