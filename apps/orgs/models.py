@@ -20,6 +20,7 @@ class Org(models.Model):
     is_sendgrid_connected = models.BooleanField(null=True, help_text='Is Sendgrid Connected')
     allow_travelperk = models.BooleanField(default=True, help_text='Allow Travelperk')
     allow_gusto = models.BooleanField(default=False, help_text='Allow Gusto')
+    allow_dynamics = models.BooleanField(default=True, help_text='Allow Dynamics')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at =  models.DateTimeField(auto_now=True, help_text='Updated at datetime')
 
