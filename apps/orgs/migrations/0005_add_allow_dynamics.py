@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='org',
             name='allow_dynamics',
-            field=models.BooleanField(default=True, help_text='Allow Dynamics'),
+            field=models.BooleanField(default=False, help_text='Allow Dynamics'),
         ),
     ]
