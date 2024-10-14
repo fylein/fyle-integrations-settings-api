@@ -55,6 +55,7 @@ fixture = {
       "allow_travelperk": False,
       "allow_gusto": False,
       "allow_dynamics": False,
+      "allow_qbd_direct_integration": False,
       "user":[
          2
       ]
