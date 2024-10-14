@@ -49,8 +49,7 @@ class OrgSerializer(serializers.ModelSerializer):
         else:
             auth_tokens = AuthToken.objects.get(user__user_id=self.context['request'].user)
             cluster_domain = get_cluster_domain(auth_tokens.refresh_token)
-            allow_qbd_direct_integration = validated.get('allow_qbd_direct_integration', False)
-            org = Org.objects.create(name=org_name, fyle_org_id=org_id, cluster_domain=cluster_domain, allow_qbd_direct_integration=allow_qbd_direct_integration)
+            org = Org.objects.create(name=org_name, fyle_org_id=org_id, cluster_domain=cluster_domain)
             org.user.add(User.objects.get(user_id=self.context['request'].user))
 
             FyleCredential.objects.update_or_create(
