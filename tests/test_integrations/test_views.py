@@ -185,3 +185,12 @@ def test_integrations_view_mark_inactive_post(api_client, mocker, access_token, 
     assert response['is_active'] == False
     assert response['is_beta'] == True
     assert response['disconnected_at'] != None
+
+    # Marking inactive integration back to active
+    payload = dict(post_integration_accounting)
+
+    response = api_client.post(url, payload)
+    assert response.status_code == 201
+
+    response = json.loads(response.content)
+    assert response['is_active'] == True
