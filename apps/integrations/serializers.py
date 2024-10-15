@@ -20,10 +20,10 @@ class IntegrationSerializer(serializers.ModelSerializer):
 
         if validated_data['is_active']:
             integration, _ = Integration.objects.update_or_create(
-                is_active=True,
                 org_id=validated_data['org_id'],
                 type=validated_data['type'],
                 defaults={
+                    'is_active': True,
                     'org_name': validated_data['org_name'],
                     'tpa_id': validated_data['tpa_id'],
                     'tpa_name': validated_data['tpa_name']
