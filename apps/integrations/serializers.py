@@ -19,13 +19,15 @@ class IntegrationSerializer(serializers.ModelSerializer):
         """
 
         if validated_data['is_active']:
-            integration = Integration.objects.create(
-                org_id=validated_data['org_id'],
-                org_name=validated_data['org_name'],
-                type=validated_data['type'],
+            integration, _ = Integration.objects.update_or_create(
                 is_active=True,
-                tpa_id=validated_data['tpa_id'],
-                tpa_name=validated_data['tpa_name']
+                org_id=validated_data['org_id'],
+                type=validated_data['type'],
+                defaults={
+                    'org_name': validated_data['org_name'],
+                    'tpa_id': validated_data['tpa_id'],
+                    'tpa_name': validated_data['tpa_name']
+                }
             )
         elif not validated_data['is_active']:
             integration = Integration.objects.filter(org_id=validated_data['org_id'], type=validated_data['type']).first()
