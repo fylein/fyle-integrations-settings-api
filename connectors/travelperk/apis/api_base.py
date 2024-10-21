@@ -28,7 +28,27 @@ class ApiBase:
         """
         self.__server_url = server_url
 
-    def _get_request(self, object_type: str, api_url: str) -> List[Dict] or Dict:
+    def _get_error(self, status_code: int, response_text: str):
+        """Get the error object from the response.
+
+        Parameters:
+            status_code (int): The status code of the response.
+            response_text (str): The response text.
+
+        Returns:
+            The error object.
+        """
+        error_map = {
+            400: BadRequestError('Something wrong with the request body', response_text),
+            401: UnauthorizedClientError('Wrong client secret or/and refresh token', response_text),
+            404: NotFoundError('Client ID doesn\'t exist', response_text),
+            500: InternalServerError('Internal server error', response_text),
+            409: BadRequestError('The webhook already exists', response_text)
+        }
+
+        return error_map.get(status_code, TravelperkError('Error: {0}'.format(status_code), response_text))
+
+    def _get_request(self, object_type: str, api_url: str, params: dict = {}) -> List[Dict] or Dict:
         """Create a HTTP GET request.
 
         Parameters:
@@ -46,27 +66,15 @@ class ApiBase:
 
         response = requests.get(
             '{0}{1}'.format(self.__server_url, api_url),
-            headers=api_headers
+            headers=api_headers,
+            params=params
         )
 
         if response.status_code == 200:
             result = json.loads(response.text)
             return result[object_type]
-
-        elif response.status_code == 400:
-            raise BadRequestError('Something wrong with the request body', response.text)
-
-        elif response.status_code == 401:
-            raise UnauthorizedClientError('Wrong client secret or/and refresh token', response.text)
-
-        elif response.status_code == 404:
-            raise NotFoundError('Client ID doesn\'t exist', response.text)
-
-        elif response.status_code == 500:
-            raise InternalServerError('Internal server error', response.text)
-
         else:
-            raise TravelperkError('Error: {0}'.format(response.status_code), response.text)
+            raise self._get_error(response.status_code, response.text)
 
     def _post_request(self, api_url: str, data: Dict) -> Dict:
         """Create a HTTP POST request.
@@ -95,23 +103,8 @@ class ApiBase:
             result = json.loads(response.text)
             return result
 
-        elif response.status_code == 400:
-            raise BadRequestError('Something wrong with the request body', response.text)
-
-        elif response.status_code == 401:
-            raise UnauthorizedClientError('Wrong client secret or/and refresh token', response.text)
-
-        elif response.status_code == 404:
-            raise NotFoundError('Client ID doesn\'t exist', response.text)
-
-        elif response.status_code == 500:
-            raise InternalServerError('Internal server error', response.text)
-        
-        elif response.status_code == 409:
-            raise BadRequestError('The webhook already exists', response.text)
-
         else:
-            raise TravelperkError('Error: {0}'.format(response.status_code), response.text)
+            raise self._get_error(response.status_code, response.text)
 
     def _delete_request(self, api_url: str) -> Dict:
         """Create a HTTP DELETE request.
@@ -137,17 +130,5 @@ class ApiBase:
         if response.status_code == 200:
             return response.text
 
-        elif response.status_code == 400:
-            raise BadRequestError('Something wrong with the request body', response.text)
-
-        elif response.status_code == 401:
-            raise UnauthorizedClientError('Wrong client secret or/and refresh token', response.text)
-
-        elif response.status_code == 404:
-            raise NotFoundError('Client ID doesn\'t exist', response.text)
-
-        elif response.status_code == 500:
-            raise InternalServerError('Internal server error', response.text)
-
         else:
-            raise TravelperkError('Error: {0}'.format(response.status_code), response.text)
+            raise self._get_error(response.status_code, response.text)

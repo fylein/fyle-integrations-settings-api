@@ -65,8 +65,11 @@ class TravelperkConnector:
         :return: Dict
         """
 
-        response = self.connection.invoice_profiles.get_all()
-        for invoice_profile in response:
+        profiles_generator = self.connection.invoice_profiles.get_all_generator()
+        profiles = []
+
+        for invoice_profile in profiles_generator:
+            profiles.append(invoice_profile)
             country_name = invoice_profile['billing_information']['country_name'] if 'country_name' in invoice_profile['billing_information'] else None
             currency = invoice_profile['currency'] if 'currency' in invoice_profile else None
             TravelperkProfileMapping.objects.update_or_create(
@@ -79,4 +82,4 @@ class TravelperkConnector:
                 }
             )
 
-        return response
+        return profiles
