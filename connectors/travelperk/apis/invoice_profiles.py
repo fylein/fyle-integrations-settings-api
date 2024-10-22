@@ -15,4 +15,12 @@ class InvoiceProfiles(ApiBase):
         Returns:
             List with dicts in Invoice Profile schema.
         """
-        return self._get_request('profiles', InvoiceProfiles.GET_INVOICE_PROFILES)
+        return [*self.get_all_generator()]
+
+    def get_all_generator(self):
+        """Create a generator with all the existing Invoice Profiles in the Organization.
+
+        Returns:
+            Generator with dicts in Invoice Profile schema.
+        """
+        return self._get_all_generator('profiles', self.GET_INVOICE_PROFILES)
