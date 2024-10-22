@@ -8,8 +8,6 @@ from connectors.travelperk.exceptions import *
 class ApiBase:
     """The base class for all API classes."""
 
-    GET_INVOICE_PROFILES = '/profiles'
-
     def __init__(self):
         self.__access_token = None
         self.__server_url = None
@@ -78,9 +76,9 @@ class ApiBase:
         else:
             raise self._get_error(response.status_code, response.text)
 
-    def get_all_generator(self):
+    def _get_all_generator(self, object_type: str, api_url: str):
         """
-        Creates a generator that contains all profiles across all pages
+        Creates a generator that contains all records of `object_type` across all pages
         
         Parameters:
             object_type (str): The type of object to get
@@ -93,13 +91,12 @@ class ApiBase:
 
         limit = 50
         params = {'limit': limit}
-        total_profiles = self._get_request('total', self.GET_INVOICE_PROFILES, params=params)
+        total_profiles = self._get_request('total', api_url, params=params)
 
         for offset in range(0, total_profiles, limit):
             params['offset'] = offset
-            profiles = self._get_request('profiles', self.GET_INVOICE_PROFILES, params=params)
+            profiles = self._get_request(object_type, api_url, params=params)
             for profile in profiles:
-                print('[x]', profile['name'])
                 yield profile
 
     def _post_request(self, api_url: str, data: Dict) -> Dict:
