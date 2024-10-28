@@ -57,6 +57,7 @@ class OrgsView(generics.RetrieveUpdateAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
+            logger.error('testing sentry - viswas')
             user = User.objects.get(user_id=self.request.user)
             org_id = self.request.query_params.get('org_id')
             org = Org.objects.get(user__in=[user], fyle_org_id=org_id)
