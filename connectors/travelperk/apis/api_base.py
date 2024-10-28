@@ -116,6 +116,7 @@ class ApiBase:
             'Api-Version': '1'
         }
 
+        # debug
         response = requests.post(
             '{0}{1}'.format(self.__server_url, api_url),
             headers=api_headers,
@@ -124,9 +125,11 @@ class ApiBase:
 
         if response.status_code == 200:
             result = json.loads(response.text)
+            # debug
             return result
 
         else:
+            # info
             raise self._get_error(response.status_code, response.text)
 
     def _delete_request(self, api_url: str) -> Dict:
