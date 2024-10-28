@@ -66,17 +66,24 @@ class ApiBase:
             'Api-Version': '1'
         }
 
+        endpoint = '{0}{1}'.format(self.__server_url, api_url)
+        logger.debug(f"GET {endpoint}")
+        logger.debug(f"Params for GET request: {params}")
         response = requests.get(
-            '{0}{1}'.format(self.__server_url, api_url),
+            endpoint,
             headers=api_headers,
             params=params
         )
 
         if response.status_code == 200:
             result = json.loads(response.text)
+            logger.debug(f"GET response: {result}")
             return result[object_type]
         else:
-            raise self._get_error(response.status_code, response.text)
+            error = self._get_error(response.status_code, response.text)
+            logger.info(f"GET request failed: {response.status_code} | {error.message}")
+            logger.info(f"GET response: {error.response}")
+            raise error
 
     def _get_all_generator(self, object_type: str, api_url: str):
         """
@@ -154,13 +161,18 @@ class ApiBase:
             'Api-Version': '1'
         }
 
+        endpoint = '{0}{1}'.format(self.__server_url, api_url)
+        logger.debug(f"DELETE {endpoint}")
         response = requests.delete(
-            '{0}{1}'.format(self.__server_url, api_url),
+            endpoint,
             headers=api_headers
         )
 
         if response.status_code == 200:
+            logger.debug(f"DELETE response: {response.text}")
             return response.text
-
         else:
-            raise self._get_error(response.status_code, response.text)
+            error = self._get_error(response.status_code, response.text)
+            logger.info(f"DELETE request failed: {response.status_code} | {error.message}")
+            logger.info(f"DELETE response: {error.response}")
+            raise error
