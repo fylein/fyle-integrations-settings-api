@@ -1,9 +1,11 @@
+import logging
 from typing import List, Dict
 import requests
 import json
 
 from connectors.travelperk.exceptions import *
 
+logger = logging.getLogger(__name__)
 
 class ApiBase:
     """The base class for all API classes."""
@@ -28,7 +30,7 @@ class ApiBase:
         """
         self.__server_url = server_url
 
-    def _get_error(self, status_code: int, response_text: str):
+    def _get_error(self, status_code: int, response_text: str) -> TravelperkError:
         """Get the error object from the response.
 
         Parameters:
@@ -64,17 +66,24 @@ class ApiBase:
             'Api-Version': '1'
         }
 
+        endpoint = '{0}{1}'.format(self.__server_url, api_url)
+        logger.debug(f"GET {endpoint}")
+        logger.debug(f"Params for GET request: {params}")
         response = requests.get(
-            '{0}{1}'.format(self.__server_url, api_url),
+            endpoint,
             headers=api_headers,
             params=params
         )
 
         if response.status_code == 200:
             result = json.loads(response.text)
+            logger.debug(f"GET response: {result}")
             return result[object_type]
         else:
-            raise self._get_error(response.status_code, response.text)
+            error = self._get_error(response.status_code, response.text)
+            logger.info(f"GET request failed: {response.status_code} | {error.message}")
+            logger.info(f"GET response: {error.response}")
+            raise error
 
     def _get_all_generator(self, object_type: str, api_url: str):
         """
@@ -116,21 +125,25 @@ class ApiBase:
             'Api-Version': '1'
         }
 
-        # debug
+        endpoint = '{0}{1}'.format(self.__server_url, api_url)
+        logger.debug(f"POST {endpoint}")
+        logger.debug(f"Payload for POST request: {data}")
         response = requests.post(
-            '{0}{1}'.format(self.__server_url, api_url),
+            endpoint,
             headers=api_headers,
             json=data
         )
 
         if response.status_code == 200:
             result = json.loads(response.text)
-            # debug
+            logger.debug(f"POST response: {result}")
             return result
 
         else:
-            # info
-            raise self._get_error(response.status_code, response.text)
+            error = self._get_error(response.status_code, response.text)
+            logger.info(f"POST request failed: {response.status_code} | {error.message}")
+            logger.info(f"POST response: {error.response}")
+            raise error
 
     def _delete_request(self, api_url: str) -> Dict:
         """Create a HTTP DELETE request.
@@ -148,13 +161,18 @@ class ApiBase:
             'Api-Version': '1'
         }
 
+        endpoint = '{0}{1}'.format(self.__server_url, api_url)
+        logger.debug(f"DELETE {endpoint}")
         response = requests.delete(
-            '{0}{1}'.format(self.__server_url, api_url),
+            endpoint,
             headers=api_headers
         )
 
         if response.status_code == 200:
+            logger.debug(f"DELETE response: {response.text}")
             return response.text
-
         else:
-            raise self._get_error(response.status_code, response.text)
+            error = self._get_error(response.status_code, response.text)
+            logger.info(f"DELETE request failed: {response.status_code} | {error.message}")
+            logger.info(f"DELETE response: {error.response}")
+            raise error
