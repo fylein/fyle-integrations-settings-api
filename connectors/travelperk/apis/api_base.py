@@ -6,6 +6,7 @@ import json
 from connectors.travelperk.exceptions import *
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 class ApiBase:
     """The base class for all API classes."""
@@ -69,6 +70,8 @@ class ApiBase:
         endpoint = '{0}{1}'.format(self.__server_url, api_url)
         logger.debug(f"GET {endpoint}")
         logger.debug(f"Params for GET request: {params}")
+        print(f"GET {endpoint}")
+        print(f"Params for GET request: {params}")
         response = requests.get(
             endpoint,
             headers=api_headers,
@@ -78,6 +81,7 @@ class ApiBase:
         if response.status_code == 200:
             result = json.loads(response.text)
             logger.debug(f"GET response: {result}")
+            print(f"GET response: {result}")
             return result[object_type]
         else:
             error = self._get_error(response.status_code, response.text)
