@@ -7,7 +7,8 @@ from apps.travelperk.views import (
     DisconnectTravelperkView,
     TravelperkPaymentProfileMappingView,
     SyncPaymentProfiles,
-    AdvancedSettingView
+    AdvancedSettingView,
+    ValidateHealthyToken
 )
 
 app_name = 'travelperk'
@@ -20,4 +21,5 @@ urlpatterns = [
     path('advanced_settings/', AdvancedSettingView.as_view(), name='advance-settings-view'),
     path('profile_mappings/', TravelperkPaymentProfileMappingView.as_view(), name='profile-mappings'),
     path('sync_payment_profile/', SyncPaymentProfiles.as_view(), name='sync-payment-profiles'),
+    path('token_health/', ValidateHealthyToken.as_view(), name='token-health'),
 ]
