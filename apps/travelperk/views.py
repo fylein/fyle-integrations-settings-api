@@ -269,3 +269,40 @@ class SyncPaymentProfiles(generics.ListAPIView):
 
     def get_queryset(self):
         return SyncPaymentProfileSerializer().sync_payment_profiles(self.kwargs['org_id'])
+
+
+class ValidateHealthyToken(generics.ListAPIView):
+    """
+    API to check if TravelPerk credentials are healthy
+    """
+    def get(self, request, *args, **kwargs):
+        try:
+            travelperk = TravelPerk.objects.get(org_id__in=[kwargs['org_id']])
+            travelperk_credentials = TravelperkCredential.objects.get(org_id=kwargs['org_id'])
+            
+            travelperk_connection = TravelperkConnector(travelperk_credentials, kwargs['org_id'])
+            
+            # Try to fetch profiles to verify credentials
+            profiles_generator = travelperk_connection.connection.invoice_profiles.get_all_generator()
+            next(profiles_generator, None)  # Try to get first profile
+            
+            return Response(
+                data={'message': 'Ready'},
+                status=status.HTTP_200_OK
+            )
+            
+        except (TravelPerk.DoesNotExist, TravelperkCredential.DoesNotExist):
+            return Response(
+                data={'message': 'TravelPerk connection not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception:
+            # If we can't fetch profiles, credentials are likely expired
+            if travelperk:
+                travelperk.is_travelperk_connected = False
+                travelperk.save()
+                
+            return Response(
+                data={'message': 'Invalid credentials'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
