@@ -4,6 +4,7 @@ import pytest
 from django.urls import reverse
 from unittest.mock import MagicMock
 
+from apps.integrations.models import Integration
 from apps.travelperk.models import TravelperkAdvancedSetting
 from tests.helper import dict_compare_keys
 from .fixtures import fixture
@@ -97,6 +98,16 @@ def test_get_advanced_settings(mocker, api_client, access_token, get_org_id, get
 
     response = api_client.post(url, payload, format='json')
     assert response.status_code == 201
+    
+    integration_object = Integration.objects.get(org_id=get_org_id, type='TRAVEL')
+    assert integration_object
+    assert integration_object.tpa_name == fixture['integrations_response']['tpa_name']
+    assert integration_object.tpa_id == fixture['integrations_response']['tpa_id']
+    assert integration_object.type == fixture['integrations_response']['type']
+    assert integration_object.org_id == fixture['integrations_response']['org_id']
+    assert integration_object.org_name == fixture['integrations_response']['org_name']
+    assert integration_object.is_active
+    assert integration_object.is_beta
 
     advanced_settings = TravelperkAdvancedSetting.objects.get(org=get_org_id)
     advanced_settings.default_employee_name = None
