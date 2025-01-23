@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 from fyle.platform import Platform
 
+from apps.integrations.models import Integration
 from apps.orgs.exceptions import handle_fyle_exceptions
 from apps.travelperk.models import (
     Invoice, 
@@ -291,3 +292,18 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
         create_expense_against_employee(org_id, invoice, invoice_lineitems, profile_mapping.user_role, advanced_settings)
     else:
         create_expense_in_fyle_v2(org_id, invoice, invoice_lineitems)
+
+def add_travelperk_to_integrations(org_id):
+    org = Org.objects.get(id=org_id)
+    logger.info(f'New integration record: Fyle TravelPerk Integration (TRAVEL) | {org.fyle_org_id = } | {org.name = }')
+
+    Integration.objects.update_or_create(
+        org_id=org.fyle_org_id,
+        type='TRAVEL',
+        defaults={
+            'is_active': True,
+            'org_name': org.name,
+            'tpa_id': 'tpayrBcJzWAlx',
+            'tpa_name': 'Fyle TravelPerk Integration'
+        }
+    )
