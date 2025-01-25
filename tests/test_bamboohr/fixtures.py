@@ -36,6 +36,12 @@ fixture = {
       }
     },
 
+   "bamboo_connection_invalid_payload": {
+      'input': {
+         'api_token': 'sample_token',
+      }
+    },
+
     "integrations_response": {
         "org_id": "orTwovfDpEYc",
         "org_name": "Test org",

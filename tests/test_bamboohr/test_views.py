@@ -4,6 +4,7 @@ import pytest
 from django.urls import reverse
 
 from apps.integrations.models import Integration
+from apps.orgs.models import Org
 from tests.helper import dict_compare_keys
 from .fixtures import fixture
 from unittest.mock import MagicMock
@@ -110,6 +111,18 @@ def test_post_bamboohr_connection_view(api_client, mocker, access_token, get_org
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
+    # Missing input should return 400
+    response = api_client.post(url, fixture['bamboo_connection_invalid_payload'], format='json')
+    assert response.status_code == 400
+
+    # Invalid token should return 400
+    mock_bamboohr_sdk = MagicMock()
+    mock_bamboohr_sdk.time_off.get.return_value = {}
+    mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_bamboohr_sdk)
+
+    response = api_client.post(url, fixture['bamboo_connection'], format='json')
+    assert response.status_code == 400
+
     # Valid input should return 200
     mock_bamboohr_sdk = MagicMock()
     mock_bamboohr_sdk.time_off.get.return_value = {'timeOffTypes': True}
@@ -118,12 +131,13 @@ def test_post_bamboohr_connection_view(api_client, mocker, access_token, get_org
     response = api_client.post(url, fixture['bamboo_connection'], format='json')
     assert response.status_code == 200
 
-    integration_object = Integration.objects.get(org_id=get_org_id, type='HRMS')
+    org = Org.objects.get(id=get_org_id)
+    integration_object = Integration.objects.get(org_id=org.fyle_org_id, type='HRMS')
     assert integration_object
     assert integration_object.tpa_name == fixture['integrations_response']['tpa_name']
     assert integration_object.tpa_id == fixture['integrations_response']['tpa_id']
     assert integration_object.type == fixture['integrations_response']['type']
-    assert integration_object.org_id == fixture['integrations_response']['org_id']
-    assert integration_object.org_name == fixture['integrations_response']['org_name']
+    assert integration_object.org_id == org.fyle_org_id
+    assert integration_object.org_name == org.name
     assert integration_object.is_active
     assert integration_object.is_beta

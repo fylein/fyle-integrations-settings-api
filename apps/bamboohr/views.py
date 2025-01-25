@@ -8,8 +8,9 @@ from rest_framework import generics
 from apps.orgs.models import Org
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
-from apps.bamboohr.tasks import delete_sync_employee_schedule
+from apps.bamboohr.tasks import add_bamboo_hr_to_integrations, delete_sync_employee_schedule
 
+from bamboosdk.exceptions import InvalidTokenError, NoPrivilegeError, NotFoundItemError
 from django_q.tasks import async_task
 
 logger = logging.getLogger(__name__)
@@ -88,13 +89,31 @@ class BambooHrConnection(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
-        api_token = request.data['input']['api_token']
-        sub_domain = request.data['input']['subdomain']
+        try:
+            api_token = request.data['input']['api_token']
+            sub_domain = request.data['input']['subdomain']
+        except KeyError:
+            return Response(
+                data={
+                    "message": "input.api_token and input.sub_domain are required"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         logger.info('Bamboo HR Connection Request Payload | Content: {{api_token: {0}, sub_domain: {1}}}'.format(api_token, sub_domain))
 
         bamboohrsdk = BambooHrSDK(api_token=api_token, sub_domain=sub_domain)
-        timeoff = bamboohrsdk.time_off.get()
+
+        try:
+            timeoff = bamboohrsdk.time_off.get()
+        except (NoPrivilegeError, NotFoundItemError, InvalidTokenError) as e:
+            return Response(
+                data = {
+                    'message': 'Invalid token'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         logger.info('Bamboo HR Connection Timeoff Response | Content: {0}'.format(timeoff))
         if timeoff.get('timeOffTypes', None):
             bamboohr, _ = BambooHr.objects.update_or_create(org=org, defaults={
@@ -102,10 +121,12 @@ class BambooHrConnection(generics.CreateAPIView):
                 'sub_domain': sub_domain
             })
 
+            add_bamboo_hr_to_integrations(org)
+
             return Response(
-            data="BambooHr is connected",
-            status=status.HTTP_200_OK
-        )
+                data="BambooHr is connected",
+                status=status.HTTP_200_OK
+            )
         else:
             return Response(
                 data = {
