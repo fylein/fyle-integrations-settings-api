@@ -105,3 +105,21 @@ def add_bamboo_hr_to_integrations(org):
             'tpa_name': 'Fyle BambooHR Integration'
         }
     )
+
+def deactivate_bamboo_hr_integration(org_id):
+    """
+    Deactivate the integration for the given org_id
+    """
+    try:
+        org = Org.objects.get(id=org_id)
+    except Org.DoesNotExist:
+        logger.error(f'Did not deactivate BambooHR inetgration: Org with id {org_id} not found')
+
+    integration = Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').first()
+    if integration:
+        integration.is_active=False
+        integration.disconnected_at=datetime.now()
+        integration.save()
+        logger.info(f'Deactivated integration: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
+    else:
+        logger.error(f'Integration not found: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')

@@ -8,7 +8,7 @@ from rest_framework import generics
 from apps.orgs.models import Org
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
-from apps.bamboohr.tasks import add_bamboo_hr_to_integrations, delete_sync_employee_schedule
+from apps.bamboohr.tasks import add_bamboo_hr_to_integrations, deactivate_bamboo_hr_integration, delete_sync_employee_schedule
 
 from bamboosdk.exceptions import InvalidTokenError, NoPrivilegeError, NotFoundItemError
 from django_q.tasks import async_task
@@ -190,19 +190,22 @@ class DisconnectView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         try:
             bamboohr_queryset = BambooHr.objects.filter(org__id=kwargs['org_id'])
+            if bamboohr_queryset.count() == 0:
+                return Response(
+                    data = {
+                        'message': 'BambooHR connection does not exists for this org.'
+                    },
+                    status = status.HTTP_404_NOT_FOUND
+                )
+
             bamboohr_queryset.update(api_token=None, sub_domain=None)
             delete_sync_employee_schedule(org_id=kwargs['org_id'])
+            deactivate_bamboo_hr_integration(kwargs['org_id'])
             return Response(
                 data='Successfully Disconneted!',
                 status=status.HTTP_200_OK
             )
-        except BambooHr.DoesNotExist:
-            return Response(
-                data = {
-                    'message': 'BambooHR connection does not exists for this org.'
-                },
-                status = status.HTTP_404_NOT_FOUND
-            )
+
         except BambooHrConfiguration.DoesNotExist:
             return Response(
                 data={'message': 'BambooHr Configuration does not exist for this Workspace'},
