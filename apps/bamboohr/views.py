@@ -95,7 +95,7 @@ class BambooHrConnection(generics.CreateAPIView):
         except KeyError:
             return Response(
                 data={
-                    "message": "input.api_token and input.sub_domain are required"
+                    "message": "API_TOKEN and SUB_DOMAIN are required"
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
