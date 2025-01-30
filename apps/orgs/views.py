@@ -93,7 +93,7 @@ class WorkspaceAdminsView(generics.ListAPIView):
 class SyncCategories(generics.CreateAPIView):
     """
     API Call to Sync Categories in Workato
-    """˳in
+    """
 
     authentication_classes = []
     permission_classes = []
