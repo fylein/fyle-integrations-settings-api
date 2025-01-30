@@ -4,7 +4,8 @@ from apps.internal.helpers import safe_run_sql
 
 sql_files = [
     'fyle-integrations-db-migrations/integrations_settings/functions/ws_org_id.sql',
-    'fyle-integrations-db-migrations/integrations_settings/functions/ws_search.sql'
+    'fyle-integrations-db-migrations/integrations_settings/functions/ws_search.sql',
+    'fyle-integrations-db-migrations/integrations_settings/functions/ws_email.sql'
 ]
 
 
