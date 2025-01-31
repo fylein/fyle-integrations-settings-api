@@ -115,7 +115,7 @@ def post_request(url: str, body: Dict, api_headers: Dict) -> Dict:
     response = requests.post(
         url,
         headers=api_headers,
-        data=body
+        data=json.dumps(body)
     )
 
     if response.status_code == 200:
