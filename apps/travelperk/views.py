@@ -10,6 +10,7 @@ from django.db import transaction
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
+from apps.travelperk.actions import deactivate_travelperk_integration
 from django_q.tasks import async_task
 
 from admin_settings.utils import LookupFieldMixin
@@ -75,6 +76,7 @@ class DisconnectTravelperkView(generics.CreateAPIView):
             travelperk.webhook_subscription_id = None
             travelperk.is_travelperk_connected = False
             travelperk.save()
+            deactivate_travelperk_integration(kwargs['org_id'])
 
             return Response(
                 data={'message': 'disconnected successfully'},
