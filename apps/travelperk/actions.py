@@ -307,3 +307,21 @@ def add_travelperk_to_integrations(org_id):
             'tpa_name': 'Fyle TravelPerk Integration'
         }
     )
+
+def deactivate_travelperk_integration(org_id):
+    """
+    Deactivate the integration for the given org_id
+    """
+    try:
+        org = Org.objects.get(id=org_id)
+    except Org.DoesNotExist:
+        logger.error(f'Org with id {org_id} not found')
+
+    integration = Integration.objects.filter(org_id=org.fyle_org_id, type='TRAVEL').first()
+    if integration:
+        integration.is_active=False
+        integration.disconnected_at=datetime.now()
+        integration.save()
+        logger.info(f'Deactivated integration: Fyle TravelPerk Integration (TRAVEL) | {org.fyle_org_id = } | {org.name = }')
+    else:
+        logger.error(f'Integration not found: Fyle TravelPerk Integration (TRAVEL) | {org.fyle_org_id = } | {org.name = }')
