@@ -3,6 +3,7 @@ import json
 import pytest
 from django.urls import reverse
 
+from apps.bamboohr.models import BambooHr
 from apps.integrations.models import Integration
 from apps.orgs.models import Org
 from tests.helper import dict_compare_keys
@@ -141,3 +142,52 @@ def test_post_bamboohr_connection_view(api_client, mocker, access_token, get_org
     assert integration_object.org_name == org.name
     assert integration_object.is_active
     assert integration_object.is_beta
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_post_bamboohr_disconnect_view(api_client, mocker, access_token, get_org_id):
+    """
+    Test Post BambooHR Disconnect View
+    """
+    
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    # Invalid org id should return 404
+    url = reverse('bamboohr:disconnect',
+        kwargs={
+            'org_id': '1234567',
+        }
+    )
+
+    response = api_client.post(url, format='json')
+    assert response.status_code == 404
+
+
+    # Create dummy BambooHR conenction
+    connect_url = reverse('bamboohr:connection',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    mock_bamboohr_sdk = MagicMock()
+    mock_bamboohr_sdk.time_off.get.return_value = {'timeOffTypes': True}
+    mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_bamboohr_sdk)
+
+    response = api_client.post(connect_url, fixture['bamboo_connection'], format='json')
+    assert response.status_code == 200
+
+
+    # Valid disconnect call should return 200 and update the integration instance
+    url = reverse('bamboohr:disconnect',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+
+    response = api_client.post(url, format='json')
+    assert response.status_code == 200
+
+    org = Org.objects.get(id=get_org_id)
+    integration_object = Integration.objects.get(org_id=org.fyle_org_id, type='HRMS')
+    assert not integration_object.is_active
+    assert integration_object.disconnected_at is not None

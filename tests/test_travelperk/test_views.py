@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 from apps.integrations.models import Integration
 from apps.orgs.models import Org
+from apps.travelperk.actions import add_travelperk_to_integrations
 from apps.travelperk.models import TravelperkAdvancedSetting
 from tests.helper import dict_compare_keys
 from .fixtures import fixture
@@ -143,6 +144,13 @@ def test_disconnect_travelperk(mocker, api_client, access_token, get_org_id, get
             }
     )
 
+    # Create mock travelperk integration record
+    add_travelperk_to_integrations(get_org_id)
+
+    org = Org.objects.get(id=get_org_id)
+    integration_objects = Integration.objects.filter(org_id=org.fyle_org_id, type='TRAVEL')
+    assert integration_objects.count() == 1
+
     mock_connector = MagicMock()
     mock_connector.delete_webhook_connection.return_value = {'message': 'success'}
 
@@ -153,9 +161,13 @@ def test_disconnect_travelperk(mocker, api_client, access_token, get_org_id, get
 
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
+    # Disconnect call should return 200 and update the integration instance
     response = api_client.post(url)
     assert response.status_code == 200
 
+    integration_object = Integration.objects.get(org_id=org.fyle_org_id, type='TRAVEL')
+    assert not integration_object.is_active
+    assert integration_object.disconnected_at is not None
 
 @pytest.mark.django_db(databases=['default'])
 def test_connect_travelperk(mocker, api_client, access_token, get_org_id, get_travelperk_id, add_travelperk_cred):
