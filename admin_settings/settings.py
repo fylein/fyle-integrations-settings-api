@@ -17,6 +17,8 @@ import dj_database_url
 
 from .sentry import Sentry
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -52,6 +54,7 @@ INSTALLED_APPS = [
     'apps.travelperk',
     'apps.integrations',
     'apps.fyle_hrms_mappings',
+    'apps.internal'
 ]
 
 MIDDLEWARE = [
