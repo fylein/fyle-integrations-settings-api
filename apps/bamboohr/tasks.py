@@ -1,5 +1,7 @@
+import logging
 from apps.bamboohr.models import BambooHr
 from apps.fyle_hrms_mappings.models import DestinationAttribute
+from apps.integrations.models import Integration
 from apps.orgs.models import FyleCredential, Org
 from apps.users.helpers import PlatformConnector
 from fyle_employee_imports.bamboo_hr import BambooHrEmployeeImport
@@ -7,6 +9,10 @@ from bamboosdk.bamboohrsdk import BambooHrSDK
 from django_q.models import Schedule
 
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
+logger.level = logging.INFO
+
 
 def import_employees(org_id: int, is_incremental_sync: bool = False):
     """
@@ -85,3 +91,35 @@ def schedule_failure_emails_for_employees(org_id):
                 'next_run': datetime.now()
         }
     )
+
+def add_bamboo_hr_to_integrations(org):
+    logger.info(f'New integration record: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
+
+    Integration.objects.update_or_create(
+        org_id=org.fyle_org_id,
+        type='HRMS',
+        defaults={
+            'is_active': True,
+            'org_name': org.name,
+            'tpa_id': 'tpayrBcJzWAlx',
+            'tpa_name': 'Fyle BambooHR Integration'
+        }
+    )
+
+def deactivate_bamboo_hr_integration(org_id):
+    """
+    Deactivate the integration for the given org_id
+    """
+    try:
+        org = Org.objects.get(id=org_id)
+    except Org.DoesNotExist:
+        logger.error(f'Org with id {org_id} not found')
+
+    integration = Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').first()
+    if integration:
+        integration.is_active=False
+        integration.disconnected_at=datetime.now()
+        integration.save()
+        logger.info(f'Deactivated integration: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
+    else:
+        logger.error(f'Integration not found: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')

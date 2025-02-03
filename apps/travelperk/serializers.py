@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.travelperk.actions import add_travelperk_to_integrations
 from apps.travelperk.models import TravelPerk, InvoiceLineItem
 from apps.travelperk.connector import TravelperkConnector
 from apps.travelperk.models import (
@@ -75,6 +76,7 @@ class TravelperkAdvancedSettingSerializer(serializers.ModelSerializer):
         if travelperk.onboarding_state == 'ADVANCED_SETTINGS':
             travelperk.onboarding_state = 'COMPLETE'
             travelperk.save()
+            add_travelperk_to_integrations(org_id)
 
         return advanced_setting
 
