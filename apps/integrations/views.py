@@ -62,6 +62,7 @@ class IntegrationsView(generics.ListCreateAPIView, generics.UpdateAPIView):
 
         try:
             org_id = get_org_id_and_name_from_access_token(access_token)['id']
+            request.data._mutable = True
             request.data['org_id'] = org_id
         except Exception as error:
             logger.info(error)
