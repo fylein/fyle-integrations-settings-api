@@ -238,16 +238,24 @@ def test_integrations_view_patch(api_client, mocker, access_token):
         return_value='https://hehe.fyle.tech'
     )
 
+    Integration.objects.create(
+        org_id=dummy_org_id,
+        tpa_name=patch_integration['tpa_name'],
+        tpa_id='tpa129sjcjkjx',
+        type='ACCOUNTING',
+        is_active=True
+    )
+
     url = reverse('integrations:integrations')
 
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
 
     response = api_client.patch(url, patch_integration_no_tpa_name)
-    assert response.status_code == 400, 'Should not be able to PATCH without a tpa_name'
+    assert response.status_code == 400, 'PATCH without a tpa_name should return 400'
 
     response = api_client.patch(url, patch_integration_invalid_tpa_name)
-    assert response.status_code == 400, 'Should not be able to PATCH with an invalid tpa_name'
+    assert response.status_code == 400, 'PATCH with an invalid tpa_name should return 400'
 
     # Update two fields
     response = api_client.patch(url, patch_integration)
