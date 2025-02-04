@@ -251,14 +251,14 @@ def test_integrations_view_patch(api_client, mocker, access_token):
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
 
-    response = api_client.patch(url, patch_integration_no_tpa_name)
+    response = api_client.patch(url,  json.dumps(patch_integration_no_tpa_name), content_type="application/json")
     assert response.status_code == 400, 'PATCH without a tpa_name should return 400'
 
-    response = api_client.patch(url, patch_integration_invalid_tpa_name)
+    response = api_client.patch(url,  json.dumps(patch_integration_invalid_tpa_name), content_type="application/json")
     assert response.status_code == 400, 'PATCH with an invalid tpa_name should return 400'
 
     # Update two fields
-    response = api_client.patch(url, patch_integration)
+    response = api_client.patch(url,  json.dumps(patch_integration), content_type="application/json")
     assert response.status_code == 200, 'Valid PATCH request should be successful'
 
     response = json.loads(response.content)
@@ -267,7 +267,7 @@ def test_integrations_view_patch(api_client, mocker, access_token):
     assert response['is_token_expired'] == patch_integration['is_token_expired']
 
     # Update one field, leaving the other as it is
-    response = api_client.patch(url, patch_integration_partial)
+    response = api_client.patch(url, json.dumps(patch_integration_partial), content_type="application/json")
     assert response.status_code == 200, 'Valid PATCH request should be successful'
 
     response = json.loads(response.content)
