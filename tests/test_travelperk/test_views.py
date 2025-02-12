@@ -4,6 +4,9 @@ import pytest
 from django.urls import reverse
 from unittest.mock import MagicMock
 
+from apps.integrations.models import Integration
+from apps.orgs.models import Org
+from apps.travelperk.actions import add_travelperk_to_integrations
 from apps.travelperk.models import TravelperkAdvancedSetting
 from tests.helper import dict_compare_keys
 from .fixtures import fixture
@@ -98,6 +101,17 @@ def test_get_advanced_settings(mocker, api_client, access_token, get_org_id, get
     response = api_client.post(url, payload, format='json')
     assert response.status_code == 201
 
+    org = Org.objects.get(id=get_org_id)
+    integration_object = Integration.objects.get(org_id=org.fyle_org_id, type='TRAVEL')
+    assert integration_object
+    assert integration_object.tpa_name == fixture['integrations_response']['tpa_name']
+    assert integration_object.tpa_id == fixture['integrations_response']['tpa_id']
+    assert integration_object.type == fixture['integrations_response']['type']
+    assert integration_object.org_id == org.fyle_org_id
+    assert integration_object.org_name == org.name
+    assert integration_object.is_active
+    assert integration_object.is_beta
+
     advanced_settings = TravelperkAdvancedSetting.objects.get(org=get_org_id)
     advanced_settings.default_employee_name = None
     advanced_settings.default_employee_id = None
@@ -130,6 +144,13 @@ def test_disconnect_travelperk(mocker, api_client, access_token, get_org_id, get
             }
     )
 
+    # Create mock travelperk integration record
+    add_travelperk_to_integrations(get_org_id)
+
+    org = Org.objects.get(id=get_org_id)
+    integration_objects = Integration.objects.filter(org_id=org.fyle_org_id, type='TRAVEL')
+    assert integration_objects.count() == 1
+
     mock_connector = MagicMock()
     mock_connector.delete_webhook_connection.return_value = {'message': 'success'}
 
@@ -140,9 +161,13 @@ def test_disconnect_travelperk(mocker, api_client, access_token, get_org_id, get
 
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
+    # Disconnect call should return 200 and update the integration instance
     response = api_client.post(url)
     assert response.status_code == 200
 
+    integration_object = Integration.objects.get(org_id=org.fyle_org_id, type='TRAVEL')
+    assert not integration_object.is_active
+    assert integration_object.disconnected_at is not None
 
 @pytest.mark.django_db(databases=['default'])
 def test_connect_travelperk(mocker, api_client, access_token, get_org_id, get_travelperk_id, add_travelperk_cred):
