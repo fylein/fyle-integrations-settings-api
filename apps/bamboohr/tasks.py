@@ -7,6 +7,7 @@ from apps.users.helpers import PlatformConnector
 from fyle_employee_imports.bamboo_hr import BambooHrEmployeeImport
 from bamboosdk.bamboohrsdk import BambooHrSDK
 from django_q.models import Schedule
+from django.conf import settings
 
 from datetime import datetime
 
@@ -31,9 +32,9 @@ def update_employee(org_id: int, payload: dict):
     payload = payload['fields']
     for field in payload.keys():
         employee[field] = payload[field]['value']
-    
+
     employee['status'] = True if employee.get('status', None) == 'Active' else False
-    
+
     bamboohr_importer = BambooHrEmployeeImport(org_id=org_id)
     bamboohr_importer.sync_with_webhook(employee=employee)
 
@@ -101,7 +102,7 @@ def add_bamboo_hr_to_integrations(org):
         defaults={
             'is_active': True,
             'org_name': org.name,
-            'tpa_id': 'tpayrBcJzWAlx',
+            'tpa_id': settings.FYLE_CLIENT_ID,
             'tpa_name': 'Fyle BambooHR Integration'
         }
     )
