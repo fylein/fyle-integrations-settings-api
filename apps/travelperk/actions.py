@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import logging
 import logging
+from django.conf import settings
 import requests
 from datetime import datetime, timezone
 

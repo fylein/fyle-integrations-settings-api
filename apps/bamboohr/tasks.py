@@ -114,8 +114,8 @@ def deactivate_bamboo_hr_integration(org_id):
     org = Org.objects.get(id=org_id)
     integration = Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').first()
     if integration:
-        integration.is_active=False
-        integration.disconnected_at=datetime.now()
+        integration.is_active = False
+        integration.disconnected_at = datetime.now()
         integration.save()
         logger.info(f'Deactivated integration: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
     else:
