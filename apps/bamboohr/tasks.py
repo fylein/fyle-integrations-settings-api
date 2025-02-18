@@ -111,11 +111,7 @@ def deactivate_bamboo_hr_integration(org_id):
     """
     Deactivate the integration for the given org_id
     """
-    try:
-        org = Org.objects.get(id=org_id)
-    except Org.DoesNotExist:
-        logger.error(f'Org with id {org_id} not found')
-
+    org = Org.objects.get(id=org_id)
     integration = Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').first()
     if integration:
         integration.is_active=False
