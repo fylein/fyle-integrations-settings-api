@@ -45,7 +45,7 @@ fixture = {
     "integrations_response": {
         "org_id": "orTwovfDpEYc",
         "org_name": "Test org",
-        "tpa_id": "tpayrBcJzWAlx",
+        "tpa_id": "dummy",
         "tpa_name": "Fyle BambooHR Integration",
         "type": "HRMS",
         "is_active": True,

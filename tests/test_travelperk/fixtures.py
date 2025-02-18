@@ -114,7 +114,7 @@ fixture = {
     "integrations_response": {
         "org_id": "orTwovfDpEYc",
         "org_name": "Test org",
-        "tpa_id": "tpayrBcJzWAlx",
+        "tpa_id": "dummy",
         "tpa_name": "Fyle TravelPerk Integration",
         "type": "TRAVEL",
         "is_active": True,
