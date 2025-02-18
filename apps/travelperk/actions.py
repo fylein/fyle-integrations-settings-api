@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import logging
 import logging
+from django.conf import settings
 import requests
 from datetime import datetime, timezone
 
@@ -9,8 +10,8 @@ from fyle.platform import Platform
 from apps.integrations.models import Integration
 from apps.orgs.exceptions import handle_fyle_exceptions
 from apps.travelperk.models import (
-    Invoice, 
-    InvoiceLineItem, 
+    Invoice,
+    InvoiceLineItem,
     ImportedExpenseDetail,
     TravelperkProfileMapping,
     TravelperkAdvancedSetting
@@ -188,7 +189,7 @@ def construct_expense_payload(org_id: str, expense: dict, amount: int, file_ids:
             'file_ids': file_ids
         }
     }
-    
+
     if employee_email:
         payload['data']['admin_amount'] = amount
         payload['data']['assignee_user_email'] = employee_email
@@ -303,7 +304,7 @@ def add_travelperk_to_integrations(org_id):
         defaults={
             'is_active': True,
             'org_name': org.name,
-            'tpa_id': 'tpayrBcJzWAlx',
+            'tpa_id': settings.FYLE_CLIENT_ID,
             'tpa_name': 'Fyle TravelPerk Integration'
         }
     )

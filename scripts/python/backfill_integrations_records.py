@@ -1,3 +1,4 @@
+from django.conf import settings
 from apps.bamboohr.models import BambooHr
 from apps.integrations.models import Integration
 from apps.travelperk.models import TravelPerk
@@ -15,7 +16,7 @@ for tp_object in TravelPerk.objects.all():
         defaults={
             'is_active': True,
             'org_name': tp_object.org.name,
-            'tpa_id': 'tpayrBcJzWAlx',
+            'tpa_id': settings.FYLE_CLIENT_ID,
             'tpa_name': 'Fyle TravelPerk Integration',
             'connected_at': tp_object.created_at
         }
@@ -32,7 +33,7 @@ for bamboo_object in BambooHr.objects.all():
         defaults={
             'is_active': True,
             'org_name': bamboo_object.org.name,
-            'tpa_id': 'tpayrBcJzWAlx',
+            'tpa_id': settings.FYLE_CLIENT_ID,
             'tpa_name': 'Fyle BambooHR Integration',
             'connected_at': bamboo_object.created_at
         }
