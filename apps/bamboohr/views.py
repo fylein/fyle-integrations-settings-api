@@ -1,4 +1,5 @@
 import logging
+from apps.integrations.models import Integration
 from bamboosdk.bamboohrsdk import BambooHrSDK
 
 from rest_framework.response import Response
@@ -32,6 +33,13 @@ class HealthCheck(generics.ListAPIView):
                     status=status.HTTP_200_OK
                 )
             else:
+
+                org = Org.objects.get(id=kwargs['org_id'])
+                logger.info(f'Token Expired: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
+                Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').update(
+                    is_token_expired=True
+                )
+
                 bamboohr.is_credentials_expired = True
                 bamboohr.save()
                 return Response(
@@ -153,7 +161,7 @@ class BambooHrConfigurationView(generics.ListCreateAPIView):
                 data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
     def post(self, request, *args, **kwargs):
         try:
             org_id = self.request.data['org']
@@ -176,7 +184,7 @@ class BambooHrConfigurationView(generics.ListCreateAPIView):
                 data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
 
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
@@ -214,7 +222,7 @@ class DisconnectView(generics.CreateAPIView):
 
 
 class SyncEmployeesView(generics.UpdateAPIView):
-    
+
     """
     API To Sync Employees From BambooHr To Fyle
     """
