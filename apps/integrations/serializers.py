@@ -26,7 +26,9 @@ class IntegrationSerializer(serializers.ModelSerializer):
                     'is_active': True,
                     'org_name': validated_data['org_name'],
                     'tpa_id': validated_data['tpa_id'],
-                    'tpa_name': validated_data['tpa_name']
+                    'tpa_name': validated_data['tpa_name'],
+                    'errors_count': 0,
+                    'is_token_expired': False
                 }
             )
         elif not validated_data['is_active']:

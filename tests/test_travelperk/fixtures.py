@@ -110,5 +110,17 @@ fixture = {
             }
         },
         "org": 360
+    },
+    "integrations_response": {
+        "org_id": "orTwovfDpEYc",
+        "org_name": "Test org",
+        "tpa_id": "dummy",
+        "tpa_name": "Fyle TravelPerk Integration",
+        "type": "TRAVEL",
+        "is_active": True,
+        "is_beta": True,
+        "connected_at": "2025-01-09T10:08:20.434443Z",
+        "disconnected_at": None,
+        "updated_at": "2025-01-09T10:08:20.434443Z"
     }
 }
