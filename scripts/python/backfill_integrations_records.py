@@ -3,9 +3,17 @@ from apps.bamboohr.models import BambooHr
 from apps.integrations.models import Integration
 from apps.travelperk.models import TravelPerk
 
-# Expected output:
-# travelperk_created = 24
-# bamboo_created = 44
+'''
+Expected outputs:
+
+US Cluster:
+travelperk_created = 26
+bamboo_created = 14
+
+Indian Cluster:
+travelperk_created = 1
+bamboo_created = 1
+'''
 
 
 travelperk_created = 0
@@ -26,7 +34,7 @@ for tp_object in TravelPerk.objects.all():
 print(f'{travelperk_created = }')
 
 bamboo_created = 0
-for bamboo_object in BambooHr.objects.all():
+for bamboo_object in BambooHr.objects.filter(api_token__isnull=False, sub_domain__isnull=False):
     _, created = Integration.objects.update_or_create(
         org_id=bamboo_object.org.id,
         type='TRAVEL',
@@ -41,3 +49,11 @@ for bamboo_object in BambooHr.objects.all():
     bamboo_created += created
 
 print(f'{bamboo_created = }')
+
+
+'''
+Verify counts:
+
+select count(*) from travelperk;
+select count(*) from bamboohr where api_token is not null and sub_domain is not null;
+'''
