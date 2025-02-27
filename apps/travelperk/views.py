@@ -10,6 +10,8 @@ from django.db import transaction
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.views import status
+from apps.integrations.models import Integration
+from apps.travelperk.actions import deactivate_travelperk_integration
 from django_q.tasks import async_task
 
 from admin_settings.utils import LookupFieldMixin
@@ -75,6 +77,7 @@ class DisconnectTravelperkView(generics.CreateAPIView):
             travelperk.webhook_subscription_id = None
             travelperk.is_travelperk_connected = False
             travelperk.save()
+            deactivate_travelperk_integration(kwargs['org_id'])
 
             return Response(
                 data={'message': 'disconnected successfully'},
@@ -301,7 +304,14 @@ class ValidateHealthyToken(generics.ListAPIView):
             if travelperk:
                 travelperk.is_travelperk_connected = False
                 travelperk.save()
-                
+
+            org = Org.objects.filter(fyle_org_id=kwargs['org_id']).first()
+            if org:
+                logger.info(f'Token Expired: Fyle TravelPerk Integration (TRAVEL) | {org.fyle_org_id = } | {org.name = }')
+                Integration.objects.filter(org_id=org.fyle_org_id, type='TRAVEL').update(
+                    is_token_expired=True
+                )
+
             return Response(
                 data={'message': 'Invalid credentials'},
                 status=status.HTTP_400_BAD_REQUEST
