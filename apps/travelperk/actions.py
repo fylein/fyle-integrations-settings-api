@@ -1,15 +1,17 @@
 from datetime import datetime, timezone
 import logging
 import logging
+from django.conf import settings
 import requests
 from datetime import datetime, timezone
 
 from fyle.platform import Platform
 
+from apps.integrations.models import Integration
 from apps.orgs.exceptions import handle_fyle_exceptions
 from apps.travelperk.models import (
-    Invoice, 
-    InvoiceLineItem, 
+    Invoice,
+    InvoiceLineItem,
     ImportedExpenseDetail,
     TravelperkProfileMapping,
     TravelperkAdvancedSetting
@@ -187,7 +189,7 @@ def construct_expense_payload(org_id: str, expense: dict, amount: int, file_ids:
             'file_ids': file_ids
         }
     }
-    
+
     if employee_email:
         payload['data']['admin_amount'] = amount
         payload['data']['assignee_user_email'] = employee_email
@@ -291,3 +293,36 @@ def create_expense_in_fyle(org_id: str, invoice: Invoice, invoice_lineitems: Inv
         create_expense_against_employee(org_id, invoice, invoice_lineitems, profile_mapping.user_role, advanced_settings)
     else:
         create_expense_in_fyle_v2(org_id, invoice, invoice_lineitems)
+
+def add_travelperk_to_integrations(org_id):
+    org = Org.objects.get(id=org_id)
+    logger.info(f'New integration record: Fyle TravelPerk Integration (TRAVEL) | {org.fyle_org_id = } | {org.name = }')
+
+    Integration.objects.update_or_create(
+        org_id=org.fyle_org_id,
+        type='TRAVEL',
+        defaults={
+            'is_active': True,
+            'org_name': org.name,
+            'tpa_id': settings.FYLE_CLIENT_ID,
+            'tpa_name': 'Fyle TravelPerk Integration'
+        }
+    )
+
+def deactivate_travelperk_integration(org_id):
+    """
+    Deactivate the integration for the given org_id
+    """
+    try:
+        org = Org.objects.get(id=org_id)
+    except Org.DoesNotExist:
+        logger.error(f'Org with id {org_id} not found')
+
+    integration = Integration.objects.filter(org_id=org.fyle_org_id, type='TRAVEL').first()
+    if integration:
+        integration.is_active=False
+        integration.disconnected_at=datetime.now()
+        integration.save()
+        logger.info(f'Deactivated integration: Fyle TravelPerk Integration (TRAVEL) | {org.fyle_org_id = } | {org.name = }')
+    else:
+        logger.error(f'Integration not found: Fyle TravelPerk Integration (TRAVEL) | {org.fyle_org_id = } | {org.name = }')
