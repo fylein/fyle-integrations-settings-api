@@ -7,17 +7,17 @@ from apps.travelperk.models import TravelPerk
 Expected outputs:
 
 US Cluster:
-travelperk_created = 26
+travelperk_created = 11
 bamboo_created = 14
 
 Indian Cluster:
-travelperk_created = 1
+travelperk_created = 0
 bamboo_created = 1
 '''
 
 def main():
     travelperk_created = 0
-    for tp_object in TravelPerk.objects.all():
+    for tp_object in TravelPerk.objects.filter(onboarding_state='COMPLETE'):
         _, created = Integration.objects.update_or_create(
             org_id=tp_object.org.fyle_org_id,
             type='TRAVEL',
@@ -54,7 +54,7 @@ main()
 Verify counts:
 
 \c integration_settings
-select count(*) from travelperk;
+select count(*) from travelperk where onboarding_state='COMPLETE';
 select count(*) from bamboohr where api_token is not null and sub_domain is not null;
 
 select count(*) from integrations where type='TRAVEL';
