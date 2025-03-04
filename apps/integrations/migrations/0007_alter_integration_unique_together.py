@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterUniqueTogether(
             name='integration',
-            unique_together={('tpa_name', 'org_id', 'type')},
+            unique_together={('org_id', 'type')},
         ),
     ]
