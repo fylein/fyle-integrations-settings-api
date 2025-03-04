@@ -54,3 +54,4 @@ sentry-sdk==2.19.2
 
 #sendgrid
 sendgrid==6.11.0
+fyle-accounting-mappings==1.38.0
