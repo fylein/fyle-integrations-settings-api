@@ -38,6 +38,20 @@ def test_integrations_view_post_accounting(api_client, mocker, access_token):
     assert response['is_beta'] == True
     assert response['disconnected_at'] == None
 
+    mocker.patch(
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id+'_2', "name":"Dummy Org 2"}
+    )
+    api_client.post(url, post_integration_accounting_2)
+    api_client.post(url, post_integration_hrms)
+
+    response = api_client.get(url)
+
+    response = json.loads(response.content)
+    assert response[0]['type'] == 'ACCOUNTING'
+    assert response[0]['org_id'] == dummy_org_id+'_2'
+    assert response[1]['type'] == 'HRMS'
+
 
 @pytest.mark.django_db(databases=['default'])
 def test_integrations_view_post(api_client, mocker, access_token):
