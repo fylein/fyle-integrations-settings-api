@@ -38,6 +38,17 @@ def test_integrations_view_post_accounting(api_client, mocker, access_token):
     assert response['is_beta'] == True
     assert response['disconnected_at'] == None
 
+    api_client.post(url, post_integration_accounting_2)
+
+    api_client.post(url, post_integration_hrms)
+
+    response = api_client.get(url)
+    response = json.loads(response.content)
+
+    assert response[0]['type'] == 'ACCOUNTING'
+    assert response[1]['type'] == 'HRMS'
+    assert response[0]['updated_at'] < response[1]['updated_at']
+
 
 @pytest.mark.django_db(databases=['default'])
 def test_integrations_view_post(api_client, mocker, access_token):
