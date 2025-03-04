@@ -1,10 +1,7 @@
-import pika
-import json
-import os
 import logging
-from datetime import datetime
 from fyle_accounting_library.rabbitmq.connector import RabbitMQConnection
 from fyle_accounting_library.fyle_platform.enums import RoutingKeyEnum
+import json
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -15,7 +12,7 @@ def publish_to_rabbitmq():
     """
     try:
         rabbitmq = RabbitMQConnection.get_instance('integrations_pgevents_exchange')
-        rabbitmq.publish(RoutingKeyEnum.UPLOAD_S3.value, {})
+        rabbitmq.publish('upload_s3', None)
         logger.info('Successfully published message to RabbitMQ')
 
     except Exception as e:
