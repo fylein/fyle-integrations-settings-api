@@ -7,5 +7,5 @@ sql_files = [
 
 
 class Migration(migrations.Migration):
-    dependencies = [('integrations', '0005_auto_20240223_1251')]
+    dependencies = [('integrations', '0007_alter_integration_unique_together')]
     operations = safe_run_sql(sql_files)
