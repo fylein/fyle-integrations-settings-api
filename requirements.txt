@@ -56,5 +56,4 @@ sentry-sdk==2.19.2
 sendgrid==6.11.0
 fyle-accounting-mappings==1.40.2
 
-pika==1.1.0
 git+https://github.com/fylein/pgevents.git@main#egg=pgevents
