@@ -1,4 +1,5 @@
 import logging
+from apps.integrations.models import Integration
 from bamboosdk.bamboohrsdk import BambooHrSDK
 
 from rest_framework.response import Response
@@ -8,8 +9,9 @@ from rest_framework import generics
 from apps.orgs.models import Org
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
-from apps.bamboohr.tasks import delete_sync_employee_schedule
+from apps.bamboohr.tasks import add_bamboo_hr_to_integrations, deactivate_bamboo_hr_integration, delete_sync_employee_schedule
 
+from bamboosdk.exceptions import InvalidTokenError, NoPrivilegeError, NotFoundItemError
 from django_q.tasks import async_task
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,13 @@ class HealthCheck(generics.ListAPIView):
                     status=status.HTTP_200_OK
                 )
             else:
+
+                org = Org.objects.get(id=kwargs['org_id'])
+                logger.info(f'Token Expired: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
+                Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').update(
+                    is_token_expired=True
+                )
+
                 bamboohr.is_credentials_expired = True
                 bamboohr.save()
                 return Response(
@@ -88,13 +97,31 @@ class BambooHrConnection(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         org = Org.objects.filter(id=kwargs['org_id']).first()
 
-        api_token = request.data['input']['api_token']
-        sub_domain = request.data['input']['subdomain']
+        try:
+            api_token = request.data['input']['api_token']
+            sub_domain = request.data['input']['subdomain']
+        except KeyError:
+            return Response(
+                data={
+                    "message": "API_TOKEN and SUB_DOMAIN are required"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         logger.info('Bamboo HR Connection Request Payload | Content: {{api_token: {0}, sub_domain: {1}}}'.format(api_token, sub_domain))
 
         bamboohrsdk = BambooHrSDK(api_token=api_token, sub_domain=sub_domain)
-        timeoff = bamboohrsdk.time_off.get()
+
+        try:
+            timeoff = bamboohrsdk.time_off.get()
+        except (NoPrivilegeError, NotFoundItemError, InvalidTokenError) as e:
+            return Response(
+                data = {
+                    'message': 'Invalid token'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         logger.info('Bamboo HR Connection Timeoff Response | Content: {0}'.format(timeoff))
         if timeoff.get('timeOffTypes', None):
             bamboohr, _ = BambooHr.objects.update_or_create(org=org, defaults={
@@ -102,10 +129,12 @@ class BambooHrConnection(generics.CreateAPIView):
                 'sub_domain': sub_domain
             })
 
+            add_bamboo_hr_to_integrations(org)
+
             return Response(
-            data="BambooHr is connected",
-            status=status.HTTP_200_OK
-        )
+                data="BambooHr is connected",
+                status=status.HTTP_200_OK
+            )
         else:
             return Response(
                 data = {
@@ -132,7 +161,7 @@ class BambooHrConfigurationView(generics.ListCreateAPIView):
                 data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
     def post(self, request, *args, **kwargs):
         try:
             org_id = self.request.data['org']
@@ -155,7 +184,7 @@ class BambooHrConfigurationView(generics.ListCreateAPIView):
                 data={'message': 'BambooHr Configuration does not exist for this Workspace'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
 
     def get_object(self, *args, **kwargs):
         return self.get(self, *args, **kwargs)
@@ -169,19 +198,22 @@ class DisconnectView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         try:
             bamboohr_queryset = BambooHr.objects.filter(org__id=kwargs['org_id'])
+            if bamboohr_queryset.count() == 0:
+                return Response(
+                    data = {
+                        'message': 'BambooHR connection does not exists for this org.'
+                    },
+                    status = status.HTTP_404_NOT_FOUND
+                )
+
             bamboohr_queryset.update(api_token=None, sub_domain=None)
             delete_sync_employee_schedule(org_id=kwargs['org_id'])
+            deactivate_bamboo_hr_integration(kwargs['org_id'])
             return Response(
                 data='Successfully Disconneted!',
                 status=status.HTTP_200_OK
             )
-        except BambooHr.DoesNotExist:
-            return Response(
-                data = {
-                    'message': 'BambooHR connection does not exists for this org.'
-                },
-                status = status.HTTP_404_NOT_FOUND
-            )
+
         except BambooHrConfiguration.DoesNotExist:
             return Response(
                 data={'message': 'BambooHr Configuration does not exist for this Workspace'},
@@ -190,7 +222,7 @@ class DisconnectView(generics.CreateAPIView):
 
 
 class SyncEmployeesView(generics.UpdateAPIView):
-    
+
     """
     API To Sync Employees From BambooHr To Fyle
     """
