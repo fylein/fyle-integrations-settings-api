@@ -54,7 +54,9 @@ INSTALLED_APPS = [
     'apps.travelperk',
     'apps.integrations',
     'apps.fyle_hrms_mappings',
-    'apps.internal'
+    'apps.internal',
+    'fyle_accounting_library.rabbitmq',
+    'fyle_accounting_library.fyle_platform'
 ]
 
 MIDDLEWARE = [
