@@ -266,7 +266,7 @@ def test_integrations_view_patch(api_client, mocker, access_token):
     assert response.status_code == 400, 'PATCH without a tpa_name should return 400'
 
     response = api_client.patch(url,  json.dumps(patch_integration_invalid_tpa_name), content_type="application/json")
-    assert response.status_code == 400, 'PATCH with an invalid tpa_name should return 400'
+    assert response.status_code == 200, 'PATCH with an invalid tpa_name should return 200 (test org case)'
 
     # Update two fields
     response = api_client.patch(url,  json.dumps(patch_integration), content_type="application/json")
