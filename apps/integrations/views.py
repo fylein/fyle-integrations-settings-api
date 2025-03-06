@@ -25,10 +25,11 @@ class IntegrationsView(generics.ListCreateAPIView, generics.UpdateAPIView):
 
     def get_object(self):
         queryset = self.get_queryset()
-        instance = queryset.get(
+        instance = queryset.filter(
             org_id=self.request.data['org_id'],
             tpa_name=self.request.data['tpa_name']
-        )
+        ).first()
+
         return instance
 
     def get(self, request, *args, **kwargs):
@@ -66,12 +67,18 @@ class IntegrationsView(generics.ListCreateAPIView, generics.UpdateAPIView):
         except Exception as error:
             logger.info(error)
             raise AuthenticationFailed('Invalid access token')
-        
+
+        # Silently ignore if the integration doesn't exist - sandbox cases
+        if self.get_object() is None:
+            return Response(
+                data={
+                    'message': 'Integration is inactive or does not exist'
+                },
+                status=status.HTTP_200_OK
+            )
+
         try:
             return super().patch(request, *args, **kwargs)
-        except Integration.DoesNotExist as error:
-            logger.info(error)
-            raise ParseError('Integration is inactive or does not exist')
         except Exception as error:
             logger.info(error)
             raise APIException('Something went wrong')
