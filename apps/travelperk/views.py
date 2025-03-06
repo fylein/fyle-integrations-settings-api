@@ -305,7 +305,7 @@ class ValidateHealthyToken(generics.ListAPIView):
                 travelperk.is_travelperk_connected = False
                 travelperk.save()
 
-            org = Org.objects.filter(fyle_org_id=kwargs['org_id']).first()
+            org = Org.objects.filter(id=kwargs['org_id']).first()
             if org:
                 logger.info(f'Token Expired: Fyle TravelPerk Integration (TRAVEL) | {org.fyle_org_id = } | {org.name = }')
                 Integration.objects.filter(org_id=org.fyle_org_id, type='TRAVEL').update(
