@@ -20,6 +20,16 @@ WORKDIR /fyle-integrations-settings-api
 # Do linting checks
 #RUN pylint --load-plugins pylint_django --rcfile=.pylintrc **/**.py
 
+#================================================================
+# Setup non-root user and permissions
+#================================================================
+RUN groupadd -r -g 1001 integrations_settings_api_service && \
+    useradd -r -g integrations_settings_api_service integrations_settings_api_user && \
+    chown -R integrations_settings_api_user:integrations_settings_api_service /fyle-integrations-settings-api
+
+# Switch to non-root user
+USER integrations_settings_api_user
+
 # Expose development port
 EXPOSE 8000
 
