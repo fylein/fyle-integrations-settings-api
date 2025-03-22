@@ -8,6 +8,8 @@ from fyle_employee_imports.bamboo_hr import BambooHrEmployeeImport
 from bamboosdk.bamboohrsdk import BambooHrSDK
 from django_q.models import Schedule
 from django.conf import settings
+from rest_framework.response import Response
+from rest_framework.views import status
 
 from datetime import datetime
 
@@ -93,6 +95,7 @@ def schedule_failure_emails_for_employees(org_id):
         }
     )
 
+
 def add_bamboo_hr_to_integrations(org):
     logger.info(f'New integration record: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
 
@@ -107,6 +110,7 @@ def add_bamboo_hr_to_integrations(org):
         }
     )
 
+
 def deactivate_bamboo_hr_integration(org_id):
     """
     Deactivate the integration for the given org_id
@@ -120,3 +124,24 @@ def deactivate_bamboo_hr_integration(org_id):
         logger.info(f'Deactivated integration: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
     else:
         logger.error(f'Integration not found: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
+
+
+def invalidate_token_and_get_response(org_id):
+    """
+    Invalidate BambooHR token for the given org_id and return a 400 response
+    """
+    bamboohr = BambooHr.objects.get(org_id__in=[org_id])
+    org = Org.objects.get(id=org_id)
+    logger.info(f'Token Expired: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
+    Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').update(
+        is_token_expired=True
+    )
+
+    bamboohr.is_credentials_expired = True
+    bamboohr.save()
+    return Response(
+        data = {
+            'message': 'Invalid token'
+        },
+        status=status.HTTP_400_BAD_REQUEST
+    )
