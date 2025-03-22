@@ -130,15 +130,17 @@ def invalidate_token_and_get_response(org_id):
     """
     Invalidate BambooHR token for the given org_id and return a 400 response
     """
-    bamboohr = BambooHr.objects.get(org_id__in=[org_id])
+    bamboohr = BambooHr.objects.filter(org_id__in=[org_id]).first()
+    if bamboohr:
+        bamboohr.is_credentials_expired = True
+        bamboohr.save()
+
     org = Org.objects.get(id=org_id)
     logger.info(f'Token Expired: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
     Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').update(
         is_token_expired=True
     )
 
-    bamboohr.is_credentials_expired = True
-    bamboohr.save()
     return Response(
         data = {
             'message': 'Invalid token'
