@@ -9,7 +9,7 @@ from rest_framework import generics
 from apps.orgs.models import Org
 from apps.bamboohr.models import BambooHr, BambooHrConfiguration
 from apps.bamboohr.serializers import BambooHrSerializer, BambooHrConfigurationSerializer
-from apps.bamboohr.tasks import add_bamboo_hr_to_integrations, deactivate_bamboo_hr_integration, delete_sync_employee_schedule
+from apps.bamboohr.tasks import add_bamboo_hr_to_integrations, deactivate_bamboo_hr_integration, delete_sync_employee_schedule, invalidate_token_and_get_response
 
 from bamboosdk.exceptions import InvalidTokenError, NoPrivilegeError, NotFoundItemError
 from django_q.tasks import async_task
@@ -21,38 +21,28 @@ class HealthCheck(generics.ListAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']], is_credentials_expire=False)
-            bamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
-            response = bamboohrsdk.time_off.get()
-
-            if response['timeOffTypes']:
-                return Response(
-                    data = {
-                        'message': 'Ready'
-                    },
-                    status=status.HTTP_200_OK
-                )
-            else:
-
-                org = Org.objects.get(id=kwargs['org_id'])
-                logger.info(f'Token Expired: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
-                Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').update(
-                    is_token_expired=True
-                )
-
-                bamboohr.is_credentials_expired = True
-                bamboohr.save()
-                return Response(
-                    data = {
-                        'message': 'Invalid token'
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            bamboohr = BambooHr.objects.get(org_id__in=[kwargs['org_id']])
         except BambooHr.DoesNotExist:
             return Response(
                 data={'message': 'Bamboo HR Details Not Found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+        try:
+            bamboohrsdk = BambooHrSDK(api_token=bamboohr.api_token, sub_domain=bamboohr.sub_domain)
+            response = bamboohrsdk.time_off.get()
+        except Exception:
+            return invalidate_token_and_get_response(kwargs['org_id'])
+
+        if response['timeOffTypes']:
+            return Response(
+                data = {
+                    'message': 'Ready'
+                },
+                status=status.HTTP_200_OK
+            )
+        else:
+            return invalidate_token_and_get_response(kwargs['org_id'])
 
 class BambooHrView(generics.ListAPIView):
     serializer_class = BambooHrSerializer
@@ -115,12 +105,7 @@ class BambooHrConnection(generics.CreateAPIView):
         try:
             timeoff = bamboohrsdk.time_off.get()
         except (NoPrivilegeError, NotFoundItemError, InvalidTokenError) as e:
-            return Response(
-                data = {
-                    'message': 'Invalid token'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return invalidate_token_and_get_response(kwargs['org_id'])
 
         logger.info('Bamboo HR Connection Timeoff Response | Content: {0}'.format(timeoff))
         if timeoff.get('timeOffTypes', None):
@@ -136,12 +121,7 @@ class BambooHrConnection(generics.CreateAPIView):
                 status=status.HTTP_200_OK
             )
         else:
-            return Response(
-                data = {
-                    'message': 'Invalid token'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return invalidate_token_and_get_response(kwargs['org_id'])
 
 
 class BambooHrConfigurationView(generics.ListCreateAPIView):
