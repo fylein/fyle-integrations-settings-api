@@ -5,7 +5,10 @@ from apps.internal.helpers import safe_run_sql
 sql_files = [
     'fyle-integrations-db-migrations/integrations_settings/functions/ws_org_id.sql',
     'fyle-integrations-db-migrations/integrations_settings/functions/ws_search.sql',
-    'fyle-integrations-db-migrations/integrations_settings/functions/ws_email.sql'
+    'fyle-integrations-db-migrations/integrations_settings/functions/ws_email.sql',
+    
+    'fyle-integrations-db-migrations/common/global_shared/helpers/add-replication-identity.sql',
+    'fyle-integrations-db-migrations/integrations_settings/helpers/add-tables-to-publication.sql'
 ]
 
 
