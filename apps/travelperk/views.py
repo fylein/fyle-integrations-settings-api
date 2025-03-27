@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import logging
 import traceback
 import hmac
@@ -309,7 +310,7 @@ class ValidateHealthyToken(generics.ListAPIView):
             if org:
                 logger.info(f'Token Expired: Fyle TravelPerk Integration (TRAVEL) | {org.fyle_org_id = } | {org.name = }')
                 Integration.objects.filter(org_id=org.fyle_org_id, type='TRAVEL').update(
-                    is_token_expired=True
+                    is_token_expired=True, updated_at=datetime.now(timezone.utc)
                 )
 
             return Response(

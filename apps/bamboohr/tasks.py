@@ -11,7 +11,7 @@ from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.views import status
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 logger.level = logging.INFO
@@ -138,7 +138,7 @@ def invalidate_token_and_get_response(org_id):
     org = Org.objects.get(id=org_id)
     logger.info(f'Token Expired: Fyle BambooHR Integration (HRMS) | {org.fyle_org_id = } | {org.name = }')
     Integration.objects.filter(org_id=org.fyle_org_id, type='HRMS').update(
-        is_token_expired=True
+        is_token_expired=True, updated_at=datetime.now(timezone.utc)
     )
 
     return Response(

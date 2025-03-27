@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import logging
 from apps.integrations.models import Integration
 from bamboosdk.bamboohrsdk import BambooHrSDK
@@ -186,7 +187,7 @@ class DisconnectView(generics.CreateAPIView):
                     status = status.HTTP_404_NOT_FOUND
                 )
 
-            bamboohr_queryset.update(api_token=None, sub_domain=None)
+            bamboohr_queryset.update(api_token=None, sub_domain=None, updated_at=datetime.now(timezone.utc))
             delete_sync_employee_schedule(org_id=kwargs['org_id'])
             deactivate_bamboo_hr_integration(kwargs['org_id'])
             return Response(
