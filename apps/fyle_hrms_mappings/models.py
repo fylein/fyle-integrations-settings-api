@@ -2,7 +2,7 @@ from typing import Dict, List
 from django.db import models
 from apps.orgs.models import Org
 from django.db.models import JSONField
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Create your models here.
 
@@ -116,7 +116,7 @@ class DestinationAttribute(models.Model):
                                 value=attribute['value'],
                                 detail=attribute['detail'] if 'detail' in attribute else None,
                                 active=attribute['active'] if 'active' in attribute else None,
-                                updated_at=datetime.now()
+                                updated_at=datetime.now(timezone.utc)
                             )
                         )
         if attributes_to_be_created:
@@ -221,7 +221,8 @@ class ExpenseAttribute(models.Model):
                             id=primary_key_map[attribute['value']]['id'],
                             source_id=attribute['source_id'],
                             detail=attribute['detail'] if 'detail' in attribute else None,
-                            active=attribute['active'] if 'active' in attribute else None
+                            active=attribute['active'] if 'active' in attribute else None,
+                            updated_at=datetime.now(timezone.utc)
                         )
                     )
         if attributes_to_be_created:
@@ -229,7 +230,7 @@ class ExpenseAttribute(models.Model):
 
         if attributes_to_be_updated:
             ExpenseAttribute.objects.bulk_update(
-                attributes_to_be_updated, fields=['source_id', 'detail', 'active'], batch_size=50)
+                attributes_to_be_updated, fields=['source_id', 'detail', 'active', 'updated_at'], batch_size=50)
 
 
 class Mapping(models.Model):
