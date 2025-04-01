@@ -8,8 +8,9 @@ services:
         CI: ENABLED
     entrypoint: bash run.sh
     restart: unless-stopped
+    user: root
     volumes:
-    - api-volume:/fyle-integrations-settings-api
+    - ./:/fyle-integrations-settings-api
     ports:
     - 8007:8007
     depends_on:
@@ -46,5 +47,4 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
-  api-volume:
   data:
