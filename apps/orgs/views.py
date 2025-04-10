@@ -40,6 +40,7 @@ class ReadyView(generics.RetrieveAPIView):
         """
         Ready call
         """
+        Org.objects.first()
 
         return Response(
             data={
