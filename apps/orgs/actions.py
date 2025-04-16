@@ -18,7 +18,7 @@ def get_admin_employees(org_id, user):
     platform = PlatformConnector(refresh_token, org.cluster_domain)
 
     # Getting all the admin from fyle, used to send notification email
-    employees_generator = platform.connection.v1beta.admin.employees.list_all(query_params={
+    employees_generator = platform.connection.v1.admin.employees.list_all(query_params={
         'is_enabled': 'eq.true',
         'order': 'id.desc',
         'roles': 'cs.["ADMIN"]'
