@@ -46,8 +46,8 @@ def test_create_invoice_lineitems(mocker, get_org_id, add_invoice_and_invoice_li
     
 
     mock_connector = MagicMock()
-    mock_connector.v1beta.admin.employees.list.return_value = {'data': [{'user': {'email': 'johndoe@gmail.com'}}]}
-    mock_connector.v1beta.admin.expenses.post.return_value = {'data': {'id': '123'}}
+    mock_connector.v1.admin.employees.list.return_value = {'data': [{'user': {'email': 'johndoe@gmail.com'}}]}
+    mock_connector.v1.admin.expenses.post.return_value = {'data': {'id': '123'}}
 
     mocker.patch(
         'apps.travelperk.actions.construct_file_ids',

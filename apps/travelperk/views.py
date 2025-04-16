@@ -250,7 +250,7 @@ class AdvancedSettingView(generics.CreateAPIView, generics.RetrieveAPIView):
             fyle_credentials = FyleCredential.objects.filter(org_id=org_id).first()
             platform_connector = PlatformConnector(fyle_credentials.refresh_token, org.cluster_domain)
 
-            user_profile = platform_connector.connection.v1beta.spender.my_profile.get()
+            user_profile = platform_connector.connection.v1.spender.my_profile.get()
             advanced_settings.default_employee_name = user_profile['data']['user']['email']
             advanced_settings.default_employee_id = user_profile['data']['user']['id']
 

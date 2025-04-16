@@ -53,7 +53,7 @@ def default_session_fixture(request):
     patched_3.__enter__()
 
     patched_4 = mock.patch(
-        'fyle.platform.apis.v1beta.spender.MyProfile.get',
+        'fyle.platform.apis.v1.spender.MyProfile.get',
         return_value=fixture['my_profile']
     )
     patched_4.__enter__()

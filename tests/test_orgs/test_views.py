@@ -81,7 +81,7 @@ def test_admin_view(api_client, mocker, access_token, get_org_id):
     )
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
     mocker.patch(
-        'fyle.platform.apis.v1beta.admin.employees.list_all',
+        'fyle.platform.apis.v1.admin.employees.list_all',
         return_value=[fixture['users']]
     )
 

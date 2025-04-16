@@ -26,7 +26,7 @@ class PlatformConnector:
         """
         Get employee by email
         """
-        return self.connection.v1beta.admin.employees.list({
+        return self.connection.v1.admin.employees.list({
             'user->email': 'eq.{}'.format(email),
             'offset': 0,
             'limit': 1,
@@ -34,16 +34,16 @@ class PlatformConnector:
         })['data']
     
     def bulk_post_employees(self, employees_payload):
-        self.connection.v1beta.admin.employees.invite_bulk({'data': employees_payload})
+        self.connection.v1.admin.employees.invite_bulk({'data': employees_payload})
 
     def get_department_generator(self, query_params):
-        departments = self.connection.v1beta.admin.departments.list_all(query_params={
+        departments = self.connection.v1.admin.departments.list_all(query_params={
             'order': 'id.desc'
         })
         return departments
 
     def post_department(self, department):
-        self.connection.v1beta.admin.departments.post({"data": department})
+        self.connection.v1.admin.departments.post({"data": department})
     
     def bulk_create_or_update_expense_attributes(self, attributes: List[dict], attribute_type, org_id, update_existing: bool = False) -> None:
         """
@@ -58,7 +58,7 @@ class PlatformConnector:
     def sync_employees(self, org_id):
         query_params = {'is_enabled': 'eq.true','order': 'updated_at.desc'}
         attribute_type = 'EMPLOYEE'
-        generator = self.connection.v1beta.admin.employees.list_all(query_params)
+        generator = self.connection.v1.admin.employees.list_all(query_params)
         for items in generator:
             employee_attributes = []
             for employee in items['data']:
@@ -87,7 +87,7 @@ class PlatformConnector:
         """
         query_params = {'is_enabled': 'eq.true', 'order': "updated_at.desc"}
         attribute_type = 'CATEGORY'
-        categories_generator = self.connection.v1beta.admin.categories.list_all(query_params)
+        categories_generator = self.connection.v1.admin.categories.list_all(query_params)
         categories = []
 
         for items in categories_generator:

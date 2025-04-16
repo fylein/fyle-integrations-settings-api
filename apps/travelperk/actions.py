@@ -57,13 +57,13 @@ def attach_reciept_to_expense(expense_id: str, invoice: Invoice, imported_expens
         }
     }
 
-    file = platform_connection.v1beta.spender.files.create_file(file_payload)
-    generate_url = platform_connection.v1beta.spender.files.generate_file_urls({'data': {'id': file['data']['id']}})
+    file = platform_connection.v1.spender.files.create_file(file_payload)
+    generate_url = platform_connection.v1.spender.files.generate_file_urls({'data': {'id': file['data']['id']}})
 
     file_content = download_file(invoice.pdf)
     upload_to_s3_presigned_url(file_content, generate_url['data']['upload_url'])
 
-    attached_reciept = platform_connection.v1beta.spender.expenses.attach_receipt({'data': {'id': expense_id, 'file_id': file['data']['id']}})
+    attached_reciept = platform_connection.v1.spender.expenses.attach_receipt({'data': {'id': expense_id, 'file_id': file['data']['id']}})
 
     if attached_reciept:
         imported_expense.file_id = file['data']['id']
@@ -101,12 +101,12 @@ def create_expense_in_fyle_v2(org_id: str, invoice: Invoice, invoice_lineitems: 
                 'is_enabled': "eq.True"
             }
 
-            category = platform_connection.v1beta.admin.categories.list(query_params=query_params)
+            category = platform_connection.v1.admin.categories.list(query_params=query_params)
 
             if category['count'] > 0:
                 payload['data']['category_id'] = category['data'][0]['id']
 
-            expense = platform_connection.v1beta.spender.expenses.post(payload)
+            expense = platform_connection.v1.spender.expenses.post(payload)
 
             if expense:
                 imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
@@ -233,13 +233,13 @@ def create_invoice_lineitems(org_id, invoice, expense, user_role, amount):
         logger.info('expense created in fyle with org_id: {} and payload {}'.format(org_id, payload))
 
         if employee_email:
-            created_expense = platform_connection.v1beta.admin.expenses.post(payload)
+            created_expense = platform_connection.v1.admin.expenses.post(payload)
         else:
-            created_expense = platform_connection.v1beta.spender.expenses.post(payload)
+            created_expense = platform_connection.v1.spender.expenses.post(payload)
 
     else:
         payload['data']['id'] = matched_transaction[0]['matched_expense_ids'][0]
-        created_expense = platform_connection.v1beta.admin.expenses.post(payload)
+        created_expense = platform_connection.v1.admin.expenses.post(payload)
 
     imported_expense, _ = ImportedExpenseDetail.objects.update_or_create(
         expense_id=created_expense['data']['id'],

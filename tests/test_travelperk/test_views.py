@@ -118,7 +118,7 @@ def test_get_advanced_settings(mocker, api_client, access_token, get_org_id, get
     advanced_settings.save()
 
     mock_connector = MagicMock()
-    mock_connector.connection.v1beta.spender.my_profile.get.return_value = {'data': {'user': {'email': 'janedoe@gmail.com', 'id': '1234'}}}
+    mock_connector.connection.v1.spender.my_profile.get.return_value = {'data': {'user': {'email': 'janedoe@gmail.com', 'id': '1234'}}}
 
     mocker.patch(
         'apps.travelperk.views.PlatformConnector',
