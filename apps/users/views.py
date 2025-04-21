@@ -17,7 +17,7 @@ class UserProfileView(generics.RetrieveAPIView):
         cluster_domain = Org.objects.get(user__user_id=request.user).cluster_domain
         platform = PlatformConnector(refresh_token, cluster_domain)
 
-        user_profile = platform.connection.v1beta.spender.my_profile.get()
+        user_profile = platform.connection.v1.spender.my_profile.get()
 
         return Response(
             data=user_profile,
