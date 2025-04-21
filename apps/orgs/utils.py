@@ -25,7 +25,7 @@ def create_fyle_connection(org_id: str):
     refresh_token = fyle_credentials.refresh_token
     token_url = settings.FYLE_TOKEN_URI
 
-    server_url = '{}/platform/v1beta'.format(fyle_credentials.org.cluster_domain)
+    server_url = '{}/platform/v1'.format(fyle_credentials.org.cluster_domain)
 
     connection = Platform(
         server_url=server_url,
