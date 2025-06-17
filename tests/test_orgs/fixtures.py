@@ -1,4 +1,3 @@
-
 fixture = {
    "managed_user":{
       "id":890744,
@@ -158,4 +157,21 @@ fixture = {
       ],
       "offset":0
    }
+}
+
+expected_org_response = {
+    "id": 2,
+    "name": "Anagha Org",
+    "fyle_org_id": "orHVw3ikkCxJ",
+    "managed_user_id": "2",
+    "allow_travelperk": False,
+    "allow_gusto": False,
+    "is_fyle_connected": True,
+    "is_sendgrid_connected": False,
+    "cluster_domain": "https://staging.fyle.tech",
+    "created_at": "2022-09-27T09:58:51.483072Z",
+    "updated_at": "2022-09-27T09:58:51.483135Z",
+    "allow_dynamics": False,
+    "allow_qbd_direct_integration": False,
+    "user": [2]
 }
