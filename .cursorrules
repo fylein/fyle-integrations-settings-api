@@ -1,0 +1,257 @@
+# Test Code Best Practices - Based on Fyle QuickBooks Connector API
+
+## File Structure and Organization
+
+1. **Test File Naming**: Use `test_*.py` convention (e.g., `test_views.py`, `test_tasks.py`, `test_models.py`)
+2. **Test Directory Structure**: Organize tests by app/feature: `tests/test_{app_name}/`
+3. **Separate Fixtures**: Keep test data in separate `fixtures.py` files
+4. **Mock Setup**: Create `mock_setup.py` files for complex mocking patterns
+
+## Test Function Naming and Documentation
+
+5. **Test Function Names**: Use descriptive names with `test_` prefix
+   - Good: `test_import_employees_success`, `test_orgs_get_view_not_found`
+   - Bad: `test_function`, `test_1`
+
+6. **Docstrings**: Every test function must have a clear docstring
+   ```python
+   def test_import_employees_success(mocker):
+       """
+       Test import_employees task with valid parameters
+       """
+   ```
+
+7. **Case Documentation**: For multiple test cases, use "Case:" in docstrings
+   ```python
+   def test_handle_wsdl_request_case_1(mock_dependencies, add_workspace):
+       """
+       Test handle_wsdl_request
+       Case: method_name is 'serverVersion'
+       """
+   ```
+
+## Test Structure and Setup
+
+8. **Database Markers**: Always use `@pytest.mark.django_db` for tests that access the database
+   ```python
+   @pytest.mark.django_db
+   def test_model_creation():
+   ```
+
+9. **Database Scope**: Use `@pytest.mark.django_db(databases=['default'])` for multi-database tests
+
+10. **Fixture Usage**: Use fixtures for test data setup and teardown
+    ```python
+    def test_workspace_creation(add_workspace):
+        workspace = Workspace.objects.get(id=1)
+        assert workspace.name == "Test Workspace"
+    ```
+
+## Mocking and Dependencies
+
+11. **Mock External Services**: Always mock external API calls, database connections, and side effects
+    ```python
+    mock_sendgrid = mocker.patch('apps.email.sendgrid.SendGridAPIClient')
+    ```
+
+12. **Mock Naming**: Use descriptive mock names that indicate what they're mocking
+    ```python
+    mock_fyle_platform = mocker.patch('apps.fyle.platform.Platform')
+    ```
+
+13. **Shared Mocks**: Use `@pytest.mark.shared_mocks` for complex mocking patterns
+    ```python
+    @pytest.mark.shared_mocks(lambda mocker: mock_test_shared_mock(mocker))
+    def test_function(mock_dependencies):
+    ```
+
+14. **Mock Verification**: Always verify that mocks were called correctly
+    ```python
+    mock_function.assert_called_once_with(expected_args)
+    ```
+
+## Assertions and Validation
+
+15. **Status Code Assertions**: Always assert HTTP status codes for API tests
+    ```python
+    assert response.status_code == status.HTTP_200_OK
+    ```
+
+16. **Response Content Validation**: Use `dict_compare_keys` for deep response validation
+    ```python
+    assert dict_compare_keys(response.data, expected_data) == [], 'Response data mismatch'
+    ```
+
+17. **Database State Assertions**: Verify database state after operations
+    ```python
+    assert Model.objects.filter(condition).exists() is True
+    ```
+
+18. **Exception Testing**: Use `pytest.raises` for testing exceptions
+    ```python
+    with pytest.raises(ValidationError) as e:
+        function_that_raises_exception()
+        assert str(e.value) == 'Expected error message'
+    ```
+
+## URL and API Testing
+
+19. **URL Resolution**: Always use Django's `reverse()` for URL generation
+    ```python
+    url = reverse('app:view_name', kwargs={'param': value})
+    ```
+
+20. **Authentication**: Set up authentication in test setup
+    ```python
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    ```
+
+21. **Request Format**: Use proper content types and formats
+    ```python
+    response = api_client.post(url, data, format='json')
+    ```
+
+## Test Data Management
+
+22. **Fixtures for Test Data**: Create fixtures for reusable test data
+    ```python
+    @pytest.fixture()
+    def sample_user():
+        return User.objects.create(email='test@example.com')
+    ```
+
+23. **Factory Functions**: Use factory functions for complex object creation
+    ```python
+    def create_workspace_with_user():
+        workspace = Workspace.objects.create(name='Test')
+        user = User.objects.create(email='test@example.com')
+        workspace.user.add(user)
+        return workspace, user
+    ```
+
+24. **Test Data Isolation**: Ensure each test has isolated data
+    ```python
+    @pytest.fixture(autouse=True)
+    def setup_test_database():
+        yield
+        # Cleanup happens automatically
+    ```
+
+## Error Handling and Edge Cases
+
+25. **Error Scenarios**: Test both success and failure cases
+    ```python
+    def test_api_call_success(mocker):
+        # Test successful API call
+    
+    def test_api_call_failure(mocker):
+        # Test failed API call
+    ```
+
+26. **Edge Cases**: Test boundary conditions and edge cases
+    ```python
+    def test_empty_list_handling():
+        # Test with empty input
+    
+    def test_none_value_handling():
+        # Test with None values
+    ```
+
+27. **Invalid Input**: Test with invalid or malformed input
+    ```python
+    def test_invalid_token_handling():
+        # Test with invalid authentication
+    ```
+
+## Performance and Best Practices
+
+28. **Test Isolation**: Each test should be independent and not rely on other tests
+
+29. **Minimal Setup**: Only set up what's necessary for each test
+
+30. **Clear Test Names**: Test names should clearly indicate what is being tested
+
+31. **Avoid Test Dependencies**: Don't create tests that depend on the order of execution
+
+32. **Use Constants**: Define test constants at module level
+    ```python
+    TEST_WORKSPACE_ID = 1
+    TEST_USER_EMAIL = 'test@example.com'
+    ```
+
+## Code Quality
+
+33. **Import Organization**: Group imports logically (standard library, third-party, local)
+    ```python
+    import pytest
+    from unittest.mock import patch, MagicMock
+    from django.urls import reverse
+    from rest_framework import status
+    from apps.models import Model
+    ```
+
+34. **Variable Naming**: Use descriptive variable names
+    ```python
+    # Good
+    workspace_id = 1
+    expected_response_data = {'status': 'success'}
+    
+    # Bad
+    id = 1
+    data = {'status': 'success'}
+    ```
+
+35. **Comments**: Add comments for complex test logic or business rules
+
+36. **Remove Dead Code**: Don't leave commented-out code or unused imports
+
+## Coverage and Completeness
+
+37. **Test All Branches**: Ensure all code paths are tested, including error conditions
+
+38. **Test Public APIs**: Focus on testing public interfaces rather than implementation details
+
+39. **Integration Tests**: Include integration tests for complex workflows
+
+40. **Regression Tests**: Add tests for bugs that have been fixed
+
+## Specific Patterns
+
+41. **Async Task Testing**: Mock async tasks and verify they're called correctly
+    ```python
+    mock_async_task = mocker.patch('apps.tasks.async_task')
+    # ... test logic ...
+    mock_async_task.assert_called_once_with('task_name', args)
+    ```
+
+42. **File Operations**: Mock file operations and verify content
+    ```python
+    mock_file = mock_open(read_data='test content')
+    with patch('builtins.open', mock_file):
+        # ... test logic ...
+    ```
+
+43. **Email Testing**: Mock email services and verify calls
+    ```python
+    mock_sendgrid = mocker.patch('apps.email.sendgrid.SendGridAPIClient')
+    # ... test logic ...
+    mock_sendgrid.return_value.send.assert_called_once()
+    ```
+
+44. **Database Transactions**: Use transaction markers for tests that modify data
+    ```python
+    @pytest.mark.django_db(transaction=True)
+    def test_database_transaction():
+    ```
+
+## Documentation and Maintenance
+
+45. **Update Tests**: When changing functionality, update corresponding tests
+
+46. **Test Documentation**: Keep test documentation up to date with code changes
+
+47. **Review Test Coverage**: Regularly review test coverage and add missing tests
+
+48. **Refactor Tests**: Refactor tests when they become too complex or hard to maintain
+
+This rule applies only when writing test code (files in `tests/` directory or files with `test_` prefix). 

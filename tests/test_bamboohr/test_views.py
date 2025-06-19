@@ -1,4 +1,3 @@
-
 import json
 import pytest
 from django.urls import reverse
@@ -191,3 +190,201 @@ def test_post_bamboohr_disconnect_view(api_client, mocker, access_token, get_org
     integration_object = Integration.objects.get(org_id=org.fyle_org_id, type='HRMS')
     assert not integration_object.is_active
     assert integration_object.disconnected_at is not None
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_health_check_bamboohr_not_found(api_client, mocker, access_token, get_org_id):
+    """Test HealthCheck when BambooHR details not found"""
+    url = reverse('bamboohr:health-check',
+        kwargs={
+            'org_id': 99999,  # Non-existent org_id
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    response = api_client.get(url)
+    assert response.status_code == 404
+    assert response.data['message'] == 'Bamboo HR Details Not Found'
+
+@pytest.mark.django_db(databases=['default'])
+def test_health_check_api_exception(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
+    """Test HealthCheck when API call raises exception"""
+    url = reverse('bamboohr:health-check',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    # Mock BambooHrSDK to raise exception
+    mock_sdk = MagicMock()
+    mock_sdk.time_off.get.side_effect = Exception('API Error')
+    mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_sdk)
+    
+    response = api_client.get(url)
+    assert response.status_code == 400
+    assert response.data['message'] == 'Invalid token'
+
+@pytest.mark.django_db(databases=['default'])
+def test_health_check_no_timeoff_types(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
+    """Test HealthCheck when no timeOffTypes in response"""
+    url = reverse('bamboohr:health-check',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    # Mock BambooHrSDK to return empty timeOffTypes
+    mock_sdk = MagicMock()
+    mock_sdk.time_off.get.return_value = {'timeOffTypes': []}
+    mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_sdk)
+    
+    response = api_client.get(url)
+    assert response.status_code == 400
+    assert response.data['message'] == 'Invalid token'
+
+@pytest.mark.django_db(databases=['default'])
+def test_webhook_callback_api_view(api_client, mocker, access_token, get_org_id):
+    """Test WebhookCallbackAPIView"""
+    url = reverse('bamboohr:webhook-callback',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    
+    # Mock async_task
+    mock_async_task = mocker.patch('apps.bamboohr.views.async_task')
+    
+    payload = {
+        'employees': [{
+            'id': 123,
+            'fields': {
+                'firstName': {'value': 'John'},
+                'lastName': {'value': 'Doe'}
+            }
+        }]
+    }
+    
+    response = api_client.post(url, payload, format='json')
+    assert response.status_code == 201
+    assert response.data['status'] == 'success'
+    
+    # Verify async_task was called
+    mock_async_task.assert_called_once_with('apps.bamboohr.tasks.update_employee', get_org_id, payload)
+
+@pytest.mark.django_db(databases=['default'])
+def test_bamboohr_connection_missing_input(api_client, mocker, access_token, get_org_id):
+    """Test BambooHrConnection with missing input fields"""
+    url = reverse('bamboohr:connection',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    # Test with missing api_token
+    response = api_client.post(url, {
+        'input': {
+            'subdomain': 'test'
+        }
+    }, format='json')
+    assert response.status_code == 400
+    assert response.data['message'] == 'API_TOKEN and SUB_DOMAIN are required'
+    
+    # Test with missing subdomain
+    response = api_client.post(url, {
+        'input': {
+            'api_token': 'test_token'
+        }
+    }, format='json')
+    assert response.status_code == 400
+    assert response.data['message'] == 'API_TOKEN and SUB_DOMAIN are required'
+
+@pytest.mark.django_db(databases=['default'])
+def test_bamboohr_connection_api_exception(api_client, mocker, access_token, get_org_id):
+    """Test BambooHrConnection when API raises exception"""
+    url = reverse('bamboohr:connection',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    # Mock BambooHrSDK to raise specific exception that should be caught
+    from bamboosdk.exceptions import InvalidTokenError
+    mock_sdk = MagicMock()
+    mock_sdk.time_off.get.side_effect = InvalidTokenError('Invalid token')
+    mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_sdk)
+    
+    response = api_client.post(url, fixture['bamboo_connection'], format='json')
+    assert response.status_code == 400
+    assert response.data['message'] == 'Invalid token'
+
+@pytest.mark.django_db(databases=['default'])
+def test_bamboohr_connection_no_timeoff_types(api_client, mocker, access_token, get_org_id):
+    """Test BambooHrConnection when no timeOffTypes in response"""
+    url = reverse('bamboohr:connection',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    # Mock BambooHrSDK to return empty timeOffTypes
+    mock_sdk = MagicMock()
+    mock_sdk.time_off.get.return_value = {'timeOffTypes': []}
+    mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_sdk)
+    
+    response = api_client.post(url, fixture['bamboo_connection'], format='json')
+    assert response.status_code == 400
+    assert response.data['message'] == 'Invalid token'
+
+@pytest.mark.django_db(databases=['default'])
+def test_bamboohr_configuration_get_not_found(api_client, mocker, access_token, get_org_id):
+    """Test BambooHrConfigurationView GET when configuration not found"""
+    url = reverse('bamboohr:configuration',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    # Test with non-existent org_id
+    response = api_client.get(url, {'org_id': '99999'})
+    assert response.status_code == 404
+    assert response.data['message'] == 'BambooHr Configuration does not exist for this Workspace'
+
+@pytest.mark.django_db(databases=['default'])
+def test_disconnect_view_configuration_not_found(api_client, mocker, access_token, get_org_id):
+    """Test DisconnectView when configuration not found"""
+    url = reverse('bamboohr:disconnect',
+        kwargs={
+            'org_id': 99999,  # Non-existent org_id
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    response = api_client.post(url, format='json')
+    assert response.status_code == 404
+    assert response.data['message'] == 'BambooHR connection does not exists for this org.'
+
+@pytest.mark.django_db(databases=['default'])
+def test_sync_employees_view(api_client, mocker, access_token, get_org_id):
+    """Test SyncEmployeesView"""
+    url = reverse('bamboohr:sync-employees',
+        kwargs={
+            'org_id': get_org_id,
+        }
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    # Mock async_task
+    mock_async_task = mocker.patch('apps.bamboohr.views.async_task')
+    
+    response = api_client.post(url, format='json')
+    assert response.status_code == 201
+    assert response.data['message'] == 'success'  # Fixed to match actual response
+    
+    # Verify async_task was called - note: the actual call doesn't include the False parameter
+    mock_async_task.assert_called_once_with('apps.bamboohr.tasks.import_employees', get_org_id)
