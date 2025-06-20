@@ -33,7 +33,7 @@ def test_get_integration(mocker, access_token, create_integrations):
 
 @pytest.mark.django_db(databases=['default'])
 @patch('apps.integrations.actions.requests')
-def get_org_id_and_name_from_access_token(api_client, mocker, access_token, create_integrations):
+def test_get_org_id_and_name_from_access_token(api_client, mocker, access_token, create_integrations):
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
         'apps.users.helpers.get_cluster_domain',
@@ -64,3 +64,15 @@ def get_org_id_and_name_from_access_token(api_client, mocker, access_token, crea
 
     with pytest.raises(Exception):
         get_org_id_and_name_from_access_token(access_token)
+
+
+def test_get_org_id_and_name_from_access_token_error():
+    """Should raise Exception with response text if status is not 200."""
+    with patch('apps.integrations.actions.requests.get') as mock_get:
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        mock_response.text = 'Unauthorized'
+        mock_get.return_value = mock_response
+        with pytest.raises(Exception) as exc:
+            get_org_id_and_name_from_access_token('bad_token')
+        assert 'Unauthorized' in str(exc.value)

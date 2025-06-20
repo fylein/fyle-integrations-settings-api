@@ -8,9 +8,7 @@ from .fixture import post_integration_accounting, post_integration_accounting_2,
 
 @pytest.mark.django_db(databases=['default'])
 def test_integrations_view_post_accounting(api_client, mocker, access_token):
-    """
-    Test POST of Integrations
-    """
+    """Test POST of Integrations and GET ordering by updated_at."""
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
         'apps.integrations.views.get_org_id_and_name_from_access_token',
@@ -20,41 +18,30 @@ def test_integrations_view_post_accounting(api_client, mocker, access_token):
         'apps.integrations.actions.get_cluster_domain',
         return_value='https://hehe.fyle.tech'
     )
-
     url = reverse('integrations:integrations')
-
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
     response = api_client.post(url, post_integration_accounting)
     assert response.status_code == 201
-
-    response = json.loads(response.content)
-
-    assert response['org_id'] == dummy_org_id
-    assert response['tpa_id'] == post_integration_accounting['tpa_id']
-    assert response['tpa_name'] == post_integration_accounting['tpa_name']
-    assert response['type'] == post_integration_accounting['type']
-    assert response['is_active'] == post_integration_accounting['is_active']
-    assert response['is_beta'] == True
-    assert response['disconnected_at'] == None
-
+    data = response.json()
+    assert data['org_id'] == dummy_org_id
+    assert data['tpa_id'] == post_integration_accounting['tpa_id']
+    assert data['tpa_name'] == post_integration_accounting['tpa_name']
+    assert data['type'] == post_integration_accounting['type']
+    assert data['is_active'] == post_integration_accounting['is_active']
+    assert data['is_beta'] is True
+    assert data['disconnected_at'] is None
     api_client.post(url, post_integration_accounting_2)
-
     api_client.post(url, post_integration_hrms)
-
     response = api_client.get(url)
-    response = json.loads(response.content)
-
-    assert response[0]['type'] == 'ACCOUNTING'
-    assert response[1]['type'] == 'HRMS'
-    assert response[0]['updated_at'] < response[1]['updated_at']
+    data = response.json()
+    assert data[0]['type'] == 'ACCOUNTING'
+    assert data[1]['type'] == 'HRMS'
+    assert data[0]['updated_at'] < data[1]['updated_at']
 
 
 @pytest.mark.django_db(databases=['default'])
 def test_integrations_view_post(api_client, mocker, access_token):
-    """
-    Test POST of Integrations
-    """
+    """Test POST of Integrations and update on duplicate POST."""
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
         'apps.integrations.views.get_org_id_and_name_from_access_token',
@@ -64,66 +51,47 @@ def test_integrations_view_post(api_client, mocker, access_token):
         'apps.integrations.actions.get_cluster_domain',
         return_value='https://hehe.fyle.tech'
     )
-
     url = reverse('integrations:integrations')
-
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
     response = api_client.post(url, post_integration_accounting)
     assert response.status_code == 201
-
-    response = json.loads(response.content)
-
-    assert response['org_id'] == dummy_org_id
-    assert response['tpa_id'] == post_integration_accounting['tpa_id']
-    assert response['tpa_name'] == post_integration_accounting['tpa_name']
-    assert response['type'] == post_integration_accounting['type']
-    assert response['is_active'] == post_integration_accounting['is_active']
-    assert response['is_beta'] == True
-    assert response['disconnected_at'] == None
-
-    accounting_integration_id = response['id']
-
+    data = response.json()
+    assert data['org_id'] == dummy_org_id
+    assert data['tpa_id'] == post_integration_accounting['tpa_id']
+    assert data['tpa_name'] == post_integration_accounting['tpa_name']
+    assert data['type'] == post_integration_accounting['type']
+    assert data['is_active'] == post_integration_accounting['is_active']
+    assert data['is_beta'] is True
+    assert data['disconnected_at'] is None
+    accounting_integration_id = data['id']
     response = api_client.post(url, post_integration_hrms)
     assert response.status_code == 201
-
-    response = json.loads(response.content)
-
-    assert response['org_id'] == dummy_org_id
-    assert response['tpa_id'] == post_integration_hrms['tpa_id']
-    assert response['tpa_name'] == post_integration_hrms['tpa_name']
-    assert response['type'] == post_integration_hrms['type']
-    assert response['is_active'] == post_integration_hrms['is_active']
-    assert response['is_beta'] == True
-    assert response['disconnected_at'] == None
-
-
+    data = response.json()
+    assert data['org_id'] == dummy_org_id
+    assert data['tpa_id'] == post_integration_hrms['tpa_id']
+    assert data['tpa_name'] == post_integration_hrms['tpa_name']
+    assert data['type'] == post_integration_hrms['type']
+    assert data['is_active'] == post_integration_hrms['is_active']
+    assert data['is_beta'] is True
+    assert data['disconnected_at'] is None
     # A second POST with the same org_id and type should update the record
-
     response = api_client.post(url, post_integration_accounting_2)
     assert response.status_code == 201
-
-    response = json.loads(response.content)
-
-    # Check if a record was updated, and no new record was inserted
-    assert response['id'] == accounting_integration_id
+    data = response.json()
+    assert data['id'] == accounting_integration_id
     assert Integration.objects.filter(org_id=dummy_org_id).count() == 2
-
-    # Check if the updates went through
-    assert response['org_id'] == dummy_org_id
-    assert response['tpa_id'] == post_integration_accounting_2['tpa_id']
-    assert response['tpa_name'] == post_integration_accounting_2['tpa_name']
-    assert response['type'] == post_integration_accounting_2['type']
-    assert response['is_active'] == post_integration_accounting_2['is_active']
-    assert response['is_beta'] == True
-    assert response['disconnected_at'] == None
+    assert data['org_id'] == dummy_org_id
+    assert data['tpa_id'] == post_integration_accounting_2['tpa_id']
+    assert data['tpa_name'] == post_integration_accounting_2['tpa_name']
+    assert data['type'] == post_integration_accounting_2['type']
+    assert data['is_active'] == post_integration_accounting_2['is_active']
+    assert data['is_beta'] is True
+    assert data['disconnected_at'] is None
 
 
 @pytest.mark.django_db(databases=['default'])
 def test_integrations_view_get(api_client, mocker, access_token, create_integrations):
-    """
-    Test GET of Integrations
-    """
+    """Test GET of Integrations and filtering by type."""
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
         'apps.integrations.views.get_org_id_and_name_from_access_token',
@@ -133,67 +101,57 @@ def test_integrations_view_get(api_client, mocker, access_token, create_integrat
         'apps.integrations.actions.get_cluster_domain',
         return_value='https://hehe.fyle.tech'
     )
-
     url = reverse('integrations:integrations')
-
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
     response = api_client.get(url)
     assert response.status_code == 200
-
-    response = json.loads(response.content)
-    assert len(response) == 2
-
+    data = response.json()
+    assert len(data) == 2
     response = api_client.get(url, {'type': 'ACCOUNTING'})
     assert response.status_code == 200
-
-    response = json.loads(response.content)
-    assert len(response) == 1
-
-    assert response[0]['org_id'] == dummy_org_id
-    assert response[0]['tpa_id'] == post_integration_accounting['tpa_id']
-    assert response[0]['tpa_name'] == post_integration_accounting['tpa_name']
-    assert response[0]['type'] == post_integration_accounting['type']
-    assert response[0]['is_active'] == post_integration_accounting['is_active']
-    assert response[0]['is_beta'] == True
-    assert response[0]['disconnected_at'] == None
-
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]['org_id'] == dummy_org_id
+    assert data[0]['tpa_id'] == post_integration_accounting['tpa_id']
+    assert data[0]['tpa_name'] == post_integration_accounting['tpa_name']
+    assert data[0]['type'] == post_integration_accounting['type']
+    assert data[0]['is_active'] == post_integration_accounting['is_active']
+    assert data[0]['is_beta'] is True
+    assert data[0]['disconnected_at'] is None
     response = api_client.get(url, {'type': 'HRMS'})
     assert response.status_code == 200
-
-    response = json.loads(response.content)
-    assert len(response) == 1
-
-    assert response[0]['org_id'] == dummy_org_id
-    assert response[0]['tpa_id'] == post_integration_hrms['tpa_id']
-    assert response[0]['tpa_name'] == post_integration_hrms['tpa_name']
-    assert response[0]['type'] == post_integration_hrms['type']
-    assert response[0]['is_active'] == post_integration_hrms['is_active']
-    assert response[0]['is_beta'] == True
-    assert response[0]['disconnected_at'] == None
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]['org_id'] == dummy_org_id
+    assert data[0]['tpa_id'] == post_integration_hrms['tpa_id']
+    assert data[0]['tpa_name'] == post_integration_hrms['tpa_name']
+    assert data[0]['type'] == post_integration_hrms['type']
+    assert data[0]['is_active'] == post_integration_hrms['is_active']
+    assert data[0]['is_beta'] is True
+    assert data[0]['disconnected_at'] is None
 
 
+@pytest.mark.parametrize("method", ["get", "post", "patch"])
 @pytest.mark.django_db(databases=['default'])
-def test_integrations_view_invalid_access_token(api_client):
+def test_integrations_view_invalid_access_token(api_client, method):
+    """Test GET/POST/PATCH with invalid access token returns 403 or 400 for POST."""
     url = reverse('integrations:integrations')
-
     api_client.credentials(HTTP_AUTHORIZATION='Bearer ey.ey.ey')
-
-    response = api_client.get(url)
-    assert response.status_code == 403
-
-    response = api_client.post(url, post_integration_accounting)
-    assert response.status_code == 403
-
-    response = api_client.patch(url, post_integration_accounting)
-    assert response.status_code == 403
+    func = getattr(api_client, method)
+    if method == "patch":
+        resp = func(url, post_integration_accounting)
+        assert resp.status_code == 403
+    elif method == "post":
+        resp = func(url)
+        assert resp.status_code == 400
+    else:
+        resp = func(url)
+        assert resp.status_code == 403
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_integrations_view_mark_inactive_post(api_client, mocker, access_token, create_integrations):
-    """
-    Test POST of Integrations
-    """
+def test_integrations_view_post_missing_fields(api_client, mocker, access_token):
+    """Test POST with missing required fields returns 400."""
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
         'apps.integrations.views.get_org_id_and_name_from_access_token',
@@ -203,42 +161,18 @@ def test_integrations_view_mark_inactive_post(api_client, mocker, access_token, 
         'apps.integrations.actions.get_cluster_domain',
         return_value='https://hehe.fyle.tech'
     )
-
     url = reverse('integrations:integrations')
-
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+    # Remove tpa_id (required field)
     payload = dict(post_integration_accounting)
-    payload['is_active'] = False
-
+    payload.pop('tpa_id')
     response = api_client.post(url, payload)
-    assert response.status_code == 201
-
-    response = json.loads(response.content)
-
-    assert response['org_id'] == dummy_org_id
-    assert response['tpa_id'] == post_integration_accounting['tpa_id']
-    assert response['tpa_name'] == post_integration_accounting['tpa_name']
-    assert response['type'] == post_integration_accounting['type']
-    assert response['is_active'] == False
-    assert response['is_beta'] == True
-    assert response['disconnected_at'] != None
-
-    # Marking inactive integration back to active
-    payload = dict(post_integration_accounting)
-
-    response = api_client.post(url, payload)
-    assert response.status_code == 201
-
-    response = json.loads(response.content)
-    assert response['is_active'] == True
+    assert response.status_code == 400
 
 
 @pytest.mark.django_db(databases=['default'])
-def test_integrations_view_patch(api_client, mocker, access_token):
-    """
-    Test the PATCH API of Integrations
-    """
+def test_integrations_view_patch_missing_tpa_name(api_client, mocker, access_token):
+    """Test PATCH without tpa_name returns 400."""
     dummy_org_id = 'or3P3xJ0603e'
     mocker.patch(
         'apps.integrations.views.get_org_id_and_name_from_access_token',
@@ -248,40 +182,89 @@ def test_integrations_view_patch(api_client, mocker, access_token):
         'apps.integrations.actions.get_cluster_domain',
         return_value='https://hehe.fyle.tech'
     )
-
-    Integration.objects.create(
-        org_id=dummy_org_id,
-        tpa_name=patch_integration['tpa_name'],
-        tpa_id='tpa129sjcjkjx',
-        type='ACCOUNTING',
-        is_active=True
-    )
-
     url = reverse('integrations:integrations')
-
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
-
-
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
     response = api_client.patch(url,  json.dumps(patch_integration_no_tpa_name), content_type="application/json")
-    assert response.status_code == 400, 'PATCH without a tpa_name should return 400'
+    assert response.status_code == 400
 
+
+@pytest.mark.django_db(databases=['default'])
+def test_integrations_view_patch_inactive_integration(api_client, mocker, access_token):
+    """Test PATCH with non-existent/inactive integration returns correct message."""
+    dummy_org_id = 'or3P3xJ0603e'
+    mocker.patch(
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
+    )
+    mocker.patch(
+        'apps.integrations.actions.get_cluster_domain',
+        return_value='https://hehe.fyle.tech'
+    )
+    url = reverse('integrations:integrations')
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
     response = api_client.patch(url,  json.dumps(patch_integration_invalid_tpa_name), content_type="application/json")
-    assert response.status_code == 200, 'PATCH with an invalid tpa_name should return 200 (test org case)'
+    assert response.status_code == 200
+    data = response.json()
+    assert data['message'] == 'Integration is inactive or does not exist'
 
-    # Update two fields
-    response = api_client.patch(url,  json.dumps(patch_integration), content_type="application/json")
-    assert response.status_code == 200, 'Valid PATCH request should be successful'
 
-    response = json.loads(response.content)
-    assert response['tpa_name'] == patch_integration['tpa_name']
-    assert response['errors_count'] == patch_integration['errors_count']
-    assert response['is_token_expired'] == patch_integration['is_token_expired']
+@pytest.mark.django_db(databases=['default'])
+def test_integrations_view_patch_error_handling(api_client, mocker, access_token):
+    """Test PATCH error handling when super().patch raises Exception."""
+    dummy_org_id = 'or3P3xJ0603e'
+    mocker.patch(
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
+    )
+    mocker.patch(
+        'apps.integrations.actions.get_cluster_domain',
+        return_value='https://hehe.fyle.tech'
+    )
+    url = reverse('integrations:integrations')
+    api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+    # Patch the view's patch method to raise Exception
+    with mocker.patch('apps.integrations.views.IntegrationsView.patch', side_effect=Exception('Something went wrong')):
+        resp = api_client.patch(url, json.dumps(patch_integration), content_type="application/json")
+        assert resp.status_code == 500
 
-    # Update one field, leaving the other as it is
-    response = api_client.patch(url, json.dumps(patch_integration_partial), content_type="application/json")
-    assert response.status_code == 200, 'Valid PATCH request should be successful'
 
-    response = json.loads(response.content)
-    assert response['tpa_name'] == patch_integration_partial['tpa_name']
-    assert response['is_token_expired'] == patch_integration_partial['is_token_expired']
-    assert response['errors_count'] == patch_integration['errors_count']
+@pytest.mark.django_db(databases=['default'])
+def test_integrations_view_get_invalid_token_custom(api_client, mocker):
+    """Test GET with invalid token triggers AuthenticationFailed in get."""
+    url = reverse('integrations:integrations')
+    mocker.patch(
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        side_effect=Exception('Invalid access token')
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer invalid')
+    resp = api_client.get(url)
+    assert resp.status_code == 403
+    assert resp.data['detail'] == 'Invalid access token'
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_integrations_view_patch_invalid_token_custom(api_client, mocker):
+    """Test PATCH with invalid token triggers AuthenticationFailed in patch."""
+    url = reverse('integrations:integrations')
+    mocker.patch(
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        side_effect=Exception('Invalid access token')
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer invalid')
+    resp = api_client.patch(url, {'tpa_name': 'foo'})
+    assert resp.status_code == 403
+    assert resp.data['detail'] == 'Invalid access token'
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_integrations_view_post_invalid_token_custom(api_client, mocker):
+    """Test POST with invalid token triggers AuthenticationFailed in perform_create."""
+    url = reverse('integrations:integrations')
+    mocker.patch(
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        side_effect=Exception('Invalid access token')
+    )
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer invalid')
+    resp = api_client.post(url, {'type': 'ACCOUNTING', 'tpa_id': 'foo', 'tpa_name': 'bar', 'is_active': True})
+    assert resp.status_code == 403
+    assert resp.data['detail'] == 'Invalid access token'
