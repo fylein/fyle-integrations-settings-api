@@ -317,6 +317,7 @@ def deactivate_travelperk_integration(org_id):
         org = Org.objects.get(id=org_id)
     except Org.DoesNotExist:
         logger.error(f'Org with id {org_id} not found')
+        return
 
     integration = Integration.objects.filter(org_id=org.fyle_org_id, type='TRAVEL').first()
     if integration:

@@ -1,5 +1,5 @@
 mock_post_new_integration_response = {
-    "id": 15,
+    "id": 1,
     "org_id": "or3P3xJ0603e",
     "tpa_id": "tpa129sjcjkjx",
     "tpa_name": "Fyle QuickBooks Online Integration",
@@ -20,13 +20,12 @@ post_integration_accounting = {
 }
 
 post_integration_accounting_2 = {
-    'tpa_id': 'tpasample_id1',
-    'tpa_name': 'Fyle Some Other Integration',
+    'tpa_id': 'tpasample_id2',
+    'tpa_name': 'Fyle Xero Integration',
     'type': 'ACCOUNTING',
     'is_active': True,
     'connected_at': '2025-01-22T11:21:13.840713Z'
 }
-
 
 patch_integration = {
     'tpa_name': 'Fyle QuickBooks Online Integration',
@@ -40,7 +39,7 @@ patch_integration_partial = {
 }
 
 patch_integration_invalid_tpa_name = {
-    'tpa_name': 'Very Invalid TPA Name',
+    'tpa_name': 'Invalid TPA Name',
     'errors_count': 12,
     'is_token_expired': False
 }
@@ -52,7 +51,7 @@ patch_integration_no_tpa_name = {
 
 post_integration_hrms = {
     'tpa_id': 'tpa129sjcjkjx',
-    'tpa_name': 'Fyle HRMS',
+    'tpa_name': 'Fyle BambooHR Integration',
     'type': 'HRMS',
     'is_active': True,
     'connected_at': '2023-08-29T11:21:13.840713Z'
