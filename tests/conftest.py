@@ -4,6 +4,8 @@ import pytest
 from fyle_rest_auth.models import User, AuthToken
 from rest_framework.test import APIClient
 from admin_settings import settings
+from unittest.mock import MagicMock
+import uuid
 
 from tests.fixture import fixture
 from apps.orgs.models import (
@@ -72,7 +74,37 @@ def default_session_fixture(request):
 
 
 @pytest.fixture()
-def access_token():
+def add_org(db):
+    """
+    Create a test organization with basic setup
+    """
+    org = Org.objects.create(
+        name='Test Organization',
+        fyle_org_id='orTest123',
+        cluster_domain='https://test.fyle.tech'
+    )
+    return org
+
+
+@pytest.fixture()
+def add_org_with_credentials(db):
+    """
+    Create a test organization with FyleCredential
+    """
+    org = Org.objects.create(
+        name='Test Organization',
+        fyle_org_id='orTest123',
+        cluster_domain='https://test.fyle.tech'
+    )
+    fyle_credential = FyleCredential.objects.create(
+        org=org,
+        refresh_token='test_refresh_token'
+    )
+    return org
+
+
+@pytest.fixture()
+def access_token(db):
     create_user_and_tokens()
     return 'abcd.efgh.jklm'
 
@@ -109,7 +141,7 @@ def create_auth_token(user: User):
     )
 
 @pytest.fixture()
-def get_org_id():
+def get_org_id(db):
     # create an org
     org = Org.objects.create(
         name = 'Test org',
@@ -126,7 +158,7 @@ def get_org_id():
 
 
 @pytest.fixture()
-def get_bamboohr_id(mocker, get_org_id):
+def get_bamboohr_id(mocker, get_org_id, db):
     bamboohr = BambooHr.objects.create(
         org = Org.objects.get(id = get_org_id),
         folder_id = "1234",
@@ -139,7 +171,7 @@ def get_bamboohr_id(mocker, get_org_id):
 
 
 @pytest.fixture()
-def get_travelperk(get_org_id):
+def get_travelperk(get_org_id, db):
     travelperk = TravelPerk.objects.create(
         org = Org.objects.get(id = get_org_id),
         folder_id = "dummy",
@@ -150,7 +182,7 @@ def get_travelperk(get_org_id):
     return travelperk
 
 @pytest.fixture()
-def get_travelperk_id(get_org_id):
+def get_travelperk_id(get_org_id, db):
     travelperk = TravelPerk.objects.create(
         org = Org.objects.get(id = get_org_id),
         folder_id = "dummy",
@@ -161,7 +193,7 @@ def get_travelperk_id(get_org_id):
     return travelperk.id
 
 @pytest.fixture()
-def get_profile_mappings(get_org_id):
+def get_profile_mappings(get_org_id, db):
     profile_mappings = TravelperkProfileMapping.objects.create(
         org=Org.objects.get(id=get_org_id),
         profile_name='Dummy Profile',
@@ -175,7 +207,7 @@ def get_profile_mappings(get_org_id):
 
 
 @pytest.fixture()
-def get_advanced_settings(get_org_id):
+def get_advanced_settings(get_org_id, db):
     advanced_settings = TravelperkAdvancedSetting.objects.create(
         org=Org.objects.get(id=get_org_id),
         default_employee_name='dummy@gmail.com',
@@ -188,14 +220,14 @@ def get_advanced_settings(get_org_id):
 
 
 @pytest.fixture()
-def add_travelperk_cred(get_org_id):
+def add_travelperk_cred(get_org_id, db):
     travelperk_cred = TravelperkCredential.objects.create(
         org=Org.objects.get(id=get_org_id),
         refresh_token='12312rwer'
     )
 
 @pytest.fixture()
-def add_invoice_and_invoice_lineitems(get_org_id):
+def add_invoice_and_invoice_lineitems(get_org_id, db):
 
     data = fixture['expense']
     invoice_lineitems_data = data['lines']
@@ -205,3 +237,129 @@ def add_invoice_and_invoice_lineitems(get_org_id):
     invoice_lineitems = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
 
     return invoice, invoice_lineitems
+
+
+# Shared Mocks Support
+@pytest.fixture()
+def mock_dependencies(request, mocker):
+    """
+    Apply shared mocks to tests marked with @pytest.mark.shared_mocks
+    """
+    class MockContainer:
+        pass
+
+    mock_container = MockContainer()
+
+    # Apply shared mocks from the decorator
+    shared_mocks_marker = request.node.get_closest_marker("shared_mocks")
+    if shared_mocks_marker:
+        for mock_func in shared_mocks_marker.args:
+            shared_mocks = mock_func(mocker)
+            for key, value in shared_mocks.items():
+                setattr(mock_container, key, value)
+
+    return mock_container
+
+@pytest.fixture()
+def org(db):
+    return Org.objects.create(name='Test Org', fyle_org_id=f'orTwovfDpEYc_{uuid.uuid4()}')
+
+@pytest.fixture()
+def org_with_credentials(db):
+    org = Org.objects.create(name='Test Org', fyle_org_id=f'orTwovfDpEYc_{uuid.uuid4()}')
+    FyleCredential.objects.create(org=org, refresh_token='dummy_refresh_token')
+    return org
+
+@pytest.fixture()
+def invoice(org, db):
+    return Invoice.objects.create(
+        org=org,
+        currency='USD',
+        billing_information={'name': 'Test'},
+        billing_period='instant',
+        due_date='2024-01-01',
+        from_date='2024-01-01',
+        to_date='2024-01-01',
+        issuing_date='2024-01-01',
+        mode='direct',
+        pdf='http://test.pdf',
+        profile_id='123',
+        profile_name='Test Profile',
+        reference='Test Ref',
+        serial_number='123',
+        status='paid',
+        taxes_summary={},
+        total=100.00
+    )
+
+@pytest.fixture()
+def invoice_lineitem(invoice, db):
+    return InvoiceLineItem.objects.create(
+        invoice=invoice,
+        service='flight',
+        description='Flight to West Lisaville',
+        total_amount=100.00,
+        expense_date='2024-04-12',
+        invoice_line_id='10205',
+        trip_id='10205',
+        trip_name='Flight to West Lisaville',
+        booker_email='nilesh.pant@fyle.in',
+        traveller_email='nilesh.pant@fyle.in',
+        credit_card_last_4_digits='1234',
+        booker_name='Nilesh Pant',
+        traveller_name='Nilesh Pant',
+        vendor={'name': 'Vueling'}
+    )
+
+@pytest.fixture()
+def advanced_settings(org, db):
+    return TravelperkAdvancedSetting.objects.create(
+        org=org,
+        default_employee_name='ashwin.t@fyle.in',
+        default_employee_id='usqywo0f3nBY',
+        default_category_name='Acc. Dep-Leasehold Improvements',
+        default_category_id='228952',
+        invoice_lineitem_structure='MULTIPLE',
+        description_structure=[
+            'trip_id',
+            'trip_name',
+            'traveler_name',
+            'booker_name',
+            'merchant_name'
+        ],
+        category_mappings={
+            'Cars': {'id': '228952', 'name': 'Acc. Dep-Leasehold Improvements'},
+            'Hotels': {'id': '264337', 'name': 'Elon Baba'},
+            'Trains': {'id': '228955', 'name': 'Sales - Merchandise'},
+            'Flights': {'id': '228953', 'name': 'Customer Deposits'}
+        }
+    )
+
+@pytest.fixture()
+def profile_mapping(org, db):
+    return TravelperkProfileMapping.objects.create(
+        org=org,
+        profile_name='Test Profile',
+        user_role='BOOKER'
+    )
+
+@pytest.fixture()
+def mock_expense():
+    expense = MagicMock()
+    expense.expense_date = '2024-01-01'
+    expense.credit_card_last_4_digits = '1234'
+    return expense
+
+@pytest.fixture()
+def mock_conn():
+    return MagicMock()
+
+@pytest.fixture()
+def mock_settings(monkeypatch):
+    from apps.travelperk import helpers
+    monkeypatch.setattr(helpers, 'settings', MagicMock())
+    helpers.settings.TRAVELPERK_TOKEN_URL = 'http://fake-url/token'
+    helpers.settings.TRAVELPERK_CLIENT_ID = 'client_id'
+    helpers.settings.TRAVELPERK_CLIENT_SECRET = 'client_secret'
+    helpers.settings.TRAVELPERK_REDIRECT_URI = 'http://fake-url/redirect'
+    return helpers.settings

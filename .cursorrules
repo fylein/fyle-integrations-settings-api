@@ -244,14 +244,33 @@
     def test_database_transaction():
     ```
 
+45. **Schedule Verification**: When testing schedule creation, verify that Schedule objects are actually created in the database instead of just mocking the creation call
+    ```python
+    # Good: Verify schedule was created
+    schedule = Schedule.objects.filter(
+        func='apps.tasks.task_name',
+        args='1,True'
+    ).first()
+    assert schedule is not None
+    assert schedule.schedule_type == Schedule.MINUTES
+    assert schedule.minutes == 6 * 60
+    
+    # Bad: Just mock update_or_create without verification
+    mock_schedule = mocker.patch('apps.tasks.Schedule.objects.update_or_create')
+    # ... test logic ...
+    mock_schedule.assert_called_once()
+    ```
+
 ## Documentation and Maintenance
 
-45. **Update Tests**: When changing functionality, update corresponding tests
+46. **Update Tests**: When changing functionality, update corresponding tests
 
-46. **Test Documentation**: Keep test documentation up to date with code changes
+47. **Test Documentation**: Keep test documentation up to date with code changes
 
-47. **Review Test Coverage**: Regularly review test coverage and add missing tests
+48. **Review Test Coverage**: Regularly review test coverage and add missing tests
 
-48. **Refactor Tests**: Refactor tests when they become too complex or hard to maintain
+49. **Refactor Tests**: Refactor tests when they become too complex or hard to maintain
+
+50. **Never use inline imports in test files**: Imports only on top of the file
 
 This rule applies only when writing test code (files in `tests/` directory or files with `test_` prefix). 

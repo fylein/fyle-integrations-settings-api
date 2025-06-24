@@ -1,9 +1,15 @@
 import pytest
 from apps.orgs.exceptions import handle_fyle_exceptions
 from fyle.platform.exceptions import InvalidTokenError
+from .mock_setup import mock_logger_shared_mock
+
 
 def test_handle_fyle_exceptions_decorator_logs_error(mocker):
-    logger = mocker.patch('apps.orgs.exceptions.logger')
+    """
+    Test handle_fyle_exceptions decorator logs error correctly
+    """
+    # Use centralized mock setup
+    mock_dependencies = mock_logger_shared_mock(mocker)
 
     @handle_fyle_exceptions('test_task')
     def func(org_id):
@@ -11,4 +17,4 @@ def test_handle_fyle_exceptions_decorator_logs_error(mocker):
 
     result = func(1)
     assert result is None
-    assert logger.info.called or logger.error.called
+    assert mock_dependencies['mock_logger'].info.called or mock_dependencies['mock_logger'].error.called

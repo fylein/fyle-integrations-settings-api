@@ -280,6 +280,7 @@ class ValidateHealthyToken(generics.ListAPIView):
     API to check if TravelPerk credentials are healthy
     """
     def get(self, request, *args, **kwargs):
+        travelperk = None
         try:
             travelperk = TravelPerk.objects.get(org_id__in=[kwargs['org_id']])
             travelperk_credentials = TravelperkCredential.objects.get(org_id=kwargs['org_id'])

@@ -1,24 +1,30 @@
 import json
-
 import pytest
-from unittest.mock import MagicMock, patch
+from rest_framework import status
 
 from apps.integrations.actions import get_integration, get_org_id_and_name_from_access_token
-
+from apps.integrations.models import Integration
+from apps.orgs.models import Org
+from tests.helper import dict_compare_keys
 from .fixture import post_integration_hrms
+from .mock_setup import (
+    mock_get_org_id_and_name_from_access_token,
+    mock_get_cluster_domain,
+    mock_requests_get_success,
+    mock_requests_get_failure,
+    mock_requests_get_unauthorized
+)
 
 
-@pytest.mark.django_db(databases=['default'])
-def test_get_integration(mocker, access_token, create_integrations):
+def test_get_integration_success(mocker, access_token, create_integrations, db):
+    """
+    Test get_integration function
+    Case: successful integration retrieval
+    """
     dummy_org_id = 'or3P3xJ0603e'
-    mocker.patch(
-        'apps.integrations.actions.get_org_id_and_name_from_access_token',
-        return_value={"id":dummy_org_id, "name":"Dummy Org"}
-    )
-    mocker.patch(
-        'apps.integrations.actions.get_cluster_domain',
-        return_value='https://hehe.fyle.tech'
-    )
+    # Mock both cluster domain and requests.get
+    mock_get_cluster_domain(mocker)
+    mock_requests_get_success(mocker)
 
     integration = get_integration('HRMS', access_token).first()
 
@@ -31,48 +37,32 @@ def test_get_integration(mocker, access_token, create_integrations):
     assert integration.disconnected_at == None
 
 
-@pytest.mark.django_db(databases=['default'])
-@patch('apps.integrations.actions.requests')
-def test_get_org_id_and_name_from_access_token(api_client, mocker, access_token, create_integrations):
+def test_get_org_id_and_name_from_access_token_success(mocker, access_token, create_integrations, db):
+    """
+    Test get_org_id_and_name_from_access_token function
+    Case: successful token validation
+    """
     dummy_org_id = 'or3P3xJ0603e'
-    mocker.patch(
-        'apps.users.helpers.get_cluster_domain',
-        return_value='https://hehe.fyle.tech'
-    )
-
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-
-    api_mock_response = {
-        'data': {
-            'org': {
-                'id': dummy_org_id,
-                'name': 'Dummy Org'
-            }
-        }
-    }
-
-    mock_response.text = json.dumps(api_mock_response)
-
-    api_client.get.return_value = mock_response
+    mock_cluster_domain = mock_get_cluster_domain(mocker)
+    mock_requests, mock_response = mock_requests_get_success(mocker)
 
     get_org_id_and_name_from_access_token(access_token)
 
-    mock_response = MagicMock()
-    mock_response.status_code = 400
-    api_client.get.return_value = mock_response
+    # Test failure case
+    mock_requests_failure, mock_response_failure = mock_requests_get_failure(mocker)
 
     with pytest.raises(Exception):
         get_org_id_and_name_from_access_token(access_token)
 
 
-def test_get_org_id_and_name_from_access_token_error():
-    """Should raise Exception with response text if status is not 200."""
-    with patch('apps.integrations.actions.requests.get') as mock_get:
-        mock_response = MagicMock()
-        mock_response.status_code = 401
-        mock_response.text = 'Unauthorized'
-        mock_get.return_value = mock_response
-        with pytest.raises(Exception) as exc:
-            get_org_id_and_name_from_access_token('bad_token')
-        assert 'Unauthorized' in str(exc.value)
+def test_get_org_id_and_name_from_access_token_error(mocker):
+    """
+    Test get_org_id_and_name_from_access_token function
+    Case: error with response text if status is not 200
+    """
+    # Use shared mock for unauthorized case
+    mock_get, mock_response = mock_requests_get_unauthorized(mocker)
+    
+    with pytest.raises(Exception) as exc:
+        get_org_id_and_name_from_access_token('bad_token')
+    assert 'Unauthorized' in str(exc.value)
