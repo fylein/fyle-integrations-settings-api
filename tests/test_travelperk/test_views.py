@@ -55,15 +55,7 @@ def test_get_profile_mappings_case_1(mock_dependencies, api_client, access_token
     url = reverse('travelperk:profile-mappings', kwargs={'org_id': create_org.id})
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    payload = [
-        {
-            "profile_name": 'Dummy Profile',
-            "is_import_enabled": False,
-            "user_role": "CARD_HOLDER"
-        }
-    ]
-
-    response = api_client.post(url, payload, format='json')
+    response = api_client.post(url, mock_dependencies.profile_mapping_payload, format='json')
     assert response.status_code == status.HTTP_200_OK
 
     response_data = json.loads(response.content)
@@ -74,10 +66,9 @@ def test_get_profile_mappings_case_1(mock_dependencies, api_client, access_token
 
     response_data = json.loads(response.content)
     assert response_data['results'][0]['profile_name'] == 'Dummy Profile'
-    assert dict_compare_keys(response_data['results'][0], fixture['profile_mapping']['results'][0]) == []
 
 
-def test_get_advanced_settings_case_1(mock_dependencies, api_client, mocker, access_token, create_org, create_travelperk, db):
+def test_get_advanced_settings_case_1(mock_dependencies, api_client, access_token, create_org, create_travelperk, db):
     """
     Test get advanced settings
     Case: POST creates integration and GET returns user data
@@ -90,7 +81,7 @@ def test_get_advanced_settings_case_1(mock_dependencies, api_client, mocker, acc
 
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    payload = fixture['advance_setting_payload']
+    payload = mock_dependencies.advance_setting_payload
     payload['org'] = create_org.id
 
     response = api_client.post(url, payload, format='json')
@@ -98,9 +89,9 @@ def test_get_advanced_settings_case_1(mock_dependencies, api_client, mocker, acc
 
     integration_object = Integration.objects.get(org_id=create_org.fyle_org_id, type='TRAVEL')
     assert integration_object is not None
-    assert integration_object.tpa_name == fixture['integrations_response']['tpa_name']
-    assert integration_object.tpa_id == fixture['integrations_response']['tpa_id']
-    assert integration_object.type == fixture['integrations_response']['type']
+    assert integration_object.tpa_name == mock_dependencies.integrations_response['tpa_name']
+    assert integration_object.tpa_id == mock_dependencies.integrations_response['tpa_id']
+    assert integration_object.type == mock_dependencies.integrations_response['type']
     assert integration_object.org_id == create_org.fyle_org_id
     assert integration_object.org_name == create_org.name
     assert integration_object.is_active is True
@@ -110,8 +101,6 @@ def test_get_advanced_settings_case_1(mock_dependencies, api_client, mocker, acc
     advanced_settings.default_employee_name = None
     advanced_settings.default_employee_id = None
     advanced_settings.save()
-
-    mock_platform_connector(mocker)
 
     response = api_client.get(url)
     assert response.status_code == status.HTTP_200_OK

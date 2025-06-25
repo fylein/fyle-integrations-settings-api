@@ -5,7 +5,7 @@ Mock setup functions for TravelPerk tests
 
 def mock_platform_connector(mocker):
     """
-    Mock PlatformConnector for TravelPerk tests
+    Mock platform connector for TravelPerk tests
     """
     mock_connector = mocker.MagicMock()
     mock_connector.connection.v1.spender.my_profile.get.return_value = {
@@ -16,13 +16,14 @@ def mock_platform_connector(mocker):
             }
         }
     }
-    mocker.patch('apps.travelperk.views.PlatformConnector', return_value=mock_connector)
+    
+    mocker.patch('apps.users.helpers.PlatformConnector', return_value=mock_connector)
     return mock_connector
 
 
 def mock_travelperk_connector_disconnect(mocker):
     """
-    Mock TravelperkConnector for disconnect operations
+    Mock TravelPerk connector disconnect
     """
     mock_connector = mocker.MagicMock()
     mock_connector.delete_webhook_connection.return_value = {'message': 'success'}
@@ -32,7 +33,7 @@ def mock_travelperk_connector_disconnect(mocker):
 
 def mock_travelperk_connector_connect(mocker):
     """
-    Mock TravelperkConnector for connect operations
+    Mock TravelPerk connector connect
     """
     mock_connector = mocker.MagicMock()
     mock_connector.create_webhook.return_value = {'id': 123}
@@ -42,12 +43,89 @@ def mock_travelperk_connector_connect(mocker):
 
 def mock_get_refresh_token(mocker):
     """
-    Mock get_refresh_token_using_auth_code function
+    Mock get refresh token
     """
-    mocker.patch(
-        'apps.travelperk.views.get_refresh_token_using_auth_code',
-        return_value={'123e3rwer'}
-    )
+    mock_token = mocker.MagicMock()
+    mock_token.return_value = 'dummy_refresh_token'
+    mocker.patch('apps.travelperk.views.get_refresh_token_using_auth_code', mock_token)
+    return mock_token
+
+
+def mock_test_get_profile_mappings_case_1(mocker):
+    """
+    Mock setup for test_get_profile_mappings_case_1
+    Provides test data for profile mappings
+    """
+    return {
+        'profile_mapping_payload': [
+            {
+                "profile_name": 'Dummy Profile',
+                "is_import_enabled": False,
+                "user_role": "CARD_HOLDER"
+            }
+        ],
+        'profile_mapping_response': {
+            'results': [{
+                "id": 1,
+                "profile_name": 'Dummy Profile',
+                "is_import_enabled": False,
+                "user_role": "CARD_HOLDER",
+                "org": 1,
+                "created_at": "2022-11-29T15:39:49.221955Z",
+                "updated_at": "2022-11-29T15:41:59.535831Z"
+            }]
+        }
+    }
+
+
+def mock_test_get_advanced_settings_case_1(mocker):
+    """
+    Mock setup for test_get_advanced_settings_case_1
+    Provides test data for advanced settings and mocks platform connector
+    """
+    # Mock the platform connector
+    mock_connector = mocker.MagicMock()
+    mock_connector.connection.v1.spender.my_profile.get.return_value = {
+        'data': {
+            'user': {
+                'email': 'janedoe@gmail.com',
+                'id': '1234'
+            }
+        }
+    }
+    mocker.patch('apps.users.helpers.PlatformConnector', return_value=mock_connector)
+    
+    return {
+        'advance_setting_payload': {
+            'default_employee_name': 'ashwin.t@fyle.in',
+            'default_employee_id': 'usqywo0f3nBY',
+            'default_category_name': 'Acc. Dep-Leasehold Improvements',
+            'default_category_id': '228952',
+            'invoice_lineitem_structure': 'MULTIPLE',
+            'description_structure': [
+                'trip_id', 'trip_name', 'traveler_name', 'booker_name', 'merchant_name'
+            ],
+            'category_mappings': {
+                'Cars': {'id': '228952', 'name': 'Acc. Dep-Leasehold Improvements'},
+                'Hotels': {'id': '264337', 'name': 'Elon Baba'},
+                'Trains': {'id': '228955', 'name': 'Sales - Merchandise'},
+                'Flights': {'id': '228953', 'name': 'Customer Deposits'}
+            }
+        },
+        'integrations_response': {
+            "org_id": "orTwovfDpEYc",
+            "org_name": "Test org",
+            "tpa_id": "dummy",
+            "tpa_name": "Fyle TravelPerk Integration",
+            "type": "TRAVEL",
+            "is_active": True,
+            "is_beta": True,
+            "connected_at": "2025-01-09T10:08:20.434443Z",
+            "disconnected_at": None,
+            "updated_at": "2025-01-09T10:08:20.434443Z"
+        },
+        'platform_connector': mock_connector
+    }
 
 
 def mock_travelperk_shared_mock(mocker):
