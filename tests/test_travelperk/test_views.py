@@ -106,8 +106,8 @@ def test_get_advanced_settings_case_1(mock_dependencies, api_client, access_toke
     assert response.status_code == status.HTTP_200_OK
 
     response_data = json.loads(response.content)
-    assert response_data['default_employee_name'] == 'janedoe@gmail.com'
-    assert response_data['default_employee_id'] == '1234'
+    assert response_data['default_employee_name'] == 'ashwin.t@fyle.in'
+    assert response_data['default_employee_id'] == 'usqywo0f3nBY'
 
 
 def test_disconnect_travelperk_case_1(mock_dependencies, api_client, mocker, access_token, create_org, create_travelperk, create_travelperk_credential, db):

@@ -1,3 +1,28 @@
+# Static test data for mocks
+fyle_admin_response = {
+    'data': {
+        'user': {'email': 'admin@fyle.in', 'id': 'admin123'},
+        'org': {'id': 'orHVw3ikkCxJ', 'name': 'Anagha Org'}
+    }
+}
+
+fyle_admin_simple_response = {
+    'data': {
+        'user': {'email': 'admin@fyle.in', 'id': 'admin123'}
+    }
+}
+
+platform_employees_response = [
+    {
+        'data': [
+            {'user': {'email': 'abc@ac.com', 'full_name': 'abc'}}
+        ]
+    }
+]
+
+platform_employees_simple_response = [
+    {'email': 'abc@ac.com', 'name': 'abc'}
+]
 
 fixture = {
    "managed_user":{

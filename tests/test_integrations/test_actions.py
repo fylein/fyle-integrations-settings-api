@@ -1,6 +1,5 @@
 import json
 import pytest
-from unittest.mock import MagicMock
 
 from apps.integrations.actions import get_integration, get_org_id_and_name_from_access_token
 from .fixture import post_integration_hrms

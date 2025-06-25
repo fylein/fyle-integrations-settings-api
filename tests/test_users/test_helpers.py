@@ -1,9 +1,6 @@
 import pytest
 import json
-from unittest.mock import MagicMock
-
 from django.conf import settings
-
 from apps.users.helpers import get_cluster_domain, post_request
 
 

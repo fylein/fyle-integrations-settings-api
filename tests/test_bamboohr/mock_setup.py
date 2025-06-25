@@ -2,6 +2,13 @@
 Mock setup functions for BambooHR tests
 """
 
+from .fixtures import (
+    configuration_data,
+    bamboo_connection_invalid_payload,
+    bamboo_connection,
+    bamboohr_integrations_response
+)
+
 
 def mock_bamboohr_shared_mock(mocker):
     """
@@ -45,15 +52,7 @@ def mock_test_post_configuration_view_case_1(mocker):
     Provides test data for configuration view
     """
     return {
-        'configuration_data': {
-            "additional_email_options": {},
-            "emails_selected": [
-                {
-                    "name": "Nilesh",
-                    "email": "nilesh.p@fyle.in"
-                },
-            ]
-        }
+        'configuration_data': configuration_data
     }
 
 
@@ -63,11 +62,7 @@ def mock_test_post_bamboohr_connection_view_case_1(mocker):
     Provides invalid connection payload
     """
     return {
-        'bamboo_connection_invalid_payload': {
-            'input': {
-                'api_token': 'sample_token',
-            }
-        }
+        'bamboo_connection_invalid_payload': bamboo_connection_invalid_payload
     }
 
 
@@ -77,12 +72,7 @@ def mock_test_post_bamboohr_connection_view_case_2(mocker):
     Provides valid connection payload
     """
     return {
-        'bamboo_connection': {
-            'input': {
-                'api_token': 'sample_token',
-                'subdomain': 'somesubdomain'
-            }
-        }
+        'bamboo_connection': bamboo_connection
     }
 
 
@@ -92,24 +82,8 @@ def mock_test_post_bamboohr_connection_view_case_3(mocker):
     Provides valid connection payload and expected response
     """
     return {
-        'bamboo_connection': {
-            'input': {
-                'api_token': 'sample_token',
-                'subdomain': 'somesubdomain'
-            }
-        },
-        'integrations_response': {
-            "org_id": "orTwovfDpEYc",
-            "org_name": "Test org",
-            "tpa_id": "dummy",
-            "tpa_name": "Fyle BambooHR Integration",
-            "type": "HRMS",
-            "is_active": True,
-            "is_beta": True,
-            "connected_at": "2025-01-09T10:08:20.434443Z",
-            "disconnected_at": None,
-            "updated_at": "2025-01-09T10:08:20.434443Z"
-        }
+        'bamboo_connection': bamboo_connection,
+        'integrations_response': bamboohr_integrations_response
     }
 
 
@@ -119,10 +93,5 @@ def mock_test_post_bamboohr_disconnect_view_case_2(mocker):
     Provides connection payload for disconnect test
     """
     return {
-        'bamboo_connection': {
-            'input': {
-                'api_token': 'sample_token',
-                'subdomain': 'somesubdomain'
-            }
-        }
+        'bamboo_connection': bamboo_connection
     } 

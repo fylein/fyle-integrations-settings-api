@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import MagicMock
 
 from apps.travelperk.actions import (
     construct_expense_payload,

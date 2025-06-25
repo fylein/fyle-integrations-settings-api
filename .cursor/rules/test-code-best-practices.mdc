@@ -501,6 +501,187 @@ This rule defines comprehensive best practices for writing test code in the Fyle
 80. ** In mock_setup.py create mocks for tests with name similar to the test function name so that it will 
 automatically import the mock while testing, for test names with case_1 case_2 use shared_mocks or create a general named mock
 
+## Fixture Organization and Static Data Management
+
+81. **Separate Static Data from Mock Logic**: Keep static test data in dedicated `fixtures.py` files and import them in `mock_setup.py`
+    ```python
+    # In fixtures.py
+    advance_setting_payload = {
+        'default_employee_name': 'ashwin.t@fyle.in',
+        'default_employee_id': 'usqywo0f3nBY',
+        'default_category_name': 'Acc. Dep-Leasehold Improvements',
+        'default_category_id': '228952',
+        'invoice_lineitem_structure': 'MULTIPLE',
+        'description_structure': [
+            'trip_id', 'trip_name', 'traveler_name', 'booker_name', 'merchant_name'
+        ],
+        'category_mappings': {
+            'Cars': {'id': '228952', 'name': 'Acc. Dep-Leasehold Improvements'},
+            'Hotels': {'id': '264337', 'name': 'Elon Baba'},
+            'Trains': {'id': '228955', 'name': 'Sales - Merchandise'},
+            'Flights': {'id': '228953', 'name': 'Customer Deposits'}
+        }
+    }
+    
+    integrations_response = {
+        "org_id": "orTwovfDpEYc",
+        "org_name": "Test org",
+        "tpa_id": "dummy",
+        "tpa_name": "Fyle TravelPerk Integration",
+        "type": "TRAVEL",
+        "is_active": True,
+        "is_beta": True,
+        "connected_at": "2025-01-09T10:08:20.434443Z",
+        "disconnected_at": None,
+        "updated_at": "2025-01-09T10:08:20.434443Z"
+    }
+    
+    # In mock_setup.py
+    from .fixtures import advance_setting_payload, integrations_response
+    
+    def mock_test_get_advanced_settings_case_1(mocker):
+        return {
+            'advance_setting_payload': advance_setting_payload,
+            'integrations_response': integrations_response
+        }
+    ```
+
+82. **Use Top-Level Variables in Fixtures**: Define static data as top-level variables for easy import
+    ```python
+    # Good: Top-level variables
+    dummy_org_id = 'or3P3xJ0603e'
+    dummy_org_name = 'Dummy Org'
+    cluster_domain = 'https://hehe.fyle.tech'
+    
+    api_mock_response = {
+        'data': {
+            'org': {
+                'id': dummy_org_id,
+                'name': dummy_org_name
+            }
+        }
+    }
+    
+    # Bad: Nested in dictionaries
+    fixture_data = {
+        'dummy_org_id': 'or3P3xJ0603e',
+        'dummy_org_name': 'Dummy Org'
+    }
+    ```
+
+83. **Import Fixtures in Mock Setup**: Always import static data from fixtures in mock_setup.py files
+    ```python
+    # Good: Import from fixtures
+    from .fixtures import (
+        configuration_data,
+        bamboo_connection_invalid_payload,
+        bamboo_connection,
+        bamboohr_integrations_response
+    )
+    
+    def mock_test_post_configuration_view_case_1(mocker):
+        return {
+            'configuration_data': configuration_data
+        }
+    
+    # Bad: Inline data in mock functions
+    def mock_test_post_configuration_view_case_1(mocker):
+        return {
+            'configuration_data': {
+                "additional_email_options": {},
+                "emails_selected": [
+                    {"name": "Nilesh", "email": "nilesh.p@fyle.in"}
+                ]
+            }
+        }
+    ```
+
+84. **Consistent Fixture File Structure**: Use `fixtures.py` for all test directories, even if it's just for static data
+    ```python
+    # tests/test_users/fixtures.py
+    cluster_domain_response = '{"cluster_domain": "https://test.fyle.tech"}'
+    bad_request_response = 'Bad Request'
+    
+    # tests/test_orgs/fixtures.py
+    fyle_admin_response = {
+        'data': {
+            'user': {'email': 'admin@fyle.in', 'id': 'admin123'},
+            'org': {'id': 'orHVw3ikkCxJ', 'name': 'Anagha Org'}
+        }
+    }
+    ```
+
+85. **Handle Session-Level Mocks**: When session-level mocks conflict with test-specific mocks, adapt tests to use session-level data
+    ```python
+    # Session-level mock in conftest.py returns fixture['my_profile']
+    # Test should expect the session-level mock response, not override it
+    def test_get_advanced_settings_case_1(mock_dependencies, api_client, access_token, create_org, create_travelperk, db):
+        # ... test logic ...
+        response_data = json.loads(response.content)
+        # Use session-level mock response
+        assert response_data['default_employee_name'] == 'ashwin.t@fyle.in'
+        assert response_data['default_employee_id'] == 'usqywo0f3nBY'
+    ```
+
+86. **Organize Imports in Mock Setup**: Group imports logically and use descriptive import statements
+    ```python
+    # Good: Organized imports
+    from .fixtures import (
+        advance_setting_payload, 
+        integrations_response, 
+        profile_mapping_payload, 
+        profile_mapping_response
+    )
+    
+    # Bad: Scattered imports
+    from .fixtures import advance_setting_payload
+    from .fixtures import integrations_response
+    from .fixtures import profile_mapping_payload
+    ```
+
+87. **Remove Inline Static Data**: Never define static data inline in test functions or mock setup functions
+    ```python
+    # Good: Data imported from fixtures
+    def mock_test_get_integration(mocker):
+        mock_get_org_id_and_name = mocker.patch(
+            'apps.integrations.actions.get_org_id_and_name_from_access_token',
+            return_value={"id": dummy_org_id, "name": dummy_org_name}
+        )
+        return {'get_org_id_and_name': mock_get_org_id_and_name, 'org_id': dummy_org_id}
+    
+    # Bad: Inline static data
+    def mock_test_get_integration(mocker):
+        dummy_org_id = 'or3P3xJ0603e'
+        mock_get_org_id_and_name = mocker.patch(
+            'apps.integrations.actions.get_org_id_and_name_from_access_token',
+            return_value={"id": dummy_org_id, "name": "Dummy Org"}
+        )
+        return {'get_org_id_and_name': mock_get_org_id_and_name, 'org_id': dummy_org_id}
+    ```
+
+88. **Use mocker.MagicMock() Instead of unittest.mock.MagicMock**: Always use the pytest-mock fixture for creating mock objects
+    ```python
+    # Good: Use mocker.MagicMock()
+    def mock_test_function(mocker):
+        mock_connector = mocker.MagicMock()
+        mock_connector.connection.v1.spender.my_profile.get.return_value = {
+            'data': {'user': {'email': 'test@example.com'}}
+        }
+        mocker.patch('apps.users.helpers.PlatformConnector', return_value=mock_connector)
+        return {'connector': mock_connector}
+    
+    # Bad: Import MagicMock from unittest.mock
+    from unittest.mock import MagicMock
+    
+    def mock_test_function(mocker):
+        mock_connector = MagicMock()
+        mock_connector.connection.v1.spender.my_profile.get.return_value = {
+            'data': {'user': {'email': 'test@example.com'}}
+        }
+        mocker.patch('apps.users.helpers.PlatformConnector', return_value=mock_connector)
+        return {'connector': mock_connector}
+    ```
+
 This rule applies only when writing test code (files in `tests/` directory or files with `test_` prefix).
 
 ## Reference Files

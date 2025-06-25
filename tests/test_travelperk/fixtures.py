@@ -124,3 +124,53 @@ fixture = {
         "updated_at": "2025-01-09T10:08:20.434443Z"
     }
 }
+
+advance_setting_payload = {
+    'default_employee_name': 'ashwin.t@fyle.in',
+    'default_employee_id': 'usqywo0f3nBY',
+    'default_category_name': 'Acc. Dep-Leasehold Improvements',
+    'default_category_id': '228952',
+    'invoice_lineitem_structure': 'MULTIPLE',
+    'description_structure': [
+        'trip_id', 'trip_name', 'traveler_name', 'booker_name', 'merchant_name'
+    ],
+    'category_mappings': {
+        'Cars': {'id': '228952', 'name': 'Acc. Dep-Leasehold Improvements'},
+        'Hotels': {'id': '264337', 'name': 'Elon Baba'},
+        'Trains': {'id': '228955', 'name': 'Sales - Merchandise'},
+        'Flights': {'id': '228953', 'name': 'Customer Deposits'}
+    }
+}
+
+integrations_response = {
+    "org_id": "orTwovfDpEYc",
+    "org_name": "Test org",
+    "tpa_id": "dummy",
+    "tpa_name": "Fyle TravelPerk Integration",
+    "type": "TRAVEL",
+    "is_active": True,
+    "is_beta": True,
+    "connected_at": "2025-01-09T10:08:20.434443Z",
+    "disconnected_at": None,
+    "updated_at": "2025-01-09T10:08:20.434443Z"
+}
+
+profile_mapping_payload = [
+    {
+        "profile_name": 'Dummy Profile',
+        "is_import_enabled": False,
+        "user_role": "CARD_HOLDER"
+    }
+]
+
+profile_mapping_response = {
+    'results': [{
+        "id": 1,
+        "profile_name": 'Dummy Profile',
+        "is_import_enabled": False,
+        "user_role": "CARD_HOLDER",
+        "org": 1,
+        "created_at": "2022-11-29T15:39:49.221955Z",
+        "updated_at": "2022-11-29T15:41:59.535831Z"
+    }]
+}
