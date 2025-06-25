@@ -1,193 +1,182 @@
-
 import json
 import pytest
 from django.urls import reverse
+from rest_framework import status
 
 from apps.bamboohr.models import BambooHr
 from apps.integrations.models import Integration
 from apps.orgs.models import Org
 from tests.helper import dict_compare_keys
 from .fixtures import fixture
-from unittest.mock import MagicMock
+from .mock_setup import (
+    mock_bamboohr_sdk_invalid_token, 
+    mock_bamboohr_sdk_valid_token,
+    mock_bamboohr_shared_mock,
+    mock_bamboohr_invalid_token_shared_mock
+)
 
 
-@pytest.mark.django_db(databases=['default'])
-def test_bamboohr_get_view(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
+def test_bamboohr_get_view_case_1(mock_dependencies, api_client, access_token, create_org, create_bamboohr, db):
     """
-    Test Get of Orgs
+    Test bamboohr GET view
+    Case: Valid org_id returns 200 with correct data
     """
-
-    url = reverse('bamboohr:bamboohr',
-        kwargs={
-                'org_id': get_org_id,
-            }
-    )
-
+    url = reverse('bamboohr:bamboohr', kwargs={'org_id': create_org.id})
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
     response = api_client.get(url)
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
 
-    response = json.loads(response.content)
-    assert dict_compare_keys(response, fixture['bamboohr']) == [], 'orgs GET diff in keys'
+    response_data = json.loads(response.content)
+    assert dict_compare_keys(response_data, fixture['bamboohr']) == [], 'bamboohr GET diff in keys'
 
-    url = reverse('bamboohr:bamboohr',
-        kwargs={
-                'org_id': 123,
-            }
-    )
+
+def test_bamboohr_get_view_case_2(mock_dependencies, api_client, access_token, db):
+    """
+    Test bamboohr GET view
+    Case: Invalid org_id returns 404
+    """
+    url = reverse('bamboohr:bamboohr', kwargs={'org_id': 123})
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
     response = api_client.get(url)
-    assert response.status_code == 404
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    response = json.loads(response.content)
-    assert response['message'] != None
+    response_data = json.loads(response.content)
+    assert response_data['message'] is not None
 
 
-@pytest.mark.django_db(databases=['default'])
-def test_post_configuration_view(api_client, mocker, access_token, get_org_id):
+def test_post_configuration_view_case_1(mock_dependencies, api_client, access_token, create_org, db):
     """
-    Test Post Configuration View
+    Test post configuration view
+    Case: Valid configuration data returns 200
     """
-
-    url = reverse('bamboohr:configuration',
-        kwargs={
-            'org_id': get_org_id,
-        }
-    )
+    url = reverse('bamboohr:configuration', kwargs={'org_id': create_org.id})
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    response = api_client.post(url,
-        {
-            "org": get_org_id,
-            "additional_email_options": {},
-            "emails_selected": [
-                {
-                    "name": "Nilesh",
-                    "email": "nilesh.p@fyle.in"
-                },
-            ]
-        }, format='json'
-    )
+    configuration_data = {
+        "org": create_org.id,
+        "additional_email_options": {},
+        "emails_selected": [
+            {
+                "name": "Nilesh",
+                "email": "nilesh.p@fyle.in"
+            },
+        ]
+    }
 
-    assert response.status_code == 200
-    assert response.data['emails_selected'] ==  [{'name': 'Nilesh', 'email': 'nilesh.p@fyle.in'}]
+    response = api_client.post(url, configuration_data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['emails_selected'] == [{'name': 'Nilesh', 'email': 'nilesh.p@fyle.in'}]
 
 
-@pytest.mark.django_db(databases=['default'])
-def test_get_configuration_view(api_client, mocker, access_token, get_org_id, get_bamboohr_id):
+def test_get_configuration_view_case_1(mock_dependencies, api_client, access_token, create_org, create_bamboohr, db):
     """
-    Test Get Configuration View
+    Test get configuration view
+    Case: Valid org_id returns 200 with correct data
     """
-
-    url = reverse('bamboohr:configuration',
-        kwargs={
-            'org_id':get_org_id,
-        }
-    )
+    url = reverse('bamboohr:configuration', kwargs={'org_id': create_org.id})
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    response = api_client.get(url, {'org_id': str(get_org_id)})
-    assert response.status_code == 200
+    response = api_client.get(url, {'org_id': str(create_org.id)})
+    assert response.status_code == status.HTTP_200_OK
 
-    response = json.loads(response.content)
-    assert dict_compare_keys(response, fixture['configurations']) == [], 'orgs GET diff in keys'
+    response_data = json.loads(response.content)
+    assert dict_compare_keys(response_data, fixture['configurations']) == [], 'configurations GET diff in keys'
+
+
+def test_get_configuration_view_case_2(mock_dependencies, api_client, access_token, db):
+    """
+    Test get configuration view
+    Case: Invalid org_id returns 404
+    """
+    url = reverse('bamboohr:configuration', kwargs={'org_id': 123})
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
     response = api_client.get(url, {'org_id': '1231'})
-    assert response.status_code == 404
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    response = json.loads(response.content)
-    assert response['message'] != None
+    response_data = json.loads(response.content)
+    assert response_data['message'] is not None
 
 
-@pytest.mark.django_db(databases=['default'])
-def test_post_bamboohr_connection_view(api_client, mocker, access_token, get_org_id):
+def test_post_bamboohr_connection_view_case_1(mock_dependencies, api_client, access_token, create_org, db):
     """
-    Test Post BambooHR Connection View
+    Test post bamboohr connection view
+    Case: Missing input returns 400
     """
-
-    url = reverse('bamboohr:connection',
-        kwargs={
-            'org_id': get_org_id,
-        }
-    )
+    url = reverse('bamboohr:connection', kwargs={'org_id': create_org.id})
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    # Missing input should return 400
     response = api_client.post(url, fixture['bamboo_connection_invalid_payload'], format='json')
-    assert response.status_code == 400
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    # Invalid token should return 400
-    mock_bamboohr_sdk = MagicMock()
-    mock_bamboohr_sdk.time_off.get.return_value = {}
-    mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_bamboohr_sdk)
 
-    response = api_client.post(url, fixture['bamboo_connection'], format='json')
-    assert response.status_code == 400
-
-    # Valid input should return 200
-    mock_bamboohr_sdk = MagicMock()
-    mock_bamboohr_sdk.time_off.get.return_value = {'timeOffTypes': True}
-    mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_bamboohr_sdk)
+@pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_invalid_token_shared_mock(mocker))
+def test_post_bamboohr_connection_view_case_2(mock_dependencies, api_client, access_token, create_org, db):
+    """
+    Test post bamboohr connection view
+    Case: Invalid token returns 400
+    """
+    url = reverse('bamboohr:connection', kwargs={'org_id': create_org.id})
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
     response = api_client.post(url, fixture['bamboo_connection'], format='json')
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    org = Org.objects.get(id=get_org_id)
-    integration_object = Integration.objects.get(org_id=org.fyle_org_id, type='HRMS')
-    assert integration_object
+
+@pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
+def test_post_bamboohr_connection_view_case_3(mock_dependencies, api_client, access_token, create_org, db):
+    """
+    Test post bamboohr connection view
+    Case: Valid input returns 200 and creates integration
+    """
+    url = reverse('bamboohr:connection', kwargs={'org_id': create_org.id})
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    response = api_client.post(url, fixture['bamboo_connection'], format='json')
+    assert response.status_code == status.HTTP_200_OK
+
+    integration_object = Integration.objects.get(org_id=create_org.fyle_org_id, type='HRMS')
+    assert integration_object is not None
     assert integration_object.tpa_name == fixture['integrations_response']['tpa_name']
     assert integration_object.tpa_id == fixture['integrations_response']['tpa_id']
     assert integration_object.type == fixture['integrations_response']['type']
-    assert integration_object.org_id == org.fyle_org_id
-    assert integration_object.org_name == org.name
-    assert integration_object.is_active
-    assert integration_object.is_beta
+    assert integration_object.org_id == create_org.fyle_org_id
+    assert integration_object.org_name == create_org.name
+    assert integration_object.is_active is True
+    assert integration_object.is_beta is True
 
 
-@pytest.mark.django_db(databases=['default'])
-def test_post_bamboohr_disconnect_view(api_client, mocker, access_token, get_org_id):
+def test_post_bamboohr_disconnect_view_case_1(mock_dependencies, api_client, access_token, db):
     """
-    Test Post BambooHR Disconnect View
+    Test post bamboohr disconnect view
+    Case: Invalid org id returns 404
     """
-    
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
-    # Invalid org id should return 404
-    url = reverse('bamboohr:disconnect',
-        kwargs={
-            'org_id': '1234567',
-        }
-    )
-
+    url = reverse('bamboohr:disconnect', kwargs={'org_id': '1234567'})
     response = api_client.post(url, format='json')
-    assert response.status_code == 404
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-    # Create dummy BambooHR conenction
-    connect_url = reverse('bamboohr:connection',
-        kwargs={
-            'org_id': get_org_id,
-        }
-    )
-    mock_bamboohr_sdk = MagicMock()
-    mock_bamboohr_sdk.time_off.get.return_value = {'timeOffTypes': True}
-    mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_bamboohr_sdk)
+@pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
+def test_post_bamboohr_disconnect_view_case_2(mock_dependencies, api_client, access_token, create_org, db):
+    """
+    Test post bamboohr disconnect view
+    Case: Valid disconnect call returns 200 and updates integration
+    """
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    connect_url = reverse('bamboohr:connection', kwargs={'org_id': create_org.id})
 
     response = api_client.post(connect_url, fixture['bamboo_connection'], format='json')
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
 
-
-    # Valid disconnect call should return 200 and update the integration instance
-    url = reverse('bamboohr:disconnect',
-        kwargs={
-            'org_id': get_org_id,
-        }
-    )
-
+    url = reverse('bamboohr:disconnect', kwargs={'org_id': create_org.id})
     response = api_client.post(url, format='json')
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
 
-    org = Org.objects.get(id=get_org_id)
-    integration_object = Integration.objects.get(org_id=org.fyle_org_id, type='HRMS')
-    assert not integration_object.is_active
+    integration_object = Integration.objects.get(org_id=create_org.fyle_org_id, type='HRMS')
+    assert integration_object.is_active is False
     assert integration_object.disconnected_at is not None

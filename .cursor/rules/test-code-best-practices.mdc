@@ -1,0 +1,510 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Test Code Best Practices - Fyle Integrations Settings API
+
+## Overview
+This rule defines comprehensive best practices for writing test code in the Fyle Integrations Settings API project. These practices ensure consistent, maintainable, and reliable test code.
+
+## File Structure and Organization
+
+1. **Test File Naming**: Use `test_*.py` convention (e.g., `test_views.py`, `test_tasks.py`, `test_models.py`)
+2. **Test Directory Structure**: Organize tests by app/feature: `tests/test_{app_name}/`
+3. **Centralized Fixtures**: Keep all fixtures in [tests/conftest.py](mdc:tests/conftest.py) for pytest discovery
+4. **Mock Setup**: Create `mock_setup.py` files for complex mocking patterns
+
+## Test Function Naming and Documentation
+
+5. **Test Function Names**: Use descriptive names with `test_` prefix
+   - Good: `test_import_employees_success`, `test_orgs_get_view_not_found`
+   - Bad: `test_function`, `test_1`
+
+6. **Docstrings**: Every test function must have a clear docstring
+   ```python
+   def test_import_employees_success(mocker):
+       """
+       Test import_employees task with valid parameters
+       """
+   ```
+
+7. **Case Documentation**: For multiple test cases only in case it has different cases otherwise use the good practice name, use "Case:" in docstrings
+   ```python
+   def test_handle_wsdl_request_case_1(mock_dependencies, create_workspace):
+       """
+       Test handle_wsdl_request
+       Case: method_name is 'serverVersion'
+       """
+   ```
+
+## Test Structure and Setup
+
+8. **Database Access**: Always use `db` argument for tests that access the database
+   ```python
+   def test_model_creation(db):
+       # Test code here
+   ```
+
+9. **Database Scope**: Use `db` argument for all database operations, no decorators needed
+
+10. **Fixture Usage**: Use fixtures for test data setup and teardown
+    ```python
+    def test_workspace_creation(create_org, db):
+        org = Org.objects.get(id=1)
+        assert org.name == "Test Organization"
+    ```
+
+## Mocking and Dependencies
+
+11. **Mock External Services**: Always mock external API calls, database connections, and side effects
+    ```python
+    mock_sendgrid = mocker.patch('apps.email.sendgrid.SendGridAPIClient')
+    ```
+
+12. **Mock Naming**: Use descriptive mock names that indicate what they're mocking
+    ```python
+    
+    mock_fyle_platform = mocker.patch('apps.fyle.platform.Platform')
+    ```
+
+13. **Shared Mocks**: Use `@pytest.mark.shared_mocks` for complex mocking patterns
+    ```python
+    @pytest.mark.shared_mocks(lambda mocker: mock_test_shared_mock(mocker))
+    def test_function(mock_dependencies):
+    ```
+
+14. **Mock Verification**: Always verify that mocks were called correctly
+    ```python
+    mock_function.assert_called_once_with(expected_args)
+    ```
+
+15. **Session-Level Mocks**: Use session-level fixtures for global mocks in [tests/conftest.py](mdc:tests/conftest.py)
+    ```python
+    @pytest.fixture(scope="session", autouse=True)
+    def default_session_fixture(request):
+        patched_1 = mock.patch('fyle_rest_auth.authentication.get_fyle_admin', return_value=fixture['my_profile'])
+        patched_1.__enter__()
+        yield
+    ```
+
+16. **No Mocks in Fixtures**: Never use mocks in fixtures. Fixtures should only create real objects or return static data
+    ```python
+    # Good: Real object creation
+    @pytest.fixture()
+    def create_org(db):
+        return Org.objects.create(name='Test Org', fyle_org_id='test123')
+    
+    # Good: Static data
+    @pytest.fixture()
+    def test_data():
+        return {'name': 'Test', 'value': 123}
+    
+    # Bad: Mock in fixture
+    @pytest.fixture()
+    def mock_expense():
+        expense = MagicMock()
+        expense.expense_date = '2024-01-01'
+        return expense
+    ```
+
+## Assertions and Validation
+
+17. **Status Code Assertions**: Always assert HTTP status codes for API tests
+    ```python
+    assert response.status_code == status.HTTP_200_OK
+    ```
+
+18. **Response Content Validation**: Use `dict_compare_keys` for deep response validation
+    ```python
+    assert dict_compare_keys(response.data, expected_data) == [], 'Response data mismatch'
+    ```
+
+19. **Database State Assertions**: Verify database state after operations
+    ```python
+    assert Model.objects.filter(condition).exists() is True
+    ```
+
+20. **Exception Testing**: Use `pytest.raises` for testing exceptions
+    ```python
+    with pytest.raises(ValidationError) as e:
+        function_that_raises_exception()
+        assert str(e.value) == 'Expected error message'
+    ```
+
+## URL and API Testing
+
+21. **URL Resolution**: Always use Django's `reverse()` for URL generation
+    ```python
+    url = reverse('app:view_name', kwargs={'param': value})
+    ```
+
+22. **Authentication**: Set up authentication in test setup
+    ```python
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    ```
+
+23. **Request Format**: Use proper content types and formats
+    ```python
+    response = api_client.post(url, data, format='json')
+    ```
+
+## Test Data Management
+
+24. **Fixtures for Test Data**: Create fixtures for reusable test data in [tests/conftest.py](mdc:tests/conftest.py)
+    ```python
+    @pytest.fixture()
+    def create_org(db):
+        """
+        Create a test organization with basic setup
+        """
+        org = Org.objects.create(
+            name='Test Organization',
+            fyle_org_id='orTest123',
+            cluster_domain='https://test.fyle.tech'
+        )
+        return org
+    ```
+
+25. **Factory Functions**: Use factory functions for complex object creation
+    ```python
+    def create_user(email: str, name: str, user_id: str) -> User:
+        return User.objects.create(
+            password='', last_login=datetime.now(tz=timezone.utc), email=email,
+            user_id=user_id, full_name=name, active='t', staff='f', admin='f'
+        )
+    ```
+
+26. **Test Data Isolation**: Ensure each test has isolated data using unique IDs
+    ```python
+    @pytest.fixture()
+    def create_org(db):
+        return Org.objects.create(name='Test Org', fyle_org_id=f'orTwovfDpEYc_{uuid.uuid4()}')
+    ```
+
+27. **Move Test Data to Fixtures**: Move all test data to fixtures instead of creating objects inline in tests
+    ```python
+    # Good: Data in fixture
+    @pytest.fixture()
+    def travelperk_advanced_setting_data():
+        return {
+            'default_employee_name': 'ashwin.t@fyle.in',
+            'default_employee_id': 'usqywo0f3nBY',
+            'default_category_name': 'Acc. Dep-Leasehold Improvements',
+            'default_category_id': '228952',
+            'invoice_lineitem_structure': 'MULTIPLE',
+            'description_structure': [
+                'trip_id', 'trip_name', 'traveler_name', 'booker_name', 'merchant_name'
+            ],
+            'category_mappings': {
+                'Cars': {'id': '228952', 'name': 'Acc. Dep-Leasehold Improvements'},
+                'Hotels': {'id': '264337', 'name': 'Elon Baba'},
+                'Trains': {'id': '228955', 'name': 'Sales - Merchandise'},
+                'Flights': {'id': '228953', 'name': 'Customer Deposits'}
+            }
+        }
+    
+    # Bad: Data inline in test
+    def test_something(db):
+        advanced_setting = TravelperkAdvancedSetting.objects.create(
+            org=org,
+            default_employee_name='ashwin.t@fyle.in',
+            default_employee_id='usqywo0f3nBY',
+            # ... many more fields inline
+        )
+    ```
+
+28. **Use ** to Create Models**: Use dictionary unpacking to create models from fixture data
+    ```python
+    # Good: Using ** to create model
+    @pytest.fixture()
+    def create_travelperk_advanced_setting(create_org, travelperk_advanced_setting_data, db):
+        return TravelperkAdvancedSetting.objects.create(
+            org=create_org,
+            **travelperk_advanced_setting_data
+        )
+    
+    # Bad: Explicit field assignment
+    @pytest.fixture()
+    def create_travelperk_advanced_setting(create_org, db):
+        return TravelperkAdvancedSetting.objects.create(
+            org=create_org,
+            default_employee_name='ashwin.t@fyle.in',
+            default_employee_id='usqywo0f3nBY',
+            default_category_name='Acc. Dep-Leasehold Improvements',
+            # ... many more explicit fields
+        )
+    ```
+
+29. **Import Models in Conftest**: Import all models in [tests/conftest.py](mdc:tests/conftest.py) for fixture creation
+    ```python
+    # In conftest.py
+    from apps.orgs.models import Org, FyleCredential
+    from apps.bamboohr.models import BambooHr, BambooHrConfiguration
+    from apps.travelperk.models import (
+        TravelPerk, TravelperkProfileMapping, TravelperkAdvancedSetting,
+        TravelperkCredential, Invoice, InvoiceLineItem
+    )
+    from apps.integrations.models import Integration
+    ```
+
+## Error Handling and Edge Cases
+
+30. **Error Scenarios**: Test both success and failure cases
+    ```python
+    def test_api_call_success(mocker):
+        # Test successful API call
+    
+    def test_api_call_failure(mocker):
+        # Test failed API call
+    ```
+
+31. **Edge Cases**: Test boundary conditions and edge cases
+    ```python
+    def test_empty_list_handling():
+        # Test with empty input
+    
+    def test_none_value_handling():
+        # Test with None values
+    ```
+
+32. **Invalid Input**: Test with invalid or malformed input
+    ```python
+    def test_invalid_token_handling():
+        # Test with invalid authentication
+    ```
+
+## Performance and Best Practices
+
+33. **Test Isolation**: Each test should be independent and not rely on other tests
+
+34. **Minimal Setup**: Only set up what's necessary for each test
+
+35. **Clear Test Names**: Test names should clearly indicate what is being tested
+
+36. **Avoid Test Dependencies**: Don't create tests that depend on the order of execution
+
+37. **Use Constants**: Define test constants at module level
+    ```python
+    TEST_WORKSPACE_ID = 1
+    TEST_USER_EMAIL = 'test@example.com'
+    ```
+
+## Code Quality
+
+38. **Import Organization**: Group imports logically (standard library, third-party, local)
+    ```python
+    import pytest
+    from unittest.mock import patch, MagicMock
+    from django.urls import reverse
+    from rest_framework import status
+    from apps.models import Model
+    ```
+
+39. **Variable Naming**: Use descriptive variable names
+    ```python
+    # Good
+    workspace_id = 1
+    expected_response_data = {'status': 'success'}
+    
+    # Bad
+    id = 1
+    data = {'status': 'success'}
+    ```
+
+40. **Comments**: Add comments for complex test logic or business rules
+
+41. **Remove Dead Code**: Don't leave commented-out code or unused imports
+
+42. **Never use inline imports in test files**: Imports only on top of the file
+
+## Coverage and Completeness
+
+43. **Test All Branches**: Ensure all code paths are tested, including error conditions
+
+44. **Test Public APIs**: Focus on testing public interfaces rather than implementation details
+
+45. **Integration Tests**: Include integration tests for complex workflows
+
+46. **Regression Tests**: Add tests for bugs that have been fixed
+
+## Specific Patterns
+
+47. **Async Task Testing**: Mock async tasks and verify they're called correctly
+    ```python
+    mock_async_task = mocker.patch('apps.tasks.async_task')
+    # ... test logic ...
+    mock_async_task.assert_called_once_with('task_name', args)
+    ```
+
+48. **File Operations**: Mock file operations and verify content
+    ```python
+    mock_file = mock_open(read_data='test content')
+    with patch('builtins.open', mock_file):
+        # ... test logic ...
+    ```
+
+49. **Email Testing**: Mock email services and verify calls
+    ```python
+    mock_sendgrid = mocker.patch('apps.email.sendgrid.SendGridAPIClient')
+    # ... test logic ...
+    mock_sendgrid.return_value.send.assert_called_once()
+    ```
+
+50. **Database Transactions**: Use `db` argument for tests that modify data
+    ```python
+    def test_database_transaction(db):
+        # Test database operations
+    ```
+
+51. **Schedule Verification**: When testing schedule creation, verify that Schedule objects are actually created in the database instead of just mocking the creation call
+    ```python
+    # Good: Verify schedule was created
+    schedule = Schedule.objects.filter(
+        func='apps.tasks.task_name',
+        args='1,True'
+    ).first()
+    assert schedule is not None
+    assert schedule.schedule_type == Schedule.MINUTES
+    assert schedule.minutes == 6 * 60
+    
+    # Bad: Just mock update_or_create without verification
+    mock_schedule = mocker.patch('apps.tasks.Schedule.objects.update_or_create')
+    # ... test logic ...
+    mock_schedule.assert_called_once()
+    ```
+
+## Fixture Best Practices
+
+52. **Fixture Naming**: Use descriptive names that indicate what they create
+    ```python
+    # Good
+    create_org, create_org_with_credentials, create_travelperk
+    
+    # Bad
+    org, org2, tp
+    ```
+
+53. **Fixture Dependencies**: Use proper dependency injection
+    ```python
+    @pytest.fixture()
+    def create_travelperk(create_org, db):
+        travelperk = TravelPerk.objects.create(
+            org=create_org,
+            folder_id="dummy",
+            package_id="dummy",
+            is_travelperk_connected=True
+        )
+        return travelperk
+    ```
+
+54. **Unique Data**: Use UUID or unique identifiers to avoid database conflicts
+    ```python
+    @pytest.fixture()
+    def create_org(db):
+        return Org.objects.create(name='Test Org', fyle_org_id=f'orTwovfDpEYc_{uuid.uuid4()}')
+    ```
+
+55. **Consolidate Model Fixtures**: Never create multiple fixtures for the same model. Use one fixture per model and reuse it across all tests
+    ```python
+    # Good: One fixture per model
+    @pytest.fixture()
+    def create_org(db):
+        return Org.objects.create(name='Test Org', fyle_org_id=f'orTwovfDpEYc_{uuid.uuid4()}')
+    
+    # Bad: Multiple fixtures for same model
+    @pytest.fixture()
+    def add_org(db):
+        return Org.objects.create(name='Test Organization', fyle_org_id='orTest123')
+    
+    @pytest.fixture()
+    def org_with_credentials(db):
+        org = Org.objects.create(name='Test Org', fyle_org_id='orTest456')
+        FyleCredential.objects.create(org=org, refresh_token='dummy_refresh_token')
+        return org
+    
+    @pytest.fixture()
+    def get_org_id(db):
+        org = Org.objects.create(name='Test org', fyle_org_id='orTwovfDpEYc')
+        return org.id
+    ```
+
+## Documentation and Maintenance
+
+56. **Update Tests**: When changing functionality, update corresponding tests
+
+57. **Test Documentation**: Keep test documentation up to date with code changes
+
+58. **Review Test Coverage**: Regularly review test coverage and add missing tests
+
+59. **Refactor Tests**: Refactor tests when they become too complex or hard to maintain
+
+## Critical Rules (Never Break)
+
+60. **No Inline Imports**: All imports must be at the top of the file
+61. **No Database Mocking**: Never mock database operations, use real database transactions
+62. **No Logger Mocking**: Never mock loggers, let them work normally
+63. **Use Fixtures**: Always use fixtures for test data, never create objects inline
+64. **Mock External Services**: Always mock external API calls and services
+65. **Verify Database State**: Always verify database state after operations, don't just mock calls
+66. **Use db Argument**: Always use `db` argument for database access, never use `@pytest.mark.django_db`
+67. **One Fixture Per Model**: Never create multiple fixtures for the same model, consolidate them into one reusable fixture
+68. **Consistent Naming Convention**: Use `create_*` prefix for all fixture names (e.g., `create_org`, `create_user`, `create_travelperk`)
+69. **No Mocks in Fixtures**: Never use mocks in fixtures, only create real objects or return static data
+70. **Move Data to Fixtures**: Move all test data to fixtures, never create objects with inline data in tests
+71. **Use ** for Model Creation**: Use dictionary unpacking (`**`) to create models from fixture data
+72. **No create or get fixtures**: Never create or get fixtures in test files, always use fixtures in [tests/conftest.py](mdc:tests/conftest.py)
+73. **Mock Setup Naming Convention**: Mock setup functions must follow the naming convention `mock_{function_name}` where `function_name` is the name of the function being tested
+    ```python
+    # Good: Mock function matches the function being tested
+    def mock_send_failure_notification_email(mocker):
+        # Mock setup for send_failure_notification_email function
+    
+    # Bad: Generic mock name
+    def mock_sendgrid_email_shared_mock(mocker):
+        # Generic mock name doesn't indicate which function it's for
+    ```
+74. **Test Function Naming Convention**: Test functions must follow the naming convention `test_{function_name}_case_{number}` where `function_name` is the name of the function being tested
+    ```python
+    # Good: Test function follows naming convention
+    def test_send_failure_notification_email_case_1(mock_dependencies):
+        """
+        Test send_failure_notification_email
+        Case: Sends email using SendGrid with CSV attachment
+        """
+    
+    # Bad: Generic test name
+    def test_send_failure_notification_email_sends_email(mock_dependencies):
+        # Generic name doesn't follow case numbering convention
+    ```
+
+75. **Always add data to the fixtures and then use in the conftest.py file, do not add manual data in conftest
+76. **When writing test code dont write comments please
+78. ** Dont add irrelevant tests, only add tests that will test real code used in the app being tested.
+79. ** Use mock_dependencies without importing them
+    example:
+    ```python
+    def test_export_log_sync_view(mock_dependencies, api_client):
+    """
+    Test Export Log Sync View
+    """
+    workspace_id = 1
+    url = reverse('export_logs_sync', kwargs={'workspace_id': workspace_id})
+    response = api_client.post(url)
+
+    assert response.status_code == 200
+    assert mock_dependencies.queue_import_reimbursable_expenses.call_count == 1
+    assert mock_dependencies.queue_import_credit_card_expenses.call_count == 1
+
+    use shared_mocks(mock_function): Apply shared mocks to the test in pytest.ini file.
+
+80. ** In mock_setup.py create mocks for tests with name similar to the test function name so that it will 
+automatically import the mock while testing, for test names with case_1 case_2 use shared_mocks or create a general named mock
+
+This rule applies only when writing test code (files in `tests/` directory or files with `test_` prefix).
+
+## Reference Files
+- Main test configuration: [tests/conftest.py](mdc:tests/conftest.py)
+- Test directory structure: [tests/](mdc:tests/)
+- Example test files: [tests/test_bamboohr/](mdc:tests/test_bamboohr/), [tests/test_travelperk/](mdc:tests/test_travelperk/)
+- Project configuration: [pytest.ini](mdc:pytest.ini)
