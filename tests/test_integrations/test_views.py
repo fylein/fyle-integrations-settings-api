@@ -318,12 +318,10 @@ def test_integrations_view_delete(api_client, mocker, access_token):
 
     # Test DELETE without tpa_name should return 400
     response = api_client.delete(url, json.dumps(delete_integration_no_tpa_name), content_type="application/json")
-    print(response.content)
     assert response.status_code == 400, 'DELETE without a tpa_name should return 400'
 
     # Test valid DELETE request
     response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
-    print(response.content)
     assert response.status_code == 204, 'Valid DELETE request should return 204'
 
     # Verify the integration no longer exists
@@ -331,5 +329,4 @@ def test_integrations_view_delete(api_client, mocker, access_token):
 
     # Test DELETE on non-existent integration should return 400
     response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
-    print(response.content)
     assert response.status_code == 400, 'DELETE on non-existent integration should return 400'
