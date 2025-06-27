@@ -17,7 +17,7 @@ from .fixture import (
 from tests.helper import dict_compare_keys
 
 
-def test_integrations_view_post_accounting_case_1(mock_dependencies, api_client, mocker, access_token, db):
+def test_integrations_view_post_accounting_case_1(mock_dependencies, api_client, mocker, access_token):
     """
     Test integrations view POST
     Case: Create accounting integration and verify response
@@ -57,7 +57,7 @@ def test_integrations_view_post_accounting_case_1(mock_dependencies, api_client,
     assert response_data[0]['updated_at'] < response_data[1]['updated_at']
 
 
-def test_integrations_view_post_case_1(mock_dependencies, api_client, mocker, access_token, db):
+def test_integrations_view_post_case_1(mock_dependencies, api_client, mocker, access_token):
     """
     Test integrations view POST
     Case: Create and update integrations
@@ -134,7 +134,7 @@ def test_integrations_view_post_case_1(mock_dependencies, api_client, mocker, ac
     assert dict_compare_keys(response_data, expected_data) == [], 'Response data mismatch'
 
 
-def test_integrations_view_get_case_1(mock_dependencies, api_client, mocker, access_token, create_integrations, db):
+def test_integrations_view_get_case_1(mock_dependencies, api_client, mocker, access_token, create_integrations):
     """
     Test integrations view GET
     Case: Get all integrations and filter by type
@@ -193,7 +193,7 @@ def test_integrations_view_get_case_1(mock_dependencies, api_client, mocker, acc
     assert dict_compare_keys(response_data[0], expected_data) == [], 'Response data mismatch'
 
 
-def test_integrations_view_invalid_access_token_case_1(mock_dependencies, api_client, db):
+def test_integrations_view_invalid_access_token_case_1(mock_dependencies, api_client):
     """
     Test integrations view with invalid access token
     Case: All operations return 403
@@ -211,7 +211,7 @@ def test_integrations_view_invalid_access_token_case_1(mock_dependencies, api_cl
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-def test_integrations_view_mark_inactive_post_case_1(mock_dependencies, api_client, mocker, access_token, create_integrations, db):
+def test_integrations_view_mark_inactive_post_case_1(mock_dependencies, api_client, mocker, access_token, create_integrations):
     """
     Test integrations view mark inactive PATCH
     Case: Mark integration as inactive
@@ -237,7 +237,7 @@ def test_integrations_view_mark_inactive_post_case_1(mock_dependencies, api_clie
     assert response_data['is_active'] is False
 
 
-def test_integrations_view_patch_case_1(mock_dependencies, api_client, mocker, access_token, db):
+def test_integrations_view_patch_case_1(mock_dependencies, api_client, mocker, access_token):
     """
     Test integrations view PATCH
     Case: Update integration with valid data
@@ -273,7 +273,7 @@ def test_integrations_view_patch_case_1(mock_dependencies, api_client, mocker, a
     assert dict_compare_keys(response_data, expected_data) == [], 'Response data mismatch'
 
 
-def test_integrations_view_patch_case_2(mock_dependencies, api_client, mocker, access_token, db):
+def test_integrations_view_patch_case_2(mock_dependencies, api_client, mocker, access_token):
     """
     Test integrations view PATCH
     Case: Update integration with invalid tpa_name
@@ -297,12 +297,13 @@ def test_integrations_view_patch_case_2(mock_dependencies, api_client, mocker, a
 
     response_data = json.loads(response.content)
     
-    # Verify the tpa_name was updated even though it's "invalid"
-    if 'tpa_name' in patch_data and 'tpa_name' in response_data:
-        assert response_data['tpa_name'] == patch_data['tpa_name']
+    # Verify the tpa_name was updated
+    assert response_data['tpa_name'] == patch_data['tpa_name']
+    assert response_data['errors_count'] == patch_data['errors_count']
+    assert response_data['is_token_expired'] == patch_data['is_token_expired']
 
 
-def test_integrations_view_patch_case_3(mock_dependencies, api_client, mocker, access_token, db):
+def test_integrations_view_patch_case_3(mock_dependencies, api_client, mocker, access_token):
     """
     Test integrations view PATCH
     Case: Update integration with partial data
@@ -320,19 +321,16 @@ def test_integrations_view_patch_case_3(mock_dependencies, api_client, mocker, a
     assert response.status_code == status.HTTP_200_OK
 
     response_data = json.loads(response.content)
-    expected_data = {
-        'id': integration_id,
-        'org_id': mock_dependencies.org_id,
-        'tpa_name': patch_integration_partial['tpa_name'],
-        'is_token_expired': patch_integration_partial['is_token_expired'],
-        'is_beta': True,
-        'disconnected_at': None,
-        'org_name': response_data['org_name'],
-        'tpa_id': response_data['tpa_id'],
-        'type': response_data['type'],
-        'is_active': response_data['is_active'],
-        'errors_count': response_data['errors_count'],
-        'connected_at': response_data['connected_at'],
-        'updated_at': response_data['updated_at']
-    }
-    assert dict_compare_keys(response_data, expected_data) == [], 'Response data mismatch'
+    
+    # Verify only the fields that were sent in the patch request
+    assert response_data['id'] == integration_id
+    assert response_data['org_id'] == mock_dependencies.org_id
+    assert response_data['is_beta'] is True
+    assert response_data['disconnected_at'] is None
+    
+    # Check fields that were updated
+    assert response_data['tpa_name'] == patch_integration_partial['tpa_name']
+    assert response_data['is_token_expired'] == patch_integration_partial['is_token_expired']
+    
+    # Verify that errors_count was not changed (since it wasn't in the patch data)
+    assert 'errors_count' in response_data

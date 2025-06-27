@@ -14,7 +14,7 @@ from .mock_setup import (
 )
 
 
-def test_bamboohr_get_view_case_1(mock_dependencies, api_client, access_token, create_org, create_bamboohr, db):
+def test_bamboohr_get_view_case_1(mock_dependencies, api_client, access_token, create_org, create_bamboohr):
     """
     Test bamboohr GET view
     Case: Valid org_id returns 200 with correct data
@@ -29,7 +29,7 @@ def test_bamboohr_get_view_case_1(mock_dependencies, api_client, access_token, c
     assert dict_compare_keys(response_data, fixture['bamboohr']) == [], 'bamboohr GET diff in keys'
 
 
-def test_bamboohr_get_view_case_2(mock_dependencies, api_client, access_token, db):
+def test_bamboohr_get_view_case_2(mock_dependencies, api_client, access_token):
     """
     Test bamboohr GET view
     Case: Invalid org_id returns 404
@@ -44,7 +44,7 @@ def test_bamboohr_get_view_case_2(mock_dependencies, api_client, access_token, d
     assert response_data['message'] is not None
 
 
-def test_post_configuration_view_case_1(mock_dependencies, api_client, access_token, create_org, db):
+def test_post_configuration_view_case_1(mock_dependencies, api_client, access_token, create_org):
     """
     Test post configuration view
     Case: Valid configuration data returns 200
@@ -60,7 +60,7 @@ def test_post_configuration_view_case_1(mock_dependencies, api_client, access_to
     assert response.data['emails_selected'] == [{'name': 'Nilesh', 'email': 'nilesh.p@fyle.in'}]
 
 
-def test_get_configuration_view_case_1(mock_dependencies, api_client, access_token, create_org, create_bamboohr, db):
+def test_get_configuration_view_case_1(mock_dependencies, api_client, access_token, create_org, create_bamboohr):
     """
     Test get configuration view
     Case: Valid org_id returns 200 with correct data
@@ -75,7 +75,7 @@ def test_get_configuration_view_case_1(mock_dependencies, api_client, access_tok
     assert dict_compare_keys(response_data, fixture['configurations']) == [], 'configurations GET diff in keys'
 
 
-def test_get_configuration_view_case_2(mock_dependencies, api_client, access_token, db):
+def test_get_configuration_view_case_2(mock_dependencies, api_client, access_token):
     """
     Test get configuration view
     Case: Invalid org_id returns 404
@@ -90,7 +90,7 @@ def test_get_configuration_view_case_2(mock_dependencies, api_client, access_tok
     assert response_data['message'] is not None
 
 
-def test_post_bamboohr_connection_view_case_1(mock_dependencies, api_client, access_token, create_org, db):
+def test_post_bamboohr_connection_view_case_1(mock_dependencies, api_client, access_token, create_org):
     """
     Test post bamboohr connection view
     Case: Missing input returns 400
@@ -103,7 +103,7 @@ def test_post_bamboohr_connection_view_case_1(mock_dependencies, api_client, acc
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_invalid_token_shared_mock(mocker))
-def test_post_bamboohr_connection_view_case_2(mock_dependencies, api_client, access_token, create_org, db):
+def test_post_bamboohr_connection_view_case_2(mock_dependencies, api_client, access_token, create_org):
     """
     Test post bamboohr connection view
     Case: Invalid token returns 400
@@ -116,7 +116,7 @@ def test_post_bamboohr_connection_view_case_2(mock_dependencies, api_client, acc
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_post_bamboohr_connection_view_case_3(mock_dependencies, api_client, access_token, create_org, db):
+def test_post_bamboohr_connection_view_case_3(mock_dependencies, api_client, access_token, create_org):
     """
     Test post bamboohr connection view
     Case: Valid input returns 200 and creates integration
@@ -138,7 +138,7 @@ def test_post_bamboohr_connection_view_case_3(mock_dependencies, api_client, acc
     assert integration_object.is_beta is True
 
 
-def test_post_bamboohr_disconnect_view_case_1(mock_dependencies, api_client, access_token, db):
+def test_post_bamboohr_disconnect_view_case_1(mock_dependencies, api_client, access_token):
     """
     Test post bamboohr disconnect view
     Case: Invalid org id returns 404
@@ -151,7 +151,7 @@ def test_post_bamboohr_disconnect_view_case_1(mock_dependencies, api_client, acc
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_post_bamboohr_disconnect_view_case_2(mock_dependencies, api_client, access_token, create_org, db):
+def test_post_bamboohr_disconnect_view_case_2(mock_dependencies, api_client, access_token, create_org):
     """
     Test post bamboohr disconnect view
     Case: Valid disconnect call returns 200 and updates integration

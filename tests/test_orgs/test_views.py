@@ -18,7 +18,7 @@ def test_ready_view_case_1(mock_dependencies, api_client, db):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_orgs_get_view_case_1(mock_dependencies, api_client, access_token, db):
+def test_orgs_get_view_case_1(mock_dependencies, api_client, access_token):
     """
     Test orgs GET view
     Case: Valid org_id returns 200 with correct data
@@ -33,7 +33,7 @@ def test_orgs_get_view_case_1(mock_dependencies, api_client, access_token, db):
     assert dict_compare_keys(response_data, fixture['orgs']) == [], 'orgs GET diff in keys'
 
 
-def test_orgs_get_view_case_2(mock_dependencies, api_client, access_token, db):
+def test_orgs_get_view_case_2(mock_dependencies, api_client, access_token):
     """
     Test orgs GET view
     Case: Invalid org_id returns 404
@@ -48,7 +48,7 @@ def test_orgs_get_view_case_2(mock_dependencies, api_client, access_token, db):
     assert response_data['message'] is not None
 
 
-def test_orgs_put_view_case_1(mock_dependencies, api_client, access_token, db):
+def test_orgs_put_view_case_1(mock_dependencies, api_client, access_token):
     """
     Test orgs PUT view
     Case: Returns 200 for partner orgs
@@ -60,7 +60,7 @@ def test_orgs_put_view_case_1(mock_dependencies, api_client, access_token, db):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_new_org_put_view_case_1(mock_dependencies, api_client, mocker, access_token, db):
+def test_new_org_put_view_case_1(mock_dependencies, api_client, mocker, access_token):
     """
     Test new org PUT view
     Case: Returns 200 for new partner org
@@ -74,7 +74,7 @@ def test_new_org_put_view_case_1(mock_dependencies, api_client, mocker, access_t
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_admin_view_case_1(mock_dependencies, api_client, mocker, access_token, create_org, db):
+def test_admin_view_case_1(mock_dependencies, api_client, mocker, access_token, create_org):
     """
     Test admin view
     Case: Returns 200 with employee data

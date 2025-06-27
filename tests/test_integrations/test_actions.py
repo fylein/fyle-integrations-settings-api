@@ -5,7 +5,7 @@ from apps.integrations.actions import get_integration, get_org_id_and_name_from_
 from .fixture import post_integration_hrms
 
 
-def test_get_integration(mock_dependencies, mocker, access_token, create_integrations, db):
+def test_get_integration(mock_dependencies, mocker, access_token, create_integrations):
     """
     Test get_integration action
     Case: Returns correct integration data
@@ -21,7 +21,7 @@ def test_get_integration(mock_dependencies, mocker, access_token, create_integra
     assert integration.disconnected_at is None
 
 
-def test_get_org_id_and_name_from_access_token_case_1(mock_dependencies, api_client, mocker, access_token, create_integrations, db):
+def test_get_org_id_and_name_from_access_token_case_1(mock_dependencies, api_client, mocker, access_token, create_integrations):
     """
     Test get_org_id_and_name_from_access_token action
     Case: Valid response returns org data
@@ -31,7 +31,7 @@ def test_get_org_id_and_name_from_access_token_case_1(mock_dependencies, api_cli
     assert result['name'] == 'Dummy Org'
 
 
-def test_get_org_id_and_name_from_access_token_case_2(mock_dependencies, api_client, mocker, access_token, create_integrations, db):
+def test_get_org_id_and_name_from_access_token_case_2(mock_dependencies, api_client, mocker, access_token, create_integrations):
     """
     Test get_org_id_and_name_from_access_token action
     Case: Invalid response raises exception

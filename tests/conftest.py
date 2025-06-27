@@ -244,6 +244,68 @@ def create_integrations(db):
     Integration.objects.create(**static_integration_hrms_data)
 
 
+@pytest.fixture()
+def create_travelperk_full_setup(create_org):
+    """
+    Create a complete TravelPerk setup with all dependencies
+    """
+    travelperk = TravelPerk.objects.create(
+        org=create_org,
+        **static_travelperk_data
+    )
+    
+    travelperk_credential = TravelperkCredential.objects.create(
+        org=create_org,
+        **static_travelperk_credential_data
+    )
+    
+    travelperk_advanced_setting = TravelperkAdvancedSetting.objects.create(
+        org=create_org,
+        **static_travelperk_advanced_setting_data
+    )
+    
+    travelperk_profile_mapping = TravelperkProfileMapping.objects.create(
+        org=create_org,
+        **static_travelperk_profile_mapping_data
+    )
+    
+    data = fixture['expense']
+    invoice_lineitems_data = data['lines']
+    invoice = Invoice.create_or_update_invoices(data, create_org.id)
+    invoice_lineitems = InvoiceLineItem.create_or_update_invoice_lineitems(invoice_lineitems_data, invoice)
+    
+    return {
+        'org': create_org,
+        'travelperk': travelperk,
+        'credential': travelperk_credential,
+        'advanced_setting': travelperk_advanced_setting,
+        'profile_mapping': travelperk_profile_mapping,
+        'invoice': invoice,
+        'invoice_lineitems': invoice_lineitems
+    }
+
+
+@pytest.fixture()
+def create_bamboohr_full_setup(create_org):
+    """
+    Create a complete BambooHR setup with all dependencies
+    """
+    bamboohr = BambooHr.objects.create(
+        org=create_org,
+        **static_bamboohr_data
+    )
+    
+    bamboohr_config = BambooHrConfiguration.objects.create(
+        org=create_org
+    )
+    
+    return {
+        'org': create_org,
+        'bamboohr': bamboohr,
+        'config': bamboohr_config
+    }
+
+
 def pytest_configure(config):
     """
     Register custom markers

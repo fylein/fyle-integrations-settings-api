@@ -9,7 +9,7 @@ from tests.fixture import fixture
 User = get_user_model()
 
 
-def test_profile_view_case_1(mock_dependencies, api_client, access_token, db):
+def test_profile_view_case_1(mock_dependencies, api_client, access_token):
     """
     Test profile view
     Case: Returns 200 with correct user and org data

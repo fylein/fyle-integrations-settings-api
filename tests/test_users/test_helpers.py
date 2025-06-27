@@ -4,7 +4,7 @@ from django.conf import settings
 from apps.users.helpers import get_cluster_domain, post_request
 
 
-def test_get_cluster_domain_case_1(mock_dependencies, api_client, mocker, access_token, db):
+def test_get_cluster_domain_case_1(mock_dependencies, api_client, mocker, access_token):
     """
     Test get_cluster_domain helper
     Case: Returns correct cluster domain
@@ -13,7 +13,7 @@ def test_get_cluster_domain_case_1(mock_dependencies, api_client, mocker, access
     assert cluster_domain == 'https://lolo.fyle.tech'
 
 
-def test_post_request_case_1(mock_dependencies, api_client, mocker, access_token, db):
+def test_post_request_case_1(mock_dependencies, api_client, mocker, access_token):
     """
     Test post_request helper
     Case: Valid response returns correct data
@@ -27,7 +27,7 @@ def test_post_request_case_1(mock_dependencies, api_client, mocker, access_token
     assert response == {'cluster_domain': 'https://test.fyle.tech'}
 
 
-def test_post_request_case_2(mock_dependencies, api_client, mocker, access_token, db):
+def test_post_request_case_2(mock_dependencies, api_client, mocker, access_token):
     """
     Test post_request helper
     Case: Invalid response raises exception
