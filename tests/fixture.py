@@ -1,3 +1,7 @@
+from tests.test_bamboohr.fixtures import fixture as bamboohr_fixture
+from tests.test_travelperk.fixtures import fixture as travelperk_fixture
+from tests.test_integrations.fixture import post_integration_accounting, post_integration_hrms
+
 fixture = {
     'my_profile': {
         'data': {
@@ -165,4 +169,67 @@ fixture = {
             }
         ]
     }
+}
+
+# Static test data for fixtures
+org_data = {
+    'name': 'Test Organization',
+    'fyle_org_id': 'orTwovfDpEYc_test',
+    'managed_user_id': '890744',
+    'cluster_domain': 'https://fake-cluster-domain.com',
+}
+
+fyle_credential_data = {
+    'refresh_token': 'fake-refresh-token',
+}
+
+bamboohr_data = {
+    'folder_id': bamboohr_fixture['bamboohr']['folder_id'],
+    'package_id': bamboohr_fixture['bamboohr']['package_id'],
+}
+
+travelperk_data = {
+    'folder_id': travelperk_fixture['travelperk']['folder_id'],
+    'package_id': travelperk_fixture['travelperk']['package_id'],
+    'is_travelperk_connected': True,
+}
+
+travelperk_profile_mapping_data = {
+    'profile_name': travelperk_fixture['profile_mapping']['results'][0]['profile_name'],
+    'user_role': travelperk_fixture['profile_mapping']['results'][0]['user_role'],
+    'is_import_enabled': travelperk_fixture['profile_mapping']['results'][0]['is_import_enabled'],
+    'source_id': travelperk_fixture['profile_mapping']['results'][0]['source_id'],
+    'currency': travelperk_fixture['profile_mapping']['results'][0]['currency']
+}
+
+travelperk_advanced_setting_data = {
+    'default_employee_name': travelperk_fixture['advance_setting_payload']['default_employee_name'],
+    'default_employee_id': travelperk_fixture['advance_setting_payload']['default_employee_id'],
+    'default_category_name': travelperk_fixture['advance_setting_payload']['default_category_name'],
+    'default_category_id': travelperk_fixture['advance_setting_payload']['default_category_id'],
+    'invoice_lineitem_structure': travelperk_fixture['advance_setting_payload']['invoice_lineitem_structure'],
+    'description_structure': travelperk_fixture['advance_setting_payload']['description_structure'],
+    'category_mappings': travelperk_fixture['advance_setting_payload']['category_mappings'],
+}
+
+travelperk_credential_data = {
+    'refresh_token': '12312rwer',
+}
+
+integration_accounting_data = {
+    'org_id': post_integration_accounting.get('org_id', 'or3P3xJ0603e'),
+    'type': post_integration_accounting['type'],
+    'is_active': post_integration_accounting['is_active'],
+    'is_beta': True,
+    'tpa_id': post_integration_accounting['tpa_id'],
+    'tpa_name': post_integration_accounting['tpa_name'],
+}
+
+integration_hrms_data = {
+    'org_id': post_integration_hrms.get('org_id', 'or3P3xJ0603e'),
+    'type': post_integration_hrms['type'],
+    'is_active': post_integration_hrms['is_active'],
+    'is_beta': True,
+    'tpa_id': post_integration_hrms['tpa_id'],
+    'tpa_name': post_integration_hrms['tpa_name'],
 }
