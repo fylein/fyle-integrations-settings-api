@@ -2,16 +2,23 @@ codecov:
   require_ci_to_pass: false   #post comment only if ci checks have passed
 comment:
   behavior: default     #comment post behavior (update existing, post new, delete and post new)
-  layout: reach, diff, flags, files     #comment format
+  layout: reach, diff, flags, files, footer     #comment format with diff coverage
   require_base: true   #base report is mandatory to post comment
   require_changes: false  #only post comment if chages are done
   require_head: false #head commit is mandatory
   show_carryforward_flags: false
-coverage:                 #code coverage range
+coverage:
   precision: 2
-  range:
-  - 94.0
-  - 95.0
+  range: "94...95"
   round: down
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 80%
+        threshold: 1%
 github_checks:
-  annotations: false
+  annotations: true
