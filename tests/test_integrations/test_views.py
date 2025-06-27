@@ -11,7 +11,8 @@ from .fixture import (
     patch_integration_no_tpa_name,
     patch_integration,
     patch_integration_invalid_tpa_name,
-    patch_integration_partial
+    patch_integration_partial,
+    inactive_integration_data
 )
 from tests.helper import dict_compare_keys
 
@@ -28,13 +29,22 @@ def test_integrations_view_post_accounting_case_1(mock_dependencies, api_client,
     assert response.status_code == status.HTTP_201_CREATED
 
     response_data = json.loads(response.content)
-    assert response_data['org_id'] == mock_dependencies.org_id
-    assert response_data['tpa_id'] == post_integration_accounting['tpa_id']
-    assert response_data['tpa_name'] == post_integration_accounting['tpa_name']
-    assert response_data['type'] == post_integration_accounting['type']
-    assert response_data['is_active'] == post_integration_accounting['is_active']
-    assert response_data['is_beta'] is True
-    assert response_data['disconnected_at'] is None
+    expected_data = {
+        'org_id': mock_dependencies.org_id,
+        'tpa_id': post_integration_accounting['tpa_id'],
+        'tpa_name': post_integration_accounting['tpa_name'],
+        'type': post_integration_accounting['type'],
+        'is_active': post_integration_accounting['is_active'],
+        'is_beta': True,
+        'disconnected_at': None,
+        'id': response_data['id'],
+        'org_name': response_data['org_name'],
+        'errors_count': response_data['errors_count'],
+        'is_token_expired': response_data['is_token_expired'],
+        'connected_at': response_data['connected_at'],
+        'updated_at': response_data['updated_at']
+    }
+    assert dict_compare_keys(response_data, expected_data) == [], 'Response data mismatch'
 
     api_client.post(url, post_integration_accounting_2)
     api_client.post(url, post_integration_hrms)
@@ -59,13 +69,22 @@ def test_integrations_view_post_case_1(mock_dependencies, api_client, mocker, ac
     assert response.status_code == status.HTTP_201_CREATED
 
     response_data = json.loads(response.content)
-    assert response_data['org_id'] == mock_dependencies.org_id
-    assert response_data['tpa_id'] == post_integration_accounting['tpa_id']
-    assert response_data['tpa_name'] == post_integration_accounting['tpa_name']
-    assert response_data['type'] == post_integration_accounting['type']
-    assert response_data['is_active'] == post_integration_accounting['is_active']
-    assert response_data['is_beta'] is True
-    assert response_data['disconnected_at'] is None
+    expected_data = {
+        'org_id': mock_dependencies.org_id,
+        'tpa_id': post_integration_accounting['tpa_id'],
+        'tpa_name': post_integration_accounting['tpa_name'],
+        'type': post_integration_accounting['type'],
+        'is_active': post_integration_accounting['is_active'],
+        'is_beta': True,
+        'disconnected_at': None,
+        'id': response_data['id'],
+        'org_name': response_data['org_name'],
+        'errors_count': response_data['errors_count'],
+        'is_token_expired': response_data['is_token_expired'],
+        'connected_at': response_data['connected_at'],
+        'updated_at': response_data['updated_at']
+    }
+    assert dict_compare_keys(response_data, expected_data) == [], 'Response data mismatch'
 
     accounting_integration_id = response_data['id']
 
@@ -73,13 +92,22 @@ def test_integrations_view_post_case_1(mock_dependencies, api_client, mocker, ac
     assert response.status_code == status.HTTP_201_CREATED
 
     response_data = json.loads(response.content)
-    assert response_data['org_id'] == mock_dependencies.org_id
-    assert response_data['tpa_id'] == post_integration_hrms['tpa_id']
-    assert response_data['tpa_name'] == post_integration_hrms['tpa_name']
-    assert response_data['type'] == post_integration_hrms['type']
-    assert response_data['is_active'] == post_integration_hrms['is_active']
-    assert response_data['is_beta'] is True
-    assert response_data['disconnected_at'] is None
+    expected_data = {
+        'org_id': mock_dependencies.org_id,
+        'tpa_id': post_integration_hrms['tpa_id'],
+        'tpa_name': post_integration_hrms['tpa_name'],
+        'type': post_integration_hrms['type'],
+        'is_active': post_integration_hrms['is_active'],
+        'is_beta': True,
+        'disconnected_at': None,
+        'id': response_data['id'],
+        'org_name': response_data['org_name'],
+        'errors_count': response_data['errors_count'],
+        'is_token_expired': response_data['is_token_expired'],
+        'connected_at': response_data['connected_at'],
+        'updated_at': response_data['updated_at']
+    }
+    assert dict_compare_keys(response_data, expected_data) == [], 'Response data mismatch'
 
     response = api_client.post(url, post_integration_accounting_2)
     assert response.status_code == status.HTTP_201_CREATED
@@ -88,13 +116,22 @@ def test_integrations_view_post_case_1(mock_dependencies, api_client, mocker, ac
     assert response_data['id'] == accounting_integration_id
     assert Integration.objects.filter(org_id=mock_dependencies.org_id).count() == 2
 
-    assert response_data['org_id'] == mock_dependencies.org_id
-    assert response_data['tpa_id'] == post_integration_accounting_2['tpa_id']
-    assert response_data['tpa_name'] == post_integration_accounting_2['tpa_name']
-    assert response_data['type'] == post_integration_accounting_2['type']
-    assert response_data['is_active'] == post_integration_accounting_2['is_active']
-    assert response_data['is_beta'] is True
-    assert response_data['disconnected_at'] is None
+    expected_data = {
+        'org_id': mock_dependencies.org_id,
+        'tpa_id': post_integration_accounting_2['tpa_id'],
+        'tpa_name': post_integration_accounting_2['tpa_name'],
+        'type': post_integration_accounting_2['type'],
+        'is_active': post_integration_accounting_2['is_active'],
+        'is_beta': True,
+        'disconnected_at': None,
+        'id': response_data['id'],
+        'org_name': response_data['org_name'],
+        'errors_count': response_data['errors_count'],
+        'is_token_expired': response_data['is_token_expired'],
+        'connected_at': response_data['connected_at'],
+        'updated_at': response_data['updated_at']
+    }
+    assert dict_compare_keys(response_data, expected_data) == [], 'Response data mismatch'
 
 
 def test_integrations_view_get_case_1(mock_dependencies, api_client, mocker, access_token, create_integrations, db):
@@ -116,26 +153,44 @@ def test_integrations_view_get_case_1(mock_dependencies, api_client, mocker, acc
 
     response_data = json.loads(response.content)
     assert len(response_data) == 1
-    assert response_data[0]['org_id'] == mock_dependencies.org_id
-    assert response_data[0]['tpa_id'] == post_integration_accounting['tpa_id']
-    assert response_data[0]['tpa_name'] == post_integration_accounting['tpa_name']
-    assert response_data[0]['type'] == post_integration_accounting['type']
-    assert response_data[0]['is_active'] == post_integration_accounting['is_active']
-    assert response_data[0]['is_beta'] is True
-    assert response_data[0]['disconnected_at'] is None
+    expected_data = {
+        'org_id': mock_dependencies.org_id,
+        'tpa_id': post_integration_accounting['tpa_id'],
+        'tpa_name': post_integration_accounting['tpa_name'],
+        'type': post_integration_accounting['type'],
+        'is_active': post_integration_accounting['is_active'],
+        'is_beta': True,
+        'disconnected_at': None,
+        'id': response_data[0]['id'],
+        'org_name': response_data[0]['org_name'],
+        'errors_count': response_data[0]['errors_count'],
+        'is_token_expired': response_data[0]['is_token_expired'],
+        'connected_at': response_data[0]['connected_at'],
+        'updated_at': response_data[0]['updated_at']
+    }
+    assert dict_compare_keys(response_data[0], expected_data) == [], 'Response data mismatch'
 
     response = api_client.get(url, {'type': 'HRMS'})
     assert response.status_code == status.HTTP_200_OK
 
     response_data = json.loads(response.content)
     assert len(response_data) == 1
-    assert response_data[0]['org_id'] == mock_dependencies.org_id
-    assert response_data[0]['tpa_id'] == post_integration_hrms['tpa_id']
-    assert response_data[0]['tpa_name'] == post_integration_hrms['tpa_name']
-    assert response_data[0]['type'] == post_integration_hrms['type']
-    assert response_data[0]['is_active'] == post_integration_hrms['is_active']
-    assert response_data[0]['is_beta'] is True
-    assert response_data[0]['disconnected_at'] is None
+    expected_data = {
+        'org_id': mock_dependencies.org_id,
+        'tpa_id': post_integration_hrms['tpa_id'],
+        'tpa_name': post_integration_hrms['tpa_name'],
+        'type': post_integration_hrms['type'],
+        'is_active': post_integration_hrms['is_active'],
+        'is_beta': True,
+        'disconnected_at': None,
+        'id': response_data[0]['id'],
+        'org_name': response_data[0]['org_name'],
+        'errors_count': response_data[0]['errors_count'],
+        'is_token_expired': response_data[0]['is_token_expired'],
+        'connected_at': response_data[0]['connected_at'],
+        'updated_at': response_data[0]['updated_at']
+    }
+    assert dict_compare_keys(response_data[0], expected_data) == [], 'Response data mismatch'
 
 
 def test_integrations_view_invalid_access_token_case_1(mock_dependencies, api_client, db):
@@ -172,10 +227,7 @@ def test_integrations_view_mark_inactive_post_case_1(mock_dependencies, api_clie
     # Send all required fields
     inactive_data = {
         'id': integration_id,
-        'is_active': False,
-        'tpa_id': integration['tpa_id'],
-        'tpa_name': integration['tpa_name'],
-        'type': integration['type']
+        **inactive_integration_data
     }
 
     response = api_client.patch(url, inactive_data, format='json')
@@ -203,19 +255,22 @@ def test_integrations_view_patch_case_1(mock_dependencies, api_client, mocker, a
     assert response.status_code == status.HTTP_200_OK
 
     response_data = json.loads(response.content)
-    assert response_data['id'] == integration_id
-    assert response_data['org_id'] == mock_dependencies.org_id
-    
-    # Only assert on fields that are actually in the patch data
-    if 'tpa_name' in patch_integration:
-        assert response_data['tpa_name'] == patch_integration['tpa_name']
-    if 'errors_count' in patch_integration:
-        assert response_data['errors_count'] == patch_integration['errors_count']
-    if 'is_token_expired' in patch_integration:
-        assert response_data['is_token_expired'] == patch_integration['is_token_expired']
-    
-    assert response_data['is_beta'] is True
-    assert response_data['disconnected_at'] is None
+    expected_data = {
+        'id': integration_id,
+        'org_id': mock_dependencies.org_id,
+        'tpa_name': patch_integration['tpa_name'],
+        'errors_count': patch_integration['errors_count'],
+        'is_token_expired': patch_integration['is_token_expired'],
+        'is_beta': True,
+        'disconnected_at': None,
+        'org_name': response_data['org_name'],
+        'tpa_id': response_data['tpa_id'],
+        'type': response_data['type'],
+        'is_active': response_data['is_active'],
+        'connected_at': response_data['connected_at'],
+        'updated_at': response_data['updated_at']
+    }
+    assert dict_compare_keys(response_data, expected_data) == [], 'Response data mismatch'
 
 
 def test_integrations_view_patch_case_2(mock_dependencies, api_client, mocker, access_token, db):
@@ -265,16 +320,19 @@ def test_integrations_view_patch_case_3(mock_dependencies, api_client, mocker, a
     assert response.status_code == status.HTTP_200_OK
 
     response_data = json.loads(response.content)
-    assert response_data['id'] == integration_id
-    assert response_data['org_id'] == mock_dependencies.org_id
-    
-    # Only assert on fields that are actually in the patch data
-    if 'tpa_name' in patch_integration_partial:
-        assert response_data['tpa_name'] == patch_integration_partial['tpa_name']
-    if 'errors_count' in patch_integration_partial:
-        assert response_data['errors_count'] == patch_integration_partial['errors_count']
-    if 'is_token_expired' in patch_integration_partial:
-        assert response_data['is_token_expired'] == patch_integration_partial['is_token_expired']
-    
-    assert response_data['is_beta'] is True
-    assert response_data['disconnected_at'] is None
+    expected_data = {
+        'id': integration_id,
+        'org_id': mock_dependencies.org_id,
+        'tpa_name': patch_integration_partial['tpa_name'],
+        'is_token_expired': patch_integration_partial['is_token_expired'],
+        'is_beta': True,
+        'disconnected_at': None,
+        'org_name': response_data['org_name'],
+        'tpa_id': response_data['tpa_id'],
+        'type': response_data['type'],
+        'is_active': response_data['is_active'],
+        'errors_count': response_data['errors_count'],
+        'connected_at': response_data['connected_at'],
+        'updated_at': response_data['updated_at']
+    }
+    assert dict_compare_keys(response_data, expected_data) == [], 'Response data mismatch'

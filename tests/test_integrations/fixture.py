@@ -71,3 +71,10 @@ post_integration_hrms = {
     'is_active': True,
     'connected_at': '2023-08-29T11:21:13.840713Z'
 }
+
+inactive_integration_data = {
+    'is_active': False,
+    'tpa_id': 'tpa129sjcjkjx',
+    'tpa_name': 'Fyle QuickBooks Online Integration',
+    'type': 'ACCOUNTING'
+}
