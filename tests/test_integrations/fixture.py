@@ -57,3 +57,11 @@ post_integration_hrms = {
     'is_active': True,
     'connected_at': '2023-08-29T11:21:13.840713Z'
 }
+
+delete_integration = {
+    'tpa_name': 'Fyle QuickBooks Online Integration'
+}
+
+delete_integration_no_tpa_name = {
+    'some_field': 'some_value'
+}
