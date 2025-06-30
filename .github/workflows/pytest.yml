@@ -1,4 +1,4 @@
-name: Unit Test - API
+name: Continuous Integration
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Fetch full history for proper diff comparison
+          submodules: 'recursive'
 
       - name: Bring up Services and Run Tests
         run: |
@@ -34,25 +34,9 @@ jobs:
         run: |
           set -o pipefail
           python -m pip install diff-cover
-          
-          # Ensure we have the base branch for comparison
-          git fetch origin ${{ github.base_ref }}:${{ github.base_ref }}
-          
-          # Generate diff coverage report with detailed output
-          echo "=== Diff Coverage Report ===" > result.txt
-          echo "Comparing: ${{ github.head_ref }} vs ${{ github.base_ref }}" >> result.txt
-          echo "" >> result.txt
-          
-          # Run diff-cover with verbose output
-          diff-cover coverage.xml \
-            --compare-branch=${{ github.base_ref }} \
-            --fail-under=98 \
-            --show-uncovered \
-            >> result.txt 2>&1 || true
-          
-          echo "" >> result.txt
-          echo "=== Git Diff Summary ===" >> result.txt
-          git diff --name-only ${{ github.base_ref }}..HEAD >> result.txt 2>&1 || true
+
+          git fetch origin master --depth=1
+          diff-cover coverage.xml --compare-branch=origin/master --diff-range-notation .. --fail-under=98 > result.txt 2>&1
 
       - name: Comment coverage check
         if: always()
