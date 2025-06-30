@@ -320,7 +320,13 @@ def test_integrations_view_delete(api_client, mocker, access_token):
     response = api_client.delete(url, json.dumps(delete_integration_no_tpa_name), content_type="application/json")
     assert response.status_code == 400, 'DELETE without a tpa_name should return 400'
 
+    # Test DELETE with no access token should return 401
+    api_client.credentials(HTTP_AUTHORIZATION='')
+    response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
+    assert response.status_code == 401, 'DELETE with invalid access token should return 401'
+
     # Test valid DELETE request
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
     response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
     assert response.status_code == 204, 'Valid DELETE request should return 204'
 
@@ -330,3 +336,38 @@ def test_integrations_view_delete(api_client, mocker, access_token):
     # Test DELETE on non-existent integration should return 400
     response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
     assert response.status_code == 400, 'DELETE on non-existent integration should return 400'
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_integrations_view_delete_exception(api_client, mocker, access_token):
+    """
+    Test the DELETE API of Integrations when super().delete() throws an exception
+    """
+    dummy_org_id = 'or3P3xJ0603e'
+    mocker.patch(
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
+    )
+
+    # Create a dummy integration to delete
+    Integration.objects.create(
+        org_id=dummy_org_id,
+        tpa_name=delete_integration['tpa_name'],
+        tpa_id='tpa129sjcjkjx',
+        type='ACCOUNTING',
+        is_active=True
+    )
+
+    # Mock super().delete() to raise an exception
+    mocker.patch(
+        'apps.integrations.views.generics.DestroyAPIView.delete',
+        side_effect=Exception('Database error')
+    )
+
+    url = reverse('integrations:integrations')
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    # Test DELETE that triggers an exception
+    response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
+    assert response.status_code == 500, 'DELETE with exception should return 500'
+

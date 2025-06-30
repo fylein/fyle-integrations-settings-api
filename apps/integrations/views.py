@@ -89,8 +89,14 @@ class IntegrationsView(generics.ListCreateAPIView, generics.UpdateAPIView, gener
             raise ParseError('tpa_name is required')
 
         http_authorization = self.request.META.get('HTTP_AUTHORIZATION')
+
         if not http_authorization:
-            raise AuthenticationFailed('No access token provided')
+            return Response(
+                data={
+                    'message': 'No access token provided'
+                },
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
         access_token = http_authorization.split(' ')[1]
 
