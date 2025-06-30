@@ -185,6 +185,21 @@ bamboohr_data = {
     'sub_domain': 'dummy_subdomain'
 }
 
+bamboohr_configuration_data = {
+    'additional_email_options': [
+        {
+            'name': 'Nilesh',
+            'email': 'nilesh.p@fyle.in'
+        }
+    ],
+    'emails_selected': [
+        {
+            'name': 'Nilesh',
+            'email': 'nilesh.p@fyle.in'
+        }
+    ]
+}
+
 travelperk_data = {
     'folder_id': 'dummy',
     'package_id': 'dummy',

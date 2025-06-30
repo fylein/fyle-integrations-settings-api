@@ -13,7 +13,8 @@ from tests.fixture import (
     fixture, 
     org_data as static_org_data, 
     fyle_credential_data as static_fyle_credential_data, 
-    bamboohr_data as static_bamboohr_data, 
+    bamboohr_data as static_bamboohr_data,
+    bamboohr_configuration_data as static_bamboohr_configuration_data,
     travelperk_data as static_travelperk_data,
     travelperk_profile_mapping_data as static_travelperk_profile_mapping_data,
     travelperk_advanced_setting_data as static_travelperk_advanced_setting_data,
@@ -175,6 +176,17 @@ def create_bamboohr(create_org, db):
         org=create_org
     )
     return bamboohr
+
+
+@pytest.fixture()
+def create_bamboohr_configuration(create_org, db):
+    """
+    Create a test BambooHR configuration
+    """
+    return BambooHrConfiguration.objects.create(
+        org=create_org,
+        **static_bamboohr_configuration_data
+    )
 
 
 @pytest.fixture()
