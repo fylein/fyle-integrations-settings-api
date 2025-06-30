@@ -1,4 +1,4 @@
-name: Unit Test - API
+name: Continuous Integration
 
 on:
   pull_request:
@@ -10,6 +10,9 @@ jobs:
     environment: CI Environment
     steps:
       - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
       - name: Bring up Services and Run Tests
         run: |
           docker compose -f docker-compose-pipeline.yml build
@@ -40,6 +43,9 @@ jobs:
         uses: thollander/actions-comment-pull-request@v2
         with:
           filePath: result.txt
+
+      - name: Stop Services
+        run: docker compose -f docker-compose-pipeline.yml down
 
       - name: Evaluate Coverage
         if: ${{ (env.STATUS == 'FAIL') || (env.FAILED > 0) }}
