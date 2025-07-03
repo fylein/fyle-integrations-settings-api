@@ -1,0 +1,273 @@
+from datetime import datetime, timezone
+
+dummy_org_id = 1
+dummy_refresh_token = 'dummy_refresh_token'
+cluster_domain = 'https://test.fyle.tech'
+
+# Employee data for testing
+employee_data = [
+    {
+        'id': '123',
+        'firstName': 'John',
+        'lastName': 'Doe',
+        'workEmail': 'john.doe@example.com',
+        'status': 'Active',
+        'department': 'Engineering',
+        'supervisorEmail': 'supervisor@example.com',
+        'displayName': 'John Doe'
+    },
+    {
+        'id': '456',
+        'firstName': 'Jane',
+        'lastName': 'Smith',
+        'workEmail': 'jane.smith@example.com',
+        'status': 'Active',
+        'department': 'Marketing',
+        'supervisorEmail': None,
+        'displayName': 'Jane Smith'
+    }
+]
+
+# Employee data without email
+employee_data_no_email = [
+    {
+        'id': '789',
+        'firstName': 'Bob',
+        'lastName': 'Johnson',
+        'workEmail': None,
+        'status': 'Active',
+        'department': 'Sales',
+        'supervisorEmail': None,
+        'displayName': 'Bob Johnson'
+    }
+]
+
+# BambooHR employees response format
+bamboohr_employees_response = {
+    'employees': employee_data + employee_data_no_email
+}
+
+# Existing departments from Fyle
+existing_departments_response = {
+    'Engineering': {
+        'id': 'dept_123',
+        'is_enabled': True
+    },
+    'Marketing': {
+        'id': 'dept_456',
+        'is_enabled': False
+    }
+}
+
+# Department generator response
+department_generator_response = [
+    {
+        'id': 'dept_123',
+        'name': 'Engineering',
+        'display_name': 'Engineering',
+        'is_enabled': True
+    },
+    {
+        'id': 'dept_456',
+        'name': 'Marketing',
+        'display_name': 'Marketing',
+        'is_enabled': False
+    }
+]
+
+# New departments to be imported
+new_departments = ['Sales', 'HR']
+
+# Department payload
+department_payload = [
+    {
+        'name': 'Sales',
+        'display_name': 'Sales'
+    },
+    {
+        'name': 'HR',
+        'display_name': 'HR'
+    }
+]
+
+# Employee payload
+employee_payload = [
+    {
+        'user_email': 'john.doe@example.com',
+        'user_full_name': 'John Doe',
+        'code': '123',
+        'department_name': 'Engineering',
+        'is_enabled': True
+    }
+]
+
+# Employee approver payload
+employee_approver_payload = [
+    {
+        'user_email': 'john.doe@example.com',
+        'approver_emails': ['supervisor@example.com']
+    }
+]
+
+# Incomplete employees
+incomplete_employees = [
+    {
+        'name': 'Bob Johnson',
+        'id': '789'
+    }
+]
+
+# BambooHR configuration data
+bamboohr_config_data = {
+    'emails_selected': [
+        {'name': 'Admin', 'email': 'admin@example.com'},
+        {'name': 'Manager', 'email': 'manager@example.com'}
+    ]
+}
+
+# Admin emails
+admin_emails = ['admin@example.com', 'manager@example.com']
+
+# Webhook payload
+webhook_payload = {
+    'firstName': 'John',
+    'lastName': 'Doe',
+    'workEmail': 'john.doe@example.com',
+    'status': True,
+    'department': 'Engineering',
+    'supervisorEId': '999',
+    'id': '123'
+}
+
+# Webhook payload without email
+webhook_payload_no_email = {
+    'firstName': 'Bob',
+    'lastName': 'Johnson',
+    'workEmail': None,
+    'status': True,
+    'department': 'Sales',
+    'supervisorEId': None,
+    'id': '789'
+}
+
+# Supervisor employee data
+supervisor_employee_data = {
+    'workEmail': 'supervisor@example.com',
+    'firstName': 'Super',
+    'lastName': 'Visor',
+    'status': 'Active'
+}
+
+# Fyle employee response
+fyle_employee_response = [
+    {
+        'id': 'emp_123',
+        'user_email': 'supervisor@example.com',
+        'user_full_name': 'Super Visor'
+    }
+]
+
+# BambooHR incremental sync data
+sync_employee_from_date = '2024-01-01T00:00:00'
+
+# Destination attributes for testing
+destination_attributes = [
+    {
+        'detail': {
+            'email': 'john.doe@example.com',
+            'full_name': 'John Doe',
+            'department_name': 'Engineering',
+            'approver_emails': ['supervisor@example.com']
+        },
+        'destination_id': '123',
+        'active': True
+    }
+]
+
+# Employee exported at time
+employee_exported_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+# Email notification data
+email_notification_employees = [
+    {
+        'detail__full_name': 'Bob Johnson',
+        'destination_id': '789'
+    }
+]
+
+# Expense attributes for approver emails
+expense_attributes = [
+    ('john.doe@example.com', 'category_1'),
+    ('jane.smith@example.com', 'category_2')
+]
+
+# Department creation payload
+department_creation_payload = {
+    'name': 'Engineering',
+    'display_name': 'Engineering',
+    'is_enabled': True
+}
+
+# BambooHR data for fixtures
+bamboohr_data = {
+    'api_token': 'test_token',
+    'sub_domain': 'test_domain',
+    'employee_exported_at': employee_exported_at
+}
+
+# BambooHR configuration data for fixtures
+bamboohr_configuration_data = {
+    'emails_selected': [
+        {'name': 'Admin', 'email': 'admin@example.com'},
+        {'name': 'Manager', 'email': 'manager@example.com'}
+    ]
+}
+
+# Fyle credential data
+fyle_credential_data = {
+    'refresh_token': dummy_refresh_token,
+    'cluster_domain': cluster_domain
+}
+
+# Query parameters for department generator
+department_query_params = {
+    'order': 'id.desc'
+}
+
+# Employee list query parameters
+employee_list_query_params = {
+    'user->email': 'eq.supervisor@example.com',
+    'offset': 0,
+    'limit': 1,
+    'order': 'updated_at.desc'
+}
+
+# BambooHR SDK employees response
+bamboohr_sdk_employees_response = {
+    'employees': [
+        {
+            'id': '123',
+            'firstName': 'John',
+            'lastName': 'Doe',
+            'workEmail': 'john.doe@example.com',
+            'status': 'Active',
+            'department': 'Engineering',
+            'supervisorEmail': 'supervisor@example.com',
+            'displayName': 'John Doe'
+        }
+    ]
+}
+
+# Incremental sync parameters
+incremental_sync_params = {
+    'is_incremental_sync': True,
+    'sync_employee_from': sync_employee_from_date
+}
+
+# Non-incremental sync parameters
+non_incremental_sync_params = {
+    'is_incremental_sync': False,
+    'sync_employee_from': None
+}
+
+org_created_at = datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc) 
