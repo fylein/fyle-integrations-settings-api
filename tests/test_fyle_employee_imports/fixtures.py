@@ -198,7 +198,8 @@ email_notification_employees = [
 # Expense attributes for approver emails
 expense_attributes = [
     ('john.doe@example.com', 'category_1'),
-    ('jane.smith@example.com', 'category_2')
+    ('jane.smith@example.com', 'category_2'),
+    ('supervisor@example.com', 'category_3')
 ]
 
 # Department creation payload
@@ -270,4 +271,112 @@ non_incremental_sync_params = {
     'sync_employee_from': None
 }
 
-org_created_at = datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc) 
+org_created_at = datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc)
+
+# Test mock employees for departments_to_be_imported
+mock_employees_for_departments = [
+    {
+        'detail': {'department_name': 'Engineering'},
+    },
+    {
+        'detail': {'department_name': 'Marketing'},
+    },
+    {
+        'detail': {'department_name': 'Engineering'},
+    },
+    {
+        'detail': {'department_name': None},
+    }
+]
+
+# Expected department set result
+expected_departments_set = ['Marketing', 'Engineering']
+
+# Test mock employees for import_departments
+mock_employees_for_import = [
+    {
+        'detail': {'department_name': 'Sales'},
+    },
+    {
+        'detail': {'department_name': 'HR'},
+    }
+]
+
+# Expected department payload
+expected_department_payload = [
+    {
+        'name': 'Sales',
+        'display_name': 'Sales'
+    },
+    {
+        'name': 'HR',
+        'display_name': 'HR'
+    }
+]
+
+# Expected disabled department payload
+expected_disabled_department_payload = [
+    {
+        'name': 'Marketing',
+        'id': 'dept_456',
+        'is_enabled': True,
+        'display_name': 'Marketing'
+    }
+]
+
+# Mock employees for get_employee_and_approver_payload
+mock_employees_for_payload = [
+    {
+        'detail': {
+            'email': 'john.doe@example.com',
+            'full_name': 'John Doe',
+            'department_name': 'Engineering',
+            'approver_emails': ['supervisor@example.com']
+        },
+        'destination_id': '123',
+        'active': True
+    },
+    {
+        'detail': {
+            'email': None,
+            'full_name': 'Bob Johnson',
+            'department_name': 'Sales',
+            'approver_emails': []
+        },
+        'destination_id': '789',
+        'active': True
+    }
+]
+
+# Expected employee payload result
+expected_employee_payload_result = [
+    {
+        'user_email': 'john.doe@example.com',
+        'user_full_name': 'John Doe',
+        'code': '123',
+        'department_name': 'Engineering',
+        'is_enabled': True
+    }
+]
+
+# Expected approver payload result
+expected_approver_payload_result = [
+    {
+        'user_email': 'john.doe@example.com',
+        'approver_emails': ['supervisor@example.com']
+    }
+]
+
+# Mock employees for fyle_employee_import
+mock_employees_for_import_process = [
+    {
+        'detail': {
+            'email': 'john.doe@example.com',
+            'full_name': 'John Doe',
+            'department_name': 'Engineering',
+            'approver_emails': ['supervisor@example.com']
+        },
+        'destination_id': '123',
+        'active': True
+    }
+] 
