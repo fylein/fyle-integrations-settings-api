@@ -1,8 +1,6 @@
 from .fixtures import (
     employee_list_response,
     single_employee_response,
-    webhook_creation_response,
-    webhook_deletion_response,
     time_off_types_response,
     mock_response_200,
     mock_response_201,
@@ -157,22 +155,6 @@ def mock_employees_get_success(mocker):
     mock_response.status_code = status_200
     mock_response.text = str(single_employee_response).replace("'", '"')
     return mocker.patch('requests.get', return_value=mock_response)
-
-
-def mock_webhook_post_success(mocker):
-    """Mock successful Webhook.post() response"""
-    mock_response = mocker.MagicMock()
-    mock_response.status_code = status_201
-    mock_response.text = str(webhook_creation_response).replace("'", '"')
-    return mocker.patch('requests.post', return_value=mock_response)
-
-
-def mock_webhook_delete_success(mocker):
-    """Mock successful Webhook.delete() response"""
-    mock_response = mocker.MagicMock()
-    mock_response.status_code = status_200
-    mock_response.text = str(webhook_deletion_response).replace("'", '"')
-    return mocker.patch('requests.delete', return_value=mock_response)
 
 
 def mock_time_off_get_success(mocker):

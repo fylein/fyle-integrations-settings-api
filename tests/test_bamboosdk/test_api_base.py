@@ -11,7 +11,7 @@ from .fixtures import (
     sub_domain,
     expected_headers,
     employee_report_url,
-    webhook_payload,
+    employee_report_payload,
     status_200,
     status_201,
     status_401,
@@ -187,7 +187,7 @@ def test_api_base_post_request_success_200(mocker):
     
     mock_requests_post_success(mocker)
     
-    result = api_base._post_request(employee_report_url, webhook_payload)
+    result = api_base._post_request(employee_report_url, employee_report_payload)
     
     assert result == {'success': True, 'data': 'created'}
 
@@ -206,7 +206,7 @@ def test_api_base_post_request_success_201(mocker):
     mock_response.text = '{"success": true, "data": "created"}'
     mocker.patch('requests.post', return_value=mock_response)
     
-    result = api_base._post_request(employee_report_url, webhook_payload)
+    result = api_base._post_request(employee_report_url, employee_report_payload)
     
     assert result == {'success': True, 'data': 'created'}
 
@@ -222,7 +222,7 @@ def test_api_base_post_request_401_error(mocker):
     mock_requests_post_401_error(mocker)
     
     with pytest.raises(InvalidTokenError) as excinfo:
-        api_base._post_request(employee_report_url, webhook_payload)
+        api_base._post_request(employee_report_url, employee_report_payload)
     
     assert 'Invalid token, try to refresh it' in str(excinfo.value)
 
@@ -238,7 +238,7 @@ def test_api_base_post_request_403_error(mocker):
     mock_requests_post_403_error(mocker)
     
     with pytest.raises(NoPrivilegeError) as excinfo:
-        api_base._post_request(employee_report_url, webhook_payload)
+        api_base._post_request(employee_report_url, employee_report_payload)
     
     assert 'Forbidden, the user has insufficient privilege' in str(excinfo.value)
 
@@ -254,7 +254,7 @@ def test_api_base_post_request_404_error(mocker):
     mock_requests_post_404_error(mocker)
     
     with pytest.raises(NotFoundItemError) as excinfo:
-        api_base._post_request(employee_report_url, webhook_payload)
+        api_base._post_request(employee_report_url, employee_report_payload)
     
     assert 'Not found item with ID' in str(excinfo.value)
 
@@ -270,7 +270,7 @@ def test_api_base_post_request_500_error(mocker):
     mock_requests_post_500_error(mocker)
     
     with pytest.raises(BambooHrSDKError) as excinfo:
-        api_base._post_request(employee_report_url, webhook_payload)
+        api_base._post_request(employee_report_url, employee_report_payload)
     
     assert 'Status code 500' in str(excinfo.value)
 

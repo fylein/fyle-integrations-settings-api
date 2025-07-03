@@ -4,21 +4,6 @@ invalid_api_token = 'invalid_token'
 invalid_sub_domain = 'invalid_subdomain'
 
 employee_id = '123'
-webhook_id = '456'
-
-webhook_payload = {
-    'name': 'Test Webhook',
-    'url': 'https://test.example.com/webhook',
-    'format': 'json',
-    'frequency': {
-        'hour': 1,
-        'minute': 0
-    },
-    'limit': 100,
-    'postFields': {
-        'employee': ['id', 'firstName', 'lastName', 'workEmail']
-    }
-}
 
 employee_report_payload = {
     'fields': ['displayName', 'firstName', 'lastName', 'department', 'workEmail', 'supervisorEmail', 'status']
@@ -64,25 +49,6 @@ single_employee_response = {
     'workEmail': 'john.doe@example.com'
 }
 
-webhook_creation_response = {
-    'id': '456',
-    'name': 'Test Webhook',
-    'url': 'https://test.example.com/webhook',
-    'format': 'json',
-    'frequency': {
-        'hour': 1,
-        'minute': 0
-    },
-    'limit': 100,
-    'postFields': {
-        'employee': ['id', 'firstName', 'lastName', 'workEmail']
-    }
-}
-
-webhook_deletion_response = {
-    'message': 'Webhook has been deleted'
-}
-
 time_off_types_response = {
     'timeOffTypes': [
         {
@@ -119,8 +85,6 @@ error_500_message = 'Internal server error'
 # API URLs
 employee_report_url = '/v1/reports/custom?format=JSON&onlyCurrent=false'
 employee_by_id_url = '/v1/employees/123/?fields=workEmail&onlyCurrent=false'
-webhook_post_url = '/v1/webhooks/'
-webhook_delete_url = '/v1/webhooks/456'
 time_off_types_url = '/v1/meta/time_off/types/'
 
 # Base64 encoded credentials
