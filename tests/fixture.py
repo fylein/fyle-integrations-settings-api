@@ -207,7 +207,7 @@ travelperk_data = {
 }
 
 travelperk_profile_mapping_data = {
-    'profile_name': 'Test Profile',
+    'profile_name': 'Dummy Profile',
     'user_role': 'TRAVELLER',
     'is_import_enabled': True,
     'country': 'US',

@@ -6,14 +6,19 @@ from rest_framework import status
 from apps.integrations.models import Integration
 from apps.orgs.models import Org
 from apps.travelperk.actions import add_travelperk_to_integrations
-from apps.travelperk.models import TravelperkAdvancedSetting
+from apps.travelperk.models import TravelperkAdvancedSetting, TravelPerk, TravelperkCredential
 from tests.helper import dict_compare_keys
-from .fixtures import fixture
+from .fixtures import fixture, webhook_data_valid, webhook_data_invalid, connect_travelperk_data, integration_test_data, test_signature, test_integration_tpa_name, test_integration_tpa_id, test_integration_type
 from .mock_setup import (
     mock_platform_connector,
     mock_travelperk_connector_disconnect,
     mock_travelperk_connector_connect,
-    mock_get_refresh_token
+    mock_get_refresh_token,
+    mock_test_disconnect_travelperk_case_2,
+    mock_test_connect_travelperk_case_2,
+    mock_test_webhook_case_1,
+    mock_test_sync_payment_profiles_case_1,
+    mock_test_validate_healthy_token_case_1
 )
 
 
@@ -137,6 +142,19 @@ def test_disconnect_travelperk_case_1(mock_dependencies, api_client, mocker, acc
     assert integration_object.disconnected_at is not None
 
 
+@pytest.mark.shared_mocks(lambda mocker: mock_test_disconnect_travelperk_case_2(mocker))
+def test_disconnect_travelperk_case_2(mock_dependencies, api_client, access_token, create_org):
+    """
+    Test disconnect travelperk
+    Case: TravelPerk credentials not found returns 500
+    """
+    url = reverse('travelperk:disconnect-travelperk', kwargs={'org_id': create_org.id})
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    response = api_client.post(url)
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
 def test_connect_travelperk_case_1(mock_dependencies, api_client, mocker, access_token, create_travelperk_full_setup):
     """
     Test connect travelperk
@@ -151,4 +169,73 @@ def test_connect_travelperk_case_1(mock_dependencies, api_client, mocker, access
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
 
     response = api_client.post(url)
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.shared_mocks(lambda mocker: mock_test_connect_travelperk_case_2(mocker))
+def test_connect_travelperk_case_2(mock_dependencies, api_client, access_token, create_org):
+    """
+    Test connect travelperk
+    Case: Exception during connection returns 400
+    """
+    url = reverse('travelperk:connect-travelperk', kwargs={'org_id': create_org.id})
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    response = api_client.post(url, connect_travelperk_data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.shared_mocks(lambda mocker: mock_test_webhook_case_1(mocker))
+def test_webhook_case_1(mock_dependencies, api_client, create_org):
+    """
+    Test webhook endpoint
+    Case: Valid webhook data creates expenses
+    """
+    url = reverse('travelperk:travelperk-webhook', kwargs={'org_id': create_org.id})
+    
+    response = api_client.post(
+        url, 
+        webhook_data_valid, 
+        format='json',
+        HTTP_TK_WEBHOOK_HMAC_SHA256=test_signature
+    )
+    assert response.status_code == status.HTTP_200_OK
+
+
+def test_webhook_case_2(mock_dependencies, api_client, create_org):
+    """
+    Test webhook endpoint
+    Case: Missing signature header returns 500
+    """
+    url = reverse('travelperk:travelperk-webhook', kwargs={'org_id': create_org.id})
+    
+    response = api_client.post(url, webhook_data_invalid, format='json')
+    assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+@pytest.mark.shared_mocks(lambda mocker: mock_test_sync_payment_profiles_case_1(mocker))
+def test_sync_payment_profiles_case_1(mock_dependencies, api_client, access_token, create_travelperk_full_setup):
+    """
+    Test sync payment profiles
+    Case: Successfully syncs profiles
+    """
+    setup = create_travelperk_full_setup
+    url = reverse('travelperk:sync-payment-profiles', kwargs={'org_id': setup['org'].id})
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.shared_mocks(lambda mocker: mock_test_validate_healthy_token_case_1(mocker))
+def test_validate_healthy_token_case_1(mock_dependencies, api_client, access_token, create_travelperk_full_setup):
+    """
+    Test validate healthy token
+    Case: Returns token validation status
+    """
+    setup = create_travelperk_full_setup
+    url = reverse('travelperk:token-health', kwargs={'org_id': setup['org'].id})
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    
+    response = api_client.get(url)
     assert response.status_code == status.HTTP_200_OK
