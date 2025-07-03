@@ -571,4 +571,91 @@ def mock_bamboohr_shared_mock(mocker):
         'send_failure_notification_email': mock_send_failure_notification_email,
         'user': mock_user,
         'org_get_bamboo': mock_org_get_bamboo
+    }
+
+
+def mock_test_save_employee_exported_at_time(mocker):
+    """
+    Mock setup for testing save_employee_exported_at_time with real database operations
+    """
+    # Mock external services but allow database operations
+    mock_platform_connector = mocker.MagicMock()
+    mock_platform_connector_class = mocker.patch('fyle_employee_imports.base.PlatformConnector', return_value=mock_platform_connector)
+    
+    mock_bamboohr_sdk = mocker.MagicMock()
+    mock_bamboohr_sdk_class = mocker.patch('fyle_employee_imports.bamboo_hr.BambooHrSDK', return_value=mock_bamboohr_sdk)
+    
+    # Don't mock BambooHr.objects to allow real database operations
+    
+    return {
+        'platform_connector': mock_platform_connector,
+        'platform_connector_class': mock_platform_connector_class,
+        'bamboohr_sdk': mock_bamboohr_sdk,
+        'bamboohr_sdk_class': mock_bamboohr_sdk_class
+    }
+
+
+def mock_test_upsert_employees_database_operations(mocker):
+    """
+    Mock setup for testing upsert_employees with real database operations
+    """
+    # Mock external services but allow database operations
+    mock_platform_connector = mocker.MagicMock()
+    mock_platform_connector_class = mocker.patch('fyle_employee_imports.base.PlatformConnector', return_value=mock_platform_connector)
+    
+    mock_bamboohr_sdk = mocker.MagicMock()
+    mock_bamboohr_sdk_class = mocker.patch('fyle_employee_imports.bamboo_hr.BambooHrSDK', return_value=mock_bamboohr_sdk)
+    
+    # Don't mock DestinationAttribute to allow real database operations
+    # Don't mock BambooHr or BambooHrConfiguration to allow real database operations
+    
+    return {
+        'platform_connector': mock_platform_connector,
+        'platform_connector_class': mock_platform_connector_class,
+        'bamboohr_sdk': mock_bamboohr_sdk,
+        'bamboohr_sdk_class': mock_bamboohr_sdk_class
+    }
+
+
+def mock_test_upsert_employees_inactive_status_database_operations(mocker):
+    """
+    Mock setup for testing upsert_employees with inactive employee - real database operations
+    """
+    # Mock external services but allow database operations
+    mock_platform_connector = mocker.MagicMock()
+    mock_platform_connector_class = mocker.patch('fyle_employee_imports.base.PlatformConnector', return_value=mock_platform_connector)
+    
+    mock_bamboohr_sdk = mocker.MagicMock()
+    mock_bamboohr_sdk_class = mocker.patch('fyle_employee_imports.bamboo_hr.BambooHrSDK', return_value=mock_bamboohr_sdk)
+    
+    # Don't mock DestinationAttribute to allow real database operations
+    
+    return {
+        'platform_connector': mock_platform_connector,
+        'platform_connector_class': mock_platform_connector_class,
+        'bamboohr_sdk': mock_bamboohr_sdk,
+        'bamboohr_sdk_class': mock_bamboohr_sdk_class
+    }
+
+
+def mock_test_send_employee_email_missing_failure_notification_database_operations(mocker):
+    """
+    Mock setup for testing send_employee_email_missing_failure_notification with real database operations
+    """
+    # Mock external services but allow database operations
+    mock_platform_connector = mocker.MagicMock()
+    mock_platform_connector_class = mocker.patch('fyle_employee_imports.base.PlatformConnector', return_value=mock_platform_connector)
+    
+    mock_send_failure_notification_email = mocker.patch('fyle_employee_imports.base.send_failure_notification_email')
+    
+    # Mock the abstract method get_admin_email to prevent NotImplementedError
+    mock_get_admin_email = mocker.patch('fyle_employee_imports.base.FyleEmployeeImport.get_admin_email', return_value='admin@example.com')
+    
+    # Don't mock DestinationAttribute to allow real database operations
+    
+    return {
+        'platform_connector': mock_platform_connector,
+        'platform_connector_class': mock_platform_connector_class,
+        'send_failure_notification_email': mock_send_failure_notification_email,
+        'get_admin_email': mock_get_admin_email
     } 

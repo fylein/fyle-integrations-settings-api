@@ -245,18 +245,7 @@ employee_list_query_params = {
 
 # BambooHR SDK employees response
 bamboohr_sdk_employees_response = {
-    'employees': [
-        {
-            'id': '123',
-            'firstName': 'John',
-            'lastName': 'Doe',
-            'workEmail': 'john.doe@example.com',
-            'status': 'Active',
-            'department': 'Engineering',
-            'supervisorEmail': 'supervisor@example.com',
-            'displayName': 'John Doe'
-        }
-    ]
+    'employees': employee_data
 }
 
 # Incremental sync parameters
@@ -378,5 +367,125 @@ mock_employees_for_import_process = [
         },
         'destination_id': '123',
         'active': True
+    },
+    {
+        'detail': {
+            'email': 'jane.smith@example.com',
+            'full_name': 'Jane Smith',
+            'department_name': 'Marketing',
+            'approver_emails': []
+        },
+        'destination_id': '456',
+        'active': True
     }
-] 
+]
+
+# Inactive employee response for testing
+inactive_employee_response = {
+    'employees': [
+        {
+            'id': '999',
+            'firstName': 'Inactive',
+            'lastName': 'Employee',
+            'displayName': 'Inactive Employee',
+            'workEmail': 'inactive@example.com',
+            'department': 'HR',
+            'supervisorEmail': None,
+            'status': 'Inactive'
+        }
+    ]
+}
+
+# Webhook payload without supervisor
+webhook_payload_no_supervisor = {
+    'firstName': 'Jane',
+    'lastName': 'Smith',
+    'workEmail': 'jane.smith@example.com',
+    'status': True,
+    'department': 'Marketing',
+    'supervisorEId': None,
+    'id': '456'
+}
+
+# Webhook payload with new department
+webhook_payload_with_dept = {
+    'firstName': 'John',
+    'lastName': 'Doe',
+    'workEmail': 'john.doe@example.com',
+    'status': True,
+    'department': 'New Department',
+    'supervisorEId': None,
+    'id': '123'
+}
+
+# Employee with missing display name
+employee_missing_display_name = {
+    'employees': [
+        {
+            'id': '555',
+            'firstName': 'Missing',
+            'lastName': 'DisplayName',
+            'workEmail': 'missing@example.com',
+            'status': 'Active',
+            'department': 'IT',
+            'supervisorEmail': None,
+            'displayName': None
+        }
+    ]
+}
+
+# Expected DestinationAttribute data for database operations
+expected_destination_attributes_data = [
+    {
+        'attribute_type': 'EMPLOYEE',
+        'value': 'John Doe',
+        'destination_id': '123',
+        'detail': {
+            'email': 'john.doe@example.com',
+            'department_name': 'Engineering',
+            'full_name': 'John Doe',
+            'approver_emails': ['supervisor@example.com']
+        },
+        'active': True
+    },
+    {
+        'attribute_type': 'EMPLOYEE',
+        'value': 'Jane Smith',
+        'destination_id': '456',
+        'detail': {
+            'email': 'jane.smith@example.com',
+            'department_name': 'Marketing',
+            'full_name': 'Jane Smith',
+            'approver_emails': [None]
+        },
+        'active': True
+    },
+    {
+        'attribute_type': 'EMPLOYEE',
+        'value': 'Bob Johnson',
+        'destination_id': '789',
+        'detail': {
+            'email': None,
+            'department_name': 'Sales',
+            'full_name': 'Bob Johnson',
+            'approver_emails': [None]
+        },
+        'active': True
+    }
+]
+
+# Expected inactive employee DestinationAttribute data
+expected_inactive_employee_data = [
+    {
+        'attribute_type': 'EMPLOYEE',
+        'value': 'Inactive Employee',
+        'destination_id': '999',
+        'detail': {
+            'email': 'inactive@example.com',
+            'department_name': 'HR',
+            'full_name': 'Inactive Employee',
+            'approver_emails': [None]
+        },
+        'active': False
+    }
+]

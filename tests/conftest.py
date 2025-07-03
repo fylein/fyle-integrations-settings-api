@@ -34,6 +34,7 @@ from apps.bamboohr.models import (
     BambooHr,
     BambooHrConfiguration
 )
+from apps.fyle_hrms_mappings.models import DestinationAttribute
 from apps.travelperk.models import (
     TravelPerk,
     TravelperkProfileMapping,
@@ -190,6 +191,44 @@ def create_bamboohr_configuration(create_org, db):
 
 
 @pytest.fixture()
+def create_destination_attributes(create_org, db):
+    """
+    Create test DestinationAttribute records for employee data
+    """
+    attributes = [
+        DestinationAttribute.objects.create(
+            org_id=create_org.id,
+            attribute_type='EMPLOYEE',
+            value='John Doe',
+            destination_id='123',
+            detail={
+                'email': 'john.doe@example.com',
+                'full_name': 'John Doe',
+                'department_name': 'Engineering',
+                'approver_emails': ['supervisor@example.com']
+            },
+            active=True,
+            is_failure_email_sent=False
+        ),
+        DestinationAttribute.objects.create(
+            org_id=create_org.id,
+            attribute_type='EMPLOYEE',
+            value='Jane Smith',
+            destination_id='456',
+            detail={
+                'email': None,
+                'full_name': 'Jane Smith',
+                'department_name': 'Marketing',
+                'approver_emails': [None]
+            },
+            active=True,
+            is_failure_email_sent=False
+        )
+    ]
+    return attributes
+
+
+@pytest.fixture()
 def create_travelperk(create_org, db):
     """
     Create a test TravelPerk instance
@@ -298,7 +337,7 @@ def create_travelperk_full_setup(create_org):
 
 
 @pytest.fixture()
-def create_bamboohr_full_setup(create_org):
+def create_bamboohr_full_setup(db, create_org):
     """
     Create a complete BambooHR setup with all dependencies
     """

@@ -143,14 +143,6 @@ def test_sync_employees(mock_dependencies):
     employee_import.sync_employees(is_incremental_sync=True)
 
 
-def test_send_employee_email_missing_failure_notification(mock_dependencies):
-    """
-    Test send_employee_email_missing_failure_notification method
-    """
-    employee_import = FyleEmployeeImport(dummy_org_id)
-    employee_import.send_employee_email_missing_failure_notification()
-
-
 def test_abstract_methods_raise_not_implemented_error(mock_dependencies):
     """
     Test abstract methods raise NotImplementedError
@@ -170,4 +162,31 @@ def test_abstract_methods_raise_not_implemented_error(mock_dependencies):
         employee_import.get_employee_exported_at()
     
     with pytest.raises(NotImplementedError):
-        employee_import.save_employee_exported_at_time(employee_exported_at=datetime.now()) 
+        employee_import.save_employee_exported_at_time(employee_exported_at=datetime.now())
+
+
+def test_send_employee_email_missing_failure_notification(mock_dependencies, create_org):
+    """
+    Test send_employee_email_missing_failure_notification method
+    """
+    employee_import = FyleEmployeeImport(create_org.id)
+    employee_import.send_employee_email_missing_failure_notification()
+
+
+def test_send_employee_email_missing_failure_notification_database_operations(mock_dependencies, create_destination_attributes):
+    """
+    Test send_employee_email_missing_failure_notification method with real database operations
+    """
+    # Get the employee with missing email from the fixture
+    employee_missing_email = create_destination_attributes[1]  # Jane Smith with missing email
+    org_id = employee_missing_email.org_id
+    
+    employee_import = FyleEmployeeImport(org_id)
+    employee_import.send_employee_email_missing_failure_notification()
+    
+    # Verify that is_failure_email_sent was updated for the employee with missing email
+    employee_missing_email.refresh_from_db()
+    assert employee_missing_email.is_failure_email_sent is True
+    
+    # Verify that send_failure_notification_email was called
+    mock_dependencies.send_failure_notification_email.assert_called_once() 
