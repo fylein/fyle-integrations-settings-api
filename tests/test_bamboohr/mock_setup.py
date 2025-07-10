@@ -30,30 +30,11 @@ def mock_bamboohr_shared_mock(mocker):
     
     mocker.patch('apps.bamboohr.views.BambooHrSDK', return_value=mock_bamboohr_sdk)
     
-    # Mock org filter for connection view tests  
-    mock_org_filter = mocker.patch('apps.bamboohr.views.Org.objects.filter')
-    mock_org = mocker.MagicMock()
-    mock_org.id = 1
-    mock_org_filter.return_value.first.return_value = mock_org
-    
-    # Mock BambooHr queryset for disconnect view tests
-    mock_bamboohr_queryset = mocker.patch('apps.bamboohr.views.BambooHr.objects.filter')
-    mock_bamboohr_queryset.return_value.count.return_value = 1
-    mock_bamboohr_queryset.return_value.update.return_value = None
-    
-    # Mock BambooHr update_or_create for connection tests
-    mock_bamboohr_update_or_create = mocker.patch('apps.bamboohr.views.BambooHr.objects.update_or_create')
-    mock_bamboohr_instance = mocker.MagicMock()
-    mock_bamboohr_update_or_create.return_value = (mock_bamboohr_instance, True)
-    
-    # Mock request object
     mock_request = mocker.MagicMock()
     mock_request.query_params.get.return_value = '1'
     
-    # Mock add_bamboo_hr_to_integrations for connection tests
     mock_add_to_integrations = mocker.patch('apps.bamboohr.views.add_bamboo_hr_to_integrations')
     
-    # Mock task functions for disconnect tests
     mock_delete_sync_schedule = mocker.patch('apps.bamboohr.views.delete_sync_employee_schedule')
     mock_deactivate_integration = mocker.patch('apps.bamboohr.views.deactivate_bamboo_hr_integration')
     
@@ -61,13 +42,11 @@ def mock_bamboohr_shared_mock(mocker):
         'bamboohr_sdk': mock_bamboohr_sdk,
         'time_off_get': mock_bamboohr_sdk.time_off.get,
         'employee_get': mock_bamboohr_sdk.employee.get,
-        'org_filter': mock_org_filter,
-        'bamboohr_queryset': mock_bamboohr_queryset,
-        'bamboohr_update_or_create': mock_bamboohr_update_or_create,
         'add_to_integrations': mock_add_to_integrations,
         'delete_sync_schedule': mock_delete_sync_schedule,
         'deactivate_integration': mock_deactivate_integration,
         'request_mock': mock_request,
+        'bamboohr_update_or_create': mocker.MagicMock(),
     }
 
 

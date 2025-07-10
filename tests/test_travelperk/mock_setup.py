@@ -206,16 +206,10 @@ def mock_test_create_expense_in_fyle_v2_case_1(mocker):
         return_value=None
     )
     
-    mock_update_or_create = mocker.patch(
-        'apps.travelperk.models.ImportedExpenseDetail.objects.update_or_create',
-        return_value=(mocker.MagicMock(), True)
-    )
-    
     return {
         'platform_connection': mock_platform_connection,
         'create_fyle_connection': mock_create_fyle_connection,
-        'attach_reciept_to_expense': mock_attach_reciept_to_expense,
-        'update_or_create': mock_update_or_create
+        'attach_reciept_to_expense': mock_attach_reciept_to_expense
     }
 
 
@@ -229,13 +223,7 @@ def mock_get_category_id_case_1(mocker):
     }
     mock_advanced_settings.default_category_id = '228952'
     
-    mock_get_advanced_settings = mocker.patch(
-        'apps.travelperk.models.TravelperkAdvancedSetting.objects.filter',
-        return_value=mocker.MagicMock(first=lambda: mock_advanced_settings)
-    )
-    
     return {
-        'get_advanced_settings': mock_get_advanced_settings,
         'advanced_settings': mock_advanced_settings
     }
 
@@ -302,27 +290,14 @@ def mock_test_deactivate_travelperk_integration_case_2(mocker):
     """
     Mock setup for test_deactivate_travelperk_integration_case_2
     """
-    mock_org_get = mocker.patch('apps.orgs.models.Org.objects.get')
-    mock_org_get.side_effect = Exception('Org not found')
-    
-    return {
-        'org_get': mock_org_get
-    }
+    return {}
 
 
 def mock_test_disconnect_travelperk_case_2(mocker):
-    mock_travelperk_filter = mocker.patch('apps.travelperk.views.TravelPerk.objects.filter')
-    mock_travelperk_filter.return_value.first.return_value = None
-    
-    mock_travelperk_creds_filter = mocker.patch('apps.travelperk.views.TravelperkCredential.objects.filter')
-    mock_travelperk_creds_filter.return_value.first.return_value = None
-    
     mock_travelperk_connector = mocker.patch('apps.travelperk.views.TravelperkConnector')
     mock_travelperk_connector.side_effect = AttributeError("'NoneType' object has no attribute 'refresh_token'")
     
     return {
-        'travelperk_filter': mock_travelperk_filter,
-        'travelperk_creds_filter': mock_travelperk_creds_filter,
         'travelperk_connector': mock_travelperk_connector
     }
 
@@ -392,11 +367,10 @@ def mock_test_get_refresh_token_case_1(mocker):
     mock_response.text = f'{{"refresh_token": "{test_refresh_token}"}}'
     mock_requests_post.return_value = mock_response
     
+    # Mock the credential update/create that happens in the actual function
+    mock_update_or_create = mocker.patch('apps.travelperk.models.TravelperkCredential.objects.update_or_create')
     mock_credential = mocker.MagicMock()
-    mock_update_or_create = mocker.patch(
-        'apps.travelperk.helpers.TravelperkCredential.objects.update_or_create',
-        return_value=(mock_credential, True)
-    )
+    mock_update_or_create.return_value = (mock_credential, True)
     
     return {
         'requests_post': mock_requests_post,
@@ -576,7 +550,8 @@ def mock_test_connector_create_webhook_case_1(mocker):
     mock_travelperk_instance.webhooks.create.return_value = webhook_response_data
     mock_travelperk_class.return_value = mock_travelperk_instance
     
-    mock_travelperk_update = mocker.patch('apps.travelperk.connector.TravelPerk.objects.update_or_create')
+    # Mock the TravelPerk update that happens in the actual function
+    mock_travelperk_update = mocker.patch('apps.travelperk.models.TravelPerk.objects.update_or_create')
     
     return {
         'travelperk_class': mock_travelperk_class,
@@ -618,7 +593,8 @@ def mock_test_connector_sync_invoice_profile_case_1(mocker):
     mock_travelperk_instance.invoice_profiles.get_all_generator.return_value = iter(invoice_profile_data)
     mock_travelperk_class.return_value = mock_travelperk_instance
     
-    mock_profile_mapping_update = mocker.patch('apps.travelperk.connector.TravelperkProfileMapping.objects.update_or_create')
+    # Mock the profile mapping update that happens in the actual function
+    mock_profile_mapping_update = mocker.patch('apps.travelperk.models.TravelperkProfileMapping.objects.update_or_create')
     
     return {
         'travelperk_class': mock_travelperk_class,
@@ -634,7 +610,8 @@ def mock_test_connector_sync_invoice_profile_case_2(mocker):
     mock_travelperk_instance.invoice_profiles.get_all_generator.return_value = iter([invoice_profile_no_country])
     mock_travelperk_class.return_value = mock_travelperk_instance
     
-    mock_profile_mapping_update = mocker.patch('apps.travelperk.connector.TravelperkProfileMapping.objects.update_or_create')
+    # Mock the profile mapping update that happens in the actual function
+    mock_profile_mapping_update = mocker.patch('apps.travelperk.models.TravelperkProfileMapping.objects.update_or_create')
     
     return {
         'travelperk_class': mock_travelperk_class,
@@ -650,7 +627,8 @@ def mock_test_connector_sync_invoice_profile_case_3(mocker):
     mock_travelperk_instance.invoice_profiles.get_all_generator.return_value = iter([invoice_profile_no_currency])
     mock_travelperk_class.return_value = mock_travelperk_instance
     
-    mock_profile_mapping_update = mocker.patch('apps.travelperk.connector.TravelperkProfileMapping.objects.update_or_create')
+    # Mock the profile mapping update that happens in the actual function
+    mock_profile_mapping_update = mocker.patch('apps.travelperk.models.TravelperkProfileMapping.objects.update_or_create')
     
     return {
         'travelperk_class': mock_travelperk_class,
