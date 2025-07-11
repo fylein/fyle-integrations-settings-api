@@ -188,14 +188,22 @@ bamboohr_data = {
 bamboohr_configuration_data = {
     'additional_email_options': [
         {
-            'name': 'Nilesh',
-            'email': 'nilesh.p@fyle.in'
+            'name': 'Admin',
+            'email': 'admin@example.com'
+        },
+        {
+            'name': 'Manager',
+            'email': 'manager@example.com'
         }
     ],
     'emails_selected': [
         {
-            'name': 'Nilesh',
-            'email': 'nilesh.p@fyle.in'
+            'name': 'Admin',
+            'email': 'admin@example.com'
+        },
+        {
+            'name': 'Manager',
+            'email': 'manager@example.com'
         }
     ]
 }

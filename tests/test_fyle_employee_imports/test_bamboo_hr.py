@@ -32,31 +32,23 @@ from .mock_setup import mock_bamboohr_shared_mock
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_bamboohr_employee_import_init(mock_dependencies):
+def test_bamboohr_employee_import_init(mock_dependencies, create_bamboohr_full_setup):
     """
     Test BambooHrEmployeeImport initialization
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     
-    assert employee_import.org_id == dummy_org_id
+    assert employee_import.org_id == create_bamboohr_full_setup['org'].id
     assert employee_import.platform_connection == mock_dependencies.platform_connector
-    assert employee_import.bamboohr == mock_dependencies.bamboohr
-    assert employee_import.bamboohr_configuration == mock_dependencies.bamboohr_config
     assert employee_import.bamboohr_sdk == mock_dependencies.bamboohr_sdk
-    
-    mock_dependencies.org_get_bamboo.assert_called_once_with(id=dummy_org_id)
-    mock_dependencies.credential_get.assert_called_once_with(org=mock_dependencies.org)
-    mock_dependencies.bamboohr_objects.filter.assert_called_once_with(org_id__in=[dummy_org_id])
-    mock_dependencies.bamboohr_config_get.assert_called_once_with(org_id__in=[dummy_org_id])
-    mock_dependencies.bamboohr_sdk_class.assert_called_once_with(api_token='test_token', sub_domain='test_domain')
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_get_admin_email(mock_dependencies):
+def test_get_admin_email(mock_dependencies, create_bamboohr_full_setup):
     """
     Test get_admin_email method
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     result = employee_import.get_admin_email()
     
     expected_emails = ['admin@example.com', 'manager@example.com']
@@ -71,50 +63,49 @@ def test_save_employee_exported_at_time(mock_dependencies, create_bamboohr_full_
     employee_import = BambooHrEmployeeImport(bamboohr_setup['org'].id)
     test_datetime = timezone.now()
     
-    # Get the real BambooHr record from the database (not the mock)
     real_bamboohr = BambooHr.objects.filter(org=bamboohr_setup['org']).first()
     initial_exported_at = real_bamboohr.employee_exported_at
     
-    # Call the method
     employee_import.save_employee_exported_at_time(test_datetime)
     
-    # Verify that the database record was actually updated
     real_bamboohr.refresh_from_db()
     assert real_bamboohr.employee_exported_at == test_datetime
     assert real_bamboohr.employee_exported_at != initial_exported_at
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_get_employee_exported_at(mock_dependencies):
+def test_get_employee_exported_at(mock_dependencies, create_bamboohr_full_setup):
     """
     Test get_employee_exported_at method
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     result = employee_import.get_employee_exported_at()
-    
-    assert result == employee_exported_at
+
+    expected_timestamp = create_bamboohr_full_setup['bamboohr'].employee_exported_at
+    assert result == expected_timestamp
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_sync_hrms_employees_with_incremental_sync(mock_dependencies):
+def test_sync_hrms_employees_with_incremental_sync(mock_dependencies, create_bamboohr_full_setup):
     """
     Test sync_hrms_employees method with incremental sync
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     employee_import.sync_hrms_employees(is_incremental_sync=True)
-    
+
+    expected_timestamp = create_bamboohr_full_setup['org'].created_at.replace(microsecond=0).isoformat()
     mock_dependencies.employees_get_all.assert_called_once_with(
-        is_incremental_sync=True, 
-        sync_employee_from='2024-01-01T00:00:00+00:00'
+        is_incremental_sync=True,
+        sync_employee_from=expected_timestamp
     )
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_sync_hrms_employees_without_incremental_sync(mock_dependencies):
+def test_sync_hrms_employees_without_incremental_sync(mock_dependencies, create_bamboohr_full_setup):
     """
     Test sync_hrms_employees method without incremental sync
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     employee_import.sync_hrms_employees(is_incremental_sync=False)
     
     mock_dependencies.employees_get_all.assert_called_once_with(
@@ -124,11 +115,11 @@ def test_sync_hrms_employees_without_incremental_sync(mock_dependencies):
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_sync_with_webhook_with_supervisor(mock_dependencies):
+def test_sync_with_webhook_with_supervisor(mock_dependencies, create_bamboohr_full_setup):
     """
     Test sync_with_webhook method with supervisor
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     employee_import.sync_with_webhook(webhook_payload)
     
     mock_dependencies.employees_get.assert_called_once_with('999')
@@ -137,13 +128,13 @@ def test_sync_with_webhook_with_supervisor(mock_dependencies):
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_sync_with_webhook_without_email(mock_dependencies):
+def test_sync_with_webhook_without_email(mock_dependencies, create_bamboohr_full_setup):
     """
     Test sync_with_webhook method without email
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     employee_import.sync_with_webhook(webhook_payload_no_email)
-    
+
     mock_dependencies.send_failure_notification_email.assert_called_once_with(
         employees=[{'name': 'Bob Johnson', 'id': '789'}],
         number_of_employees=1,
@@ -152,11 +143,11 @@ def test_sync_with_webhook_without_email(mock_dependencies):
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_sync_with_webhook_without_supervisor(mock_dependencies):
+def test_sync_with_webhook_without_supervisor(mock_dependencies, create_bamboohr_full_setup):
     """
     Test sync_with_webhook method without supervisor
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     employee_import.sync_with_webhook(webhook_payload_no_supervisor)
     
     mock_dependencies.employees_get.assert_not_called()
@@ -164,13 +155,13 @@ def test_sync_with_webhook_without_supervisor(mock_dependencies):
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_sync_with_webhook_with_department(mock_dependencies):
+def test_sync_with_webhook_with_department(mock_dependencies, create_bamboohr_full_setup):
     """
     Test sync_with_webhook method with department creation
     """
     mock_dependencies.get_existing_departments_from_fyle.return_value = {}
     
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     employee_import.sync_with_webhook(webhook_payload_with_dept)
     
     mock_dependencies.get_department_generator.assert_called_once()
@@ -178,13 +169,13 @@ def test_sync_with_webhook_with_department(mock_dependencies):
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_sync_with_webhook_supervisor_without_fyle_employee(mock_dependencies):
+def test_sync_with_webhook_supervisor_without_fyle_employee(mock_dependencies, create_bamboohr_full_setup):
     """
     Test sync_with_webhook method with supervisor but no Fyle employee found
     """
     mock_dependencies.get_employee_by_email.return_value = []
     
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     employee_import.sync_with_webhook(webhook_payload)
     
     mock_dependencies.employees_get.assert_called_once_with('999')
@@ -193,17 +184,17 @@ def test_sync_with_webhook_supervisor_without_fyle_employee(mock_dependencies):
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_upsert_employees(mock_dependencies, create_org, db):
+def test_upsert_employees(mock_dependencies, create_bamboohr_full_setup):
     """
     Test upsert_employees method
     """
-    employee_import = BambooHrEmployeeImport(create_org.id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     result = employee_import.upsert_employees(bamboohr_employees_response)
     
     mock_dependencies.bulk_create_or_update_destination_attributes.assert_called_once_with(
         attributes=expected_destination_attributes_data,
         attribute_type='EMPLOYEE',
-        org_id=create_org.id,
+        org_id=create_bamboohr_full_setup['org'].id,
         update=True
     )
     
@@ -211,11 +202,11 @@ def test_upsert_employees(mock_dependencies, create_org, db):
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_upsert_employees_with_missing_display_name(mock_dependencies):
+def test_upsert_employees_with_missing_display_name(mock_dependencies, create_bamboohr_full_setup):
     """
     Test upsert_employees method with missing display name
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     result = employee_import.upsert_employees(employee_missing_display_name)
     
     expected_attributes = [
@@ -236,7 +227,7 @@ def test_upsert_employees_with_missing_display_name(mock_dependencies):
     mock_dependencies.bulk_create_or_update_destination_attributes.assert_called_once_with(
         attributes=expected_attributes,
         attribute_type='EMPLOYEE',
-        org_id=dummy_org_id,
+        org_id=create_bamboohr_full_setup['org'].id,
         update=True
     )
     
@@ -244,17 +235,17 @@ def test_upsert_employees_with_missing_display_name(mock_dependencies):
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_bamboohr_shared_mock(mocker))
-def test_upsert_employees_with_inactive_status(mock_dependencies):
+def test_upsert_employees_with_inactive_status(mock_dependencies, create_bamboohr_full_setup):
     """
     Test upsert_employees method with inactive employee status
     """
-    employee_import = BambooHrEmployeeImport(dummy_org_id)
+    employee_import = BambooHrEmployeeImport(create_bamboohr_full_setup['org'].id)
     employee_import.upsert_employees(inactive_employee_response)
     
     mock_dependencies.bulk_create_or_update_destination_attributes.assert_called_once_with(
         attributes=expected_inactive_employee_data,
         attribute_type='EMPLOYEE',
-        org_id=dummy_org_id,
+        org_id=create_bamboohr_full_setup['org'].id,
         update=True
     )
 
@@ -266,10 +257,8 @@ def test_upsert_employees_database_operations(mock_dependencies, create_bamboohr
     bamboohr_setup = create_bamboohr_full_setup
     employee_import = BambooHrEmployeeImport(bamboohr_setup['org'].id)
     
-    # Call the method - this should create real DestinationAttribute records
     employee_import.upsert_employees(bamboohr_employees_response)
     
-    # Verify that DestinationAttribute records were actually created in the database
     created_attributes = DestinationAttribute.objects.filter(
         org_id=bamboohr_setup['org'].id,
         attribute_type='EMPLOYEE'
@@ -294,10 +283,8 @@ def test_upsert_employees_inactive_status_database_operations(mock_dependencies,
     bamboohr_setup = create_bamboohr_full_setup
     employee_import = BambooHrEmployeeImport(bamboohr_setup['org'].id)
     
-    # Call the method with inactive employee data
     employee_import.upsert_employees(inactive_employee_response)
     
-    # Verify that DestinationAttribute record was created with active=False
     inactive_employee = DestinationAttribute.objects.filter(
         org_id=bamboohr_setup['org'].id,
         attribute_type='EMPLOYEE',

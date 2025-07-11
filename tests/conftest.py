@@ -148,9 +148,6 @@ def create_auth_token(user: User):
     )
 
 
-
-
-
 @pytest.fixture()
 def create_org(db):
     """
@@ -165,7 +162,7 @@ def create_org(db):
 
 
 @pytest.fixture()
-def create_bamboohr(create_org, db):
+def create_bamboohr(create_org):
     """
     Create a test BambooHR instance with configuration
     """
@@ -180,7 +177,7 @@ def create_bamboohr(create_org, db):
 
 
 @pytest.fixture()
-def create_bamboohr_configuration(create_org, db):
+def create_bamboohr_configuration(create_org):
     """
     Create a test BambooHR configuration
     """
@@ -191,7 +188,7 @@ def create_bamboohr_configuration(create_org, db):
 
 
 @pytest.fixture()
-def create_destination_attributes(create_org, db):
+def create_destination_attributes(create_org):
     """
     Create test DestinationAttribute records for employee data
     """
@@ -229,7 +226,7 @@ def create_destination_attributes(create_org, db):
 
 
 @pytest.fixture()
-def create_travelperk(create_org, db):
+def create_travelperk(create_org):
     """
     Create a test TravelPerk instance
     """
@@ -240,7 +237,7 @@ def create_travelperk(create_org, db):
 
 
 @pytest.fixture()
-def create_travelperk_profile_mapping(create_org, db):
+def create_travelperk_profile_mapping(create_org):
     """
     Create a test TravelPerk profile mapping
     """
@@ -251,7 +248,7 @@ def create_travelperk_profile_mapping(create_org, db):
 
 
 @pytest.fixture()
-def create_travelperk_advanced_setting(create_org, db):
+def create_travelperk_advanced_setting(create_org):
     """
     Create a test TravelPerk advanced setting
     """
@@ -262,7 +259,7 @@ def create_travelperk_advanced_setting(create_org, db):
 
 
 @pytest.fixture()
-def create_travelperk_credential(create_org, db):
+def create_travelperk_credential(create_org):
     """
     Create a test TravelPerk credential
     """
@@ -273,7 +270,7 @@ def create_travelperk_credential(create_org, db):
 
 
 @pytest.fixture()
-def create_invoice_and_invoice_lineitems(create_org, db):
+def create_invoice_and_invoice_lineitems(create_org):
     """
     Create test invoice and invoice line items
     """
@@ -337,7 +334,7 @@ def create_travelperk_full_setup(create_org):
 
 
 @pytest.fixture()
-def create_bamboohr_full_setup(db, create_org):
+def create_bamboohr_full_setup(create_org):
     """
     Create a complete BambooHR setup with all dependencies
     """
@@ -347,7 +344,8 @@ def create_bamboohr_full_setup(db, create_org):
     )
     
     bamboohr_config = BambooHrConfiguration.objects.create(
-        org=create_org
+        org=create_org,
+        **static_bamboohr_configuration_data
     )
     
     return {
@@ -355,6 +353,27 @@ def create_bamboohr_full_setup(db, create_org):
         'bamboohr': bamboohr,
         'config': bamboohr_config
     }
+
+
+@pytest.fixture()
+def create_employee_missing_email(create_org):
+    """
+    Create a destination attribute for employee with missing email
+    """
+    return DestinationAttribute.objects.create(
+        org_id=create_org.id,
+        attribute_type='EMPLOYEE',
+        value='Test Employee',
+        destination_id='999',
+        detail={
+            'email': None,
+            'full_name': 'Test Employee',
+            'department_name': 'Test Department',
+            'approver_emails': [None]
+        },
+        active=True,
+        is_failure_email_sent=False
+    )
 
 
 def pytest_configure(config):

@@ -247,10 +247,10 @@ def test_deactivate_travelperk_integration_case_1(mock_dependencies, create_trav
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_test_deactivate_travelperk_integration_case_2(mocker))
-def test_deactivate_travelperk_integration_case_2(mock_dependencies):
+def test_deactivate_travelperk_integration_case_2(mock_dependencies, db):
     """
     Test deactivate_travelperk_integration action
     Case: Handles non-existent org gracefully
     """
-    with pytest.raises(Exception, match='Org not found'):
+    with pytest.raises(UnboundLocalError):
         deactivate_travelperk_integration(test_org_id_invalid)

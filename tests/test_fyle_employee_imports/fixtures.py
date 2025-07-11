@@ -356,7 +356,6 @@ expected_approver_payload_result = [
     }
 ]
 
-# Mock employees for fyle_employee_import
 mock_employees_for_import_process = [
     {
         'detail': {

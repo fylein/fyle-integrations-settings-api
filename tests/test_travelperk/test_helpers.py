@@ -10,6 +10,7 @@ from apps.travelperk.helpers import (
     get_email_from_credit_card_and_match_transaction,
     construct_file_ids
 )
+from apps.travelperk.models import TravelperkCredential
 from .mock_setup import (
     mock_test_get_refresh_token_case_1,
     mock_test_get_refresh_token_case_2,
@@ -47,7 +48,11 @@ def test_get_refresh_token_case_1(mock_dependencies, create_org):
     
     assert result == test_refresh_token
     mock_dependencies.requests_post.assert_called_once()
-    mock_dependencies.update_or_create.assert_called_once()
+    
+    # Verify TravelperkCredential was created in database
+    credential = TravelperkCredential.objects.filter(org=create_org).first()
+    assert credential is not None
+    assert credential.refresh_token == test_refresh_token
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_test_get_refresh_token_case_2(mocker))

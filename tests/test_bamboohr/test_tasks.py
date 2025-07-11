@@ -73,7 +73,7 @@ def test_send_employee_email_missing_failure_notification(mock_dependencies, cre
     mock_dependencies.send_employee_email_missing_failure_notification.assert_called_once()
 
 
-def test_schedule_sync_employees(mock_dependencies, create_org, db):
+def test_schedule_sync_employees(mock_dependencies, create_org):
     """
     Test schedule_sync_employees creates correct schedules
     """
@@ -98,7 +98,7 @@ def test_schedule_sync_employees(mock_dependencies, create_org, db):
     assert email_schedule.minutes == 7 * 24 * 60
 
 
-def test_delete_sync_employee_schedule(mock_dependencies, create_org, db):
+def test_delete_sync_employee_schedule(mock_dependencies, create_org):
     """
     Test delete_sync_employee_schedule removes schedule
     """
@@ -115,7 +115,7 @@ def test_delete_sync_employee_schedule(mock_dependencies, create_org, db):
     assert not Schedule.objects.filter(id=schedule.id).exists()
 
 
-def test_delete_sync_employee_schedule_no_schedule(mock_dependencies, create_org, db):
+def test_delete_sync_employee_schedule_no_schedule(mock_dependencies, create_org):
     """
     Test delete_sync_employee_schedule when no schedule exists
     """
@@ -129,7 +129,7 @@ def test_delete_sync_employee_schedule_no_schedule(mock_dependencies, create_org
     assert schedules_count == 0
 
 
-def test_schedule_failure_emails_for_employees(mock_dependencies, create_org, db):
+def test_schedule_failure_emails_for_employees(mock_dependencies, create_org):
     """
     Test schedule_failure_emails_for_employees creates correct schedule
     """
@@ -145,7 +145,7 @@ def test_schedule_failure_emails_for_employees(mock_dependencies, create_org, db
     assert schedule.minutes == 7 * 24 * 60
 
 
-def test_add_bamboo_hr_to_integrations(mock_dependencies, create_org, db):
+def test_add_bamboo_hr_to_integrations(mock_dependencies, create_org):
     """
     Test add_bamboo_hr_to_integrations creates integration
     """
@@ -163,7 +163,7 @@ def test_add_bamboo_hr_to_integrations(mock_dependencies, create_org, db):
     assert integration.tpa_name == 'Fyle BambooHR Integration'
 
 
-def test_deactivate_bamboo_hr_integration(mock_dependencies, create_org, db):
+def test_deactivate_bamboo_hr_integration(mock_dependencies, create_org):
     """
     Test deactivate_bamboo_hr_integration deactivates integration
     """
@@ -187,7 +187,7 @@ def test_deactivate_bamboo_hr_integration(mock_dependencies, create_org, db):
     assert integration.disconnected_at is not None
 
 
-def test_deactivate_bamboo_hr_integration_not_found(mock_dependencies, create_org, db):
+def test_deactivate_bamboo_hr_integration_not_found(mock_dependencies, create_org):
     """
     Test deactivate_bamboo_hr_integration when integration not found
     """
@@ -201,7 +201,7 @@ def test_deactivate_bamboo_hr_integration_not_found(mock_dependencies, create_or
     assert integration_count == 0
 
 
-def test_invalidate_token_and_get_response(mock_dependencies, create_org, create_bamboohr, db):
+def test_invalidate_token_and_get_response(mock_dependencies, create_org, create_bamboohr):
     """
     Test invalidate_token_and_get_response marks credentials as expired
     """
@@ -222,11 +222,11 @@ def test_invalidate_token_and_get_response(mock_dependencies, create_org, create
         assert integration.is_token_expired is True
 
 
-def test_invalidate_token_and_get_response_no_bamboohr(mock_dependencies, create_org, db):
+def test_invalidate_token_and_get_response_no_bamboohr(mock_dependencies, create_org):
     """
     Test invalidate_token_and_get_response when no bamboohr exists
     """
     response = invalidate_token_and_get_response(create_org.id)
     
     assert response.status_code == 400
-    assert response.data['message'] == 'Invalid token' 
+    assert response.data['message'] == 'Invalid token'
