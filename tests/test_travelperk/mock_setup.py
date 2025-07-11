@@ -367,15 +367,8 @@ def mock_test_get_refresh_token_case_1(mocker):
     mock_response.text = f'{{"refresh_token": "{test_refresh_token}"}}'
     mock_requests_post.return_value = mock_response
     
-    # Mock the credential update/create that happens in the actual function
-    mock_update_or_create = mocker.patch('apps.travelperk.models.TravelperkCredential.objects.update_or_create')
-    mock_credential = mocker.MagicMock()
-    mock_update_or_create.return_value = (mock_credential, True)
-    
     return {
-        'requests_post': mock_requests_post,
-        'update_or_create': mock_update_or_create,
-        'credential': mock_credential
+        'requests_post': mock_requests_post
     }
 
 
@@ -550,13 +543,9 @@ def mock_test_connector_create_webhook_case_1(mocker):
     mock_travelperk_instance.webhooks.create.return_value = webhook_response_data
     mock_travelperk_class.return_value = mock_travelperk_instance
     
-    # Mock the TravelPerk update that happens in the actual function
-    mock_travelperk_update = mocker.patch('apps.travelperk.models.TravelPerk.objects.update_or_create')
-    
     return {
         'travelperk_class': mock_travelperk_class,
-        'travelperk_instance': mock_travelperk_instance,
-        'travelperk_update': mock_travelperk_update
+        'travelperk_instance': mock_travelperk_instance
     }
 
 
@@ -593,13 +582,9 @@ def mock_test_connector_sync_invoice_profile_case_1(mocker):
     mock_travelperk_instance.invoice_profiles.get_all_generator.return_value = iter(invoice_profile_data)
     mock_travelperk_class.return_value = mock_travelperk_instance
     
-    # Mock the profile mapping update that happens in the actual function
-    mock_profile_mapping_update = mocker.patch('apps.travelperk.models.TravelperkProfileMapping.objects.update_or_create')
-    
     return {
         'travelperk_class': mock_travelperk_class,
-        'travelperk_instance': mock_travelperk_instance,
-        'profile_mapping_update': mock_profile_mapping_update
+        'travelperk_instance': mock_travelperk_instance
     }
 
 
@@ -610,13 +595,9 @@ def mock_test_connector_sync_invoice_profile_case_2(mocker):
     mock_travelperk_instance.invoice_profiles.get_all_generator.return_value = iter([invoice_profile_no_country])
     mock_travelperk_class.return_value = mock_travelperk_instance
     
-    # Mock the profile mapping update that happens in the actual function
-    mock_profile_mapping_update = mocker.patch('apps.travelperk.models.TravelperkProfileMapping.objects.update_or_create')
-    
     return {
         'travelperk_class': mock_travelperk_class,
-        'travelperk_instance': mock_travelperk_instance,
-        'profile_mapping_update': mock_profile_mapping_update
+        'travelperk_instance': mock_travelperk_instance
     }
 
 
@@ -627,11 +608,7 @@ def mock_test_connector_sync_invoice_profile_case_3(mocker):
     mock_travelperk_instance.invoice_profiles.get_all_generator.return_value = iter([invoice_profile_no_currency])
     mock_travelperk_class.return_value = mock_travelperk_instance
     
-    # Mock the profile mapping update that happens in the actual function
-    mock_profile_mapping_update = mocker.patch('apps.travelperk.models.TravelperkProfileMapping.objects.update_or_create')
-    
     return {
         'travelperk_class': mock_travelperk_class,
-        'travelperk_instance': mock_travelperk_instance,
-        'profile_mapping_update': mock_profile_mapping_update
+        'travelperk_instance': mock_travelperk_instance
     }
