@@ -49,8 +49,6 @@ def mock_test_platform_connector_methods_coverage(mocker):
     """
     Mock setup for test_platform_connector_methods_coverage
     """
-    # Mock the bulk_create_or_update_expense_attributes method
-    mock_bulk_create = mocker.patch('apps.fyle_hrms_mappings.models.ExpenseAttribute.bulk_create_or_update_expense_attributes')
     
     # Create a mock connection object with data from fixtures
     mock_connection = mocker.MagicMock()
@@ -62,6 +60,5 @@ def mock_test_platform_connector_methods_coverage(mocker):
     mock_connection.v1.admin.categories.list_all.return_value = mock_category_sync_response
     
     return {
-        'bulk_create': mock_bulk_create,
         'connection': mock_connection
     } 

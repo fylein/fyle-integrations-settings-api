@@ -46,7 +46,7 @@ def mock_platform_connector(mocker):
             }
         }
     }
-    
+
     mocker.patch('apps.users.helpers.PlatformConnector', return_value=mock_connector)
     return mock_connector
 
@@ -290,7 +290,9 @@ def mock_test_deactivate_travelperk_integration_case_2(mocker):
     """
     Mock setup for test_deactivate_travelperk_integration_case_2
     """
-    return {}
+    return {
+        'datetime': mocker.patch('apps.travelperk.actions.datetime')
+    }
 
 
 def mock_test_disconnect_travelperk_case_2(mocker):

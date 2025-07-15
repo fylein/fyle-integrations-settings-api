@@ -16,6 +16,19 @@ from .fixtures import (
     expected_department_payload,
     expected_disabled_department_payload
 )
+from .mock_setup import (
+    mock_test_sync_fyle_employees,
+    mock_test_get_existing_departments_from_fyle,
+    mock_test_create_fyle_department_payload,
+    mock_test_create_fyle_department_payload_with_disabled_department,
+    mock_test_departments_to_be_imported,
+    mock_test_post_department,
+    mock_test_import_departments,
+    mock_test_fyle_employee_import,
+    mock_test_sync_employees,
+    mock_test_get_employee_and_approver_payload,
+    mock_test___init__
+)
 
 
 def test___init__(mock_dependencies, create_org):
@@ -28,6 +41,7 @@ def test___init__(mock_dependencies, create_org):
     assert employee_import.platform_connection == mock_dependencies.platform_connector
 
 
+@pytest.mark.shared_mocks(lambda mocker: mock_test_sync_fyle_employees(mocker))
 def test_sync_fyle_employees(mock_dependencies, create_org):
     """
     Test sync_fyle_employees method
@@ -38,6 +52,7 @@ def test_sync_fyle_employees(mock_dependencies, create_org):
     mock_dependencies.sync_employees.assert_called_once_with(org_id=create_org.id)
 
 
+@pytest.mark.shared_mocks(lambda mocker: mock_test_get_existing_departments_from_fyle(mocker))
 def test_get_existing_departments_from_fyle(mock_dependencies, create_org):
     """
     Test get_existing_departments_from_fyle method
@@ -53,6 +68,7 @@ def test_get_existing_departments_from_fyle(mock_dependencies, create_org):
     )
 
 
+@pytest.mark.shared_mocks(lambda mocker: mock_test_create_fyle_department_payload(mocker))
 def test_create_fyle_department_payload(mock_dependencies, create_org):
     """
     Test create_fyle_department_payload method
@@ -112,16 +128,10 @@ def test_import_departments(mock_dependencies, create_org):
     mock_dependencies.post_department.assert_called()
 
 
-def test_get_employee_and_approver_payload(mock_dependencies, create_org, db):
+def test_get_employee_and_approver_payload(mock_dependencies, create_org, create_expense_attribute):
     """
     Test get_employee_and_approver_payload method
     """
-    ExpenseAttribute.objects.create(
-        org_id=create_org.id,
-        attribute_type='EMPLOYEE',
-        value='supervisor@example.com'
-    )
-    
     employee_import = FyleEmployeeImport(create_org.id)
     emp_payload, approver_payload = employee_import.get_employee_and_approver_payload(mock_dependencies.mock_employees)
 

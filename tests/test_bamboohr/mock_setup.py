@@ -46,7 +46,6 @@ def mock_bamboohr_shared_mock(mocker):
         'delete_sync_schedule': mock_delete_sync_schedule,
         'deactivate_integration': mock_deactivate_integration,
         'request_mock': mock_request,
-        'bamboohr_update_or_create': mocker.MagicMock(),
     }
 
 

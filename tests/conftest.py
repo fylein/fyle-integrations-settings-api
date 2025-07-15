@@ -34,7 +34,7 @@ from apps.bamboohr.models import (
     BambooHr,
     BambooHrConfiguration
 )
-from apps.fyle_hrms_mappings.models import DestinationAttribute
+from apps.fyle_hrms_mappings.models import DestinationAttribute, ExpenseAttribute
 from apps.travelperk.models import (
     TravelPerk,
     TravelperkProfileMapping,
@@ -226,6 +226,19 @@ def create_destination_attributes(create_org):
 
 
 @pytest.fixture()
+def create_expense_attribute(create_org):
+    """
+    Create an ExpenseAttribute for testing
+    """
+    from tests.test_fyle_employee_imports.fixtures import expense_attribute_data
+    
+    return ExpenseAttribute.objects.create(
+        org_id=create_org.id,
+        **expense_attribute_data
+    )
+
+
+@pytest.fixture()
 def create_travelperk(create_org):
     """
     Create a test TravelPerk instance
@@ -338,6 +351,9 @@ def create_bamboohr_full_setup(create_org):
     """
     Create a complete BambooHR setup with all dependencies
     """
+    # FyleCredential is already created by create_org fixture
+    fyle_credential = FyleCredential.objects.get(org=create_org)
+    
     bamboohr = BambooHr.objects.create(
         org=create_org,
         **static_bamboohr_data
@@ -351,7 +367,8 @@ def create_bamboohr_full_setup(create_org):
     return {
         'org': create_org,
         'bamboohr': bamboohr,
-        'config': bamboohr_config
+        'config': bamboohr_config,
+        'fyle_credential': fyle_credential
     }
 
 
