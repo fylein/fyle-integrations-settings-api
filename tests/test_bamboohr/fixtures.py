@@ -91,3 +91,59 @@ bamboohr_integrations_response = {
     "disconnected_at": None,
     "updated_at": "2025-01-09T10:08:20.434443Z"
 }
+
+# Email test data
+email_template_content = """
+<html>
+<body>
+<h1>Error Importing Employees from Bamboo HR to Fyle</h1>
+<p>We encountered errors importing {number_of_employees} employees from BambooHR to Fyle.</p>
+<p>Please find the employee details in the attached CSV file.</p>
+</body>
+</html>
+"""
+
+failed_employees_data = [
+    {'id': '1', 'name': 'John Doe'},
+    {'id': '2', 'name': 'Jane Smith'},
+    {'id': '3', 'name': 'Bob Johnson'}
+]
+
+admin_email_list = ['admin1@example.com', 'admin2@example.com']
+
+number_of_employees = 3
+
+# Task test data
+webhook_payload = {
+    'employees': [{
+        'id': '123',
+        'fields': {
+            'firstName': {'value': 'John'},
+            'lastName': {'value': 'Doe'},
+            'workEmail': {'value': 'john.doe@example.com'},
+            'status': {'value': 'Active'},
+            'employeeNumber': {'value': 'EMP123'}
+        }
+    }]
+}
+
+# Health check test data
+bamboohr_timeoff_success_response = {
+    'timeOffTypes': [
+        {'id': 1, 'name': 'Vacation'},
+        {'id': 2, 'name': 'Sick Leave'}
+    ]
+}
+
+bamboohr_timeoff_empty_response = {
+    'timeOffTypes': []
+}
+
+# Sync employees test data
+sync_employees_request_data = {}
+
+# Configuration exception test data
+invalid_configuration_data = {
+    "additional_email_options": "invalid_format",
+    "emails_selected": "invalid_format"
+}
