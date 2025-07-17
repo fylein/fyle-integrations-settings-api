@@ -14,7 +14,7 @@ logger.level = logging.INFO
 
 
 
-class IntegrationsView(generics.ListCreateAPIView, generics.UpdateAPIView):
+class IntegrationsView(generics.ListCreateAPIView, generics.UpdateAPIView, generics.DestroyAPIView):
     permission_classes = []
     authentication_classes = []
     pagination_class = None
@@ -79,6 +79,40 @@ class IntegrationsView(generics.ListCreateAPIView, generics.UpdateAPIView):
 
         try:
             return super().patch(request, *args, **kwargs)
+        except Exception as error:
+            logger.info(error)
+            raise APIException('Something went wrong')
+
+
+    def delete(self, request, *args, **kwargs):
+        if request.data.get('tpa_name', None) is None:
+            raise ParseError('tpa_name is required')
+
+        http_authorization = self.request.META.get('HTTP_AUTHORIZATION')
+
+        if not http_authorization:
+            return Response(
+                data={
+                    'message': 'No access token provided'
+                },
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        access_token = http_authorization.split(' ')[1]
+
+        try:
+            # The org id will be used in get_object to find the record to delete
+            org_id = get_org_id_and_name_from_access_token(access_token)['id']
+            request.data['org_id'] = org_id
+        except Exception as error:
+            logger.info(error)
+            raise AuthenticationFailed('Invalid access token')
+
+        if self.get_object() is None:
+            raise ParseError('Integration is inactive or does not exist')
+
+        try:
+            return super().delete(request, *args, **kwargs)
         except Exception as error:
             logger.info(error)
             raise APIException('Something went wrong')

@@ -110,7 +110,13 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 100
+    'PAGE_SIZE': 100,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'admin_settings.throttles.PerUserPathThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'per_user_path': '30/second'
+    }
 }
 
 Q_CLUSTER = {

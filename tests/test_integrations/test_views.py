@@ -2,6 +2,7 @@ import json
 import pytest
 from django.urls import reverse
 from rest_framework import status
+from .fixture import post_integration_accounting, post_integration_accounting_2, post_integration_hrms, patch_integration_no_tpa_name, patch_integration, patch_integration_invalid_tpa_name, patch_integration_partial, delete_integration, delete_integration_no_tpa_name
 
 from apps.integrations.models import Integration
 from .fixture import (
@@ -210,6 +211,9 @@ def test_integrations_view_invalid_access_token_case_1(mock_dependencies, api_cl
     response = api_client.patch(url, post_integration_accounting)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
+    assert response.status_code == 403
+
 
 def test_integrations_view_mark_inactive_post_case_1(mock_dependencies, api_client, mocker, access_token, create_integrations):
     """
@@ -334,3 +338,89 @@ def test_integrations_view_patch_case_3(mock_dependencies, api_client, mocker, a
     
     # Verify that errors_count was not changed (since it wasn't in the patch data)
     assert 'errors_count' in response_data
+    response = json.loads(response.content)
+    assert response['tpa_name'] == patch_integration_partial['tpa_name']
+    assert response['is_token_expired'] == patch_integration_partial['is_token_expired']
+    assert response['errors_count'] == patch_integration['errors_count']
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_integrations_view_delete(api_client, mocker, access_token):
+    """
+    Test the DELETE API of Integrations
+    """
+    dummy_org_id = 'or3P3xJ0603e'
+    mocker.patch(
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
+    )
+
+    # Create a dummy integration to delete
+    integration = Integration.objects.create(
+        org_id=dummy_org_id,
+        tpa_name=delete_integration['tpa_name'],
+        tpa_id='tpa129sjcjkjx',
+        type='ACCOUNTING',
+        is_active=True
+    )
+
+    # Verify the integration exists before deletion
+    assert Integration.objects.filter(id=integration.id).exists()
+
+    url = reverse('integrations:integrations')
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    # Test DELETE without tpa_name should return 400
+    response = api_client.delete(url, json.dumps(delete_integration_no_tpa_name), content_type="application/json")
+    assert response.status_code == 400, 'DELETE without a tpa_name should return 400'
+
+    # Test DELETE with no access token should return 401
+    api_client.credentials(HTTP_AUTHORIZATION='')
+    response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
+    assert response.status_code == 401, 'DELETE with invalid access token should return 401'
+
+    # Test valid DELETE request
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+    response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
+    assert response.status_code == 204, 'Valid DELETE request should return 204'
+
+    # Verify the integration no longer exists
+    assert not Integration.objects.filter(id=integration.id).exists(), 'Integration should be deleted'
+
+    # Test DELETE on non-existent integration should return 400
+    response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
+    assert response.status_code == 400, 'DELETE on non-existent integration should return 400'
+
+
+@pytest.mark.django_db(databases=['default'])
+def test_integrations_view_delete_exception(api_client, mocker, access_token):
+    """
+    Test the DELETE API of Integrations when super().delete() throws an exception
+    """
+    dummy_org_id = 'or3P3xJ0603e'
+    mocker.patch(
+        'apps.integrations.views.get_org_id_and_name_from_access_token',
+        return_value={"id":dummy_org_id, "name":"Dummy Org"}
+    )
+
+    # Create a dummy integration to delete
+    Integration.objects.create(
+        org_id=dummy_org_id,
+        tpa_name=delete_integration['tpa_name'],
+        tpa_id='tpa129sjcjkjx',
+        type='ACCOUNTING',
+        is_active=True
+    )
+
+    # Mock super().delete() to raise an exception
+    mocker.patch(
+        'apps.integrations.views.generics.DestroyAPIView.delete',
+        side_effect=Exception('Database error')
+    )
+
+    url = reverse('integrations:integrations')
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
+
+    # Test DELETE that triggers an exception
+    response = api_client.delete(url, json.dumps(delete_integration), content_type="application/json")
+    assert response.status_code == 500, 'DELETE with exception should return 500'
