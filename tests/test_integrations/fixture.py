@@ -77,6 +77,8 @@ inactive_integration_data = {
     'tpa_id': 'tpa129sjcjkjx',
     'tpa_name': 'Fyle QuickBooks Online Integration',
     'type': 'ACCOUNTING'
+}
+
 delete_integration = {
     'tpa_name': 'Fyle QuickBooks Online Integration'
 }
