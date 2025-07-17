@@ -26,6 +26,7 @@ from tests.test_bamboohr.fixtures import fixture as bamboohr_fixture
 from tests.test_travelperk.fixtures import fixture as travelperk_fixture
 from tests.test_integrations.fixture import post_integration_accounting, post_integration_hrms
 from tests.test_orgs.fixtures import fixture as orgs_fixture
+from tests.test_fyle_employee_imports.fixtures import expense_attribute_data
 from apps.orgs.models import (
     Org,
     FyleCredential
@@ -230,8 +231,6 @@ def create_expense_attribute(create_org):
     """
     Create an ExpenseAttribute for testing
     """
-    from tests.test_fyle_employee_imports.fixtures import expense_attribute_data
-    
     return ExpenseAttribute.objects.create(
         org_id=create_org.id,
         **expense_attribute_data
