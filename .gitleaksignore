@@ -1,0 +1,5 @@
+# Gitleaks ignore file for false positives
+# This file contains fingerprints of secrets that are false positives
+
+# Test fixtures - base64 encoded test credentials
+39313edc64f4e858d0ceebd2d7ee9922043adcbc:tests/test_bamboosdk/fixtures.py:generic-api-key:91 
