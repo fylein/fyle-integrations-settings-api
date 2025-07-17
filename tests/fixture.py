@@ -188,14 +188,22 @@ bamboohr_data = {
 bamboohr_configuration_data = {
     'additional_email_options': [
         {
-            'name': 'Nilesh',
-            'email': 'nilesh.p@fyle.in'
+            'name': 'Admin',
+            'email': 'admin@example.com'
+        },
+        {
+            'name': 'Manager',
+            'email': 'manager@example.com'
         }
     ],
     'emails_selected': [
         {
-            'name': 'Nilesh',
-            'email': 'nilesh.p@fyle.in'
+            'name': 'Admin',
+            'email': 'admin@example.com'
+        },
+        {
+            'name': 'Manager',
+            'email': 'manager@example.com'
         }
     ]
 }
@@ -207,7 +215,7 @@ travelperk_data = {
 }
 
 travelperk_profile_mapping_data = {
-    'profile_name': 'Test Profile',
+    'profile_name': 'Dummy Profile',
     'user_role': 'TRAVELLER',
     'is_import_enabled': True,
     'country': 'US',
