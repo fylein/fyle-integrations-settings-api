@@ -172,4 +172,79 @@ def mock_base64_encode(mocker):
 
 def mock_json_loads(mocker):
     """Mock JSON loads for successful responses"""
-    return mocker.patch('json.loads', return_value={'success': True, 'data': 'test_data'}) 
+    return mocker.patch('json.loads', return_value={'success': True, 'data': 'test_data'})
+
+
+def mock_test_employee_get_all_without_incremental_sync(mocker):
+    """Mock for test_employee_get_all_without_incremental_sync"""
+    return mock_employees_get_all_success(mocker)
+
+
+def mock_test_employee_get_all_with_incremental_sync(mocker):
+    """Mock for test_employee_get_all_with_incremental_sync"""
+    return mock_employees_get_all_success(mocker)
+
+
+def mock_test_employee_get_all_with_incremental_sync_none_date(mocker):
+    """Mock for test_employee_get_all_with_incremental_sync_none_date"""
+    return mock_employees_get_all_success(mocker)
+
+
+def mock_test_employee_get_all_401_error(mocker):
+    """Mock for test_employee_get_all_401_error"""
+    return mock_requests_post_401_error(mocker)
+
+
+def mock_test_employee_get_all_403_error(mocker):
+    """Mock for test_employee_get_all_403_error"""
+    return mock_requests_post_403_error(mocker)
+
+
+def mock_test_employee_get_all_404_error(mocker):
+    """Mock for test_employee_get_all_404_error"""
+    return mock_requests_post_404_error(mocker)
+
+
+def mock_test_employee_get_all_500_error(mocker):
+    """Mock for test_employee_get_all_500_error"""
+    return mock_requests_post_500_error(mocker)
+
+
+def mock_test_employee_get_success(mocker):
+    """Mock for test_employee_get_success"""
+    return mock_employees_get_success(mocker)
+
+
+def mock_test_employee_get_401_error(mocker):
+    """Mock for test_employee_get_401_error"""
+    return mock_requests_get_401_error(mocker)
+
+
+def mock_test_employee_get_403_error(mocker):
+    """Mock for test_employee_get_403_error"""
+    return mock_requests_get_403_error(mocker)
+
+
+def mock_test_employee_get_404_error(mocker):
+    """Mock for test_employee_get_404_error"""
+    return mock_requests_get_404_error(mocker)
+
+
+def mock_test_employee_get_500_error(mocker):
+    """Mock for test_employee_get_500_error"""
+    return mock_requests_get_500_error(mocker)
+
+
+def mock_test_employee_payload_modification(mocker):
+    """Mock for test_employee_payload_modification"""
+    return mock_employees_get_all_success(mocker)
+
+
+def mock_test_employee_with_none_values(mocker):
+    """Mock for test_employee_with_none_values"""
+    return mock_employees_get_success(mocker)
+
+
+def mock_test_employee_with_empty_string_id(mocker):
+    """Mock for test_employee_with_empty_string_id"""
+    return mock_employees_get_success(mocker) 

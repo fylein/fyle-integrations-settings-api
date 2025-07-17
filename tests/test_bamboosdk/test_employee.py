@@ -22,18 +22,7 @@ from .fixtures import (
     status_404,
     status_500
 )
-from .mock_setup import (
-    mock_employees_get_all_success,
-    mock_employees_get_success,
-    mock_requests_get_401_error,
-    mock_requests_get_403_error,
-    mock_requests_get_404_error,
-    mock_requests_get_500_error,
-    mock_requests_post_401_error,
-    mock_requests_post_403_error,
-    mock_requests_post_404_error,
-    mock_requests_post_500_error
-)
+
 
 
 def test_employee_initialization():
@@ -52,7 +41,7 @@ def test_employee_initialization():
     assert employee_api.headers is None
 
 
-def test_employee_get_all_without_incremental_sync(mocker):
+def test_employee_get_all_without_incremental_sync(mock_dependencies):
     """
     Test Employee get_all method without incremental sync
     """
@@ -60,22 +49,18 @@ def test_employee_get_all_without_incremental_sync(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_employees_get_all_success(mocker)
-    
     result = employee_api.get_all(is_incremental_sync=False)
     
     assert result == employee_list_response
 
 
-def test_employee_get_all_with_incremental_sync(mocker):
+def test_employee_get_all_with_incremental_sync(mock_dependencies):
     """
     Test Employee get_all method with incremental sync
     """
     employee_api = Employee()
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
-    
-    mock_employees_get_all_success(mocker)
     
     sync_date = datetime.fromisoformat(sync_employee_from_date.replace('Z', '+00:00'))
     result = employee_api.get_all(is_incremental_sync=True, sync_employee_from=sync_date)
@@ -89,15 +74,13 @@ def test_employee_get_all_with_incremental_sync(mocker):
     assert result == employee_list_response
 
 
-def test_employee_get_all_with_incremental_sync_none_date(mocker):
+def test_employee_get_all_with_incremental_sync_none_date(mock_dependencies):
     """
     Test Employee get_all method with incremental sync but None date
     """
     employee_api = Employee()
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
-    
-    mock_employees_get_all_success(mocker)
     
     result = employee_api.get_all(is_incremental_sync=True, sync_employee_from=None)
     
@@ -108,7 +91,7 @@ def test_employee_get_all_with_incremental_sync_none_date(mocker):
     assert result == employee_list_response
 
 
-def test_employee_get_all_401_error(mocker):
+def test_employee_get_all_401_error(mock_dependencies):
     """
     Test Employee get_all method with 401 error
     """
@@ -116,13 +99,11 @@ def test_employee_get_all_401_error(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_requests_post_401_error(mocker)
-    
     with pytest.raises(InvalidTokenError):
         employee_api.get_all(is_incremental_sync=False)
 
 
-def test_employee_get_all_403_error(mocker):
+def test_employee_get_all_403_error(mock_dependencies):
     """
     Test Employee get_all method with 403 error
     """
@@ -130,13 +111,11 @@ def test_employee_get_all_403_error(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_requests_post_403_error(mocker)
-    
     with pytest.raises(NoPrivilegeError):
         employee_api.get_all(is_incremental_sync=False)
 
 
-def test_employee_get_all_404_error(mocker):
+def test_employee_get_all_404_error(mock_dependencies):
     """
     Test Employee get_all method with 404 error
     """
@@ -144,13 +123,11 @@ def test_employee_get_all_404_error(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_requests_post_404_error(mocker)
-    
     with pytest.raises(NotFoundItemError):
         employee_api.get_all(is_incremental_sync=False)
 
 
-def test_employee_get_all_500_error(mocker):
+def test_employee_get_all_500_error(mock_dependencies):
     """
     Test Employee get_all method with 500 error
     """
@@ -158,13 +135,11 @@ def test_employee_get_all_500_error(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_requests_post_500_error(mocker)
-    
     with pytest.raises(BambooHrSDKError):
         employee_api.get_all(is_incremental_sync=False)
 
 
-def test_employee_get_success(mocker):
+def test_employee_get_success(mock_dependencies):
     """
     Test Employee get method with success response
     """
@@ -172,14 +147,12 @@ def test_employee_get_success(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_employees_get_success(mocker)
-    
     result = employee_api.get(employee_id)
     
     assert result == single_employee_response
 
 
-def test_employee_get_401_error(mocker):
+def test_employee_get_401_error(mock_dependencies):
     """
     Test Employee get method with 401 error
     """
@@ -187,13 +160,11 @@ def test_employee_get_401_error(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_requests_get_401_error(mocker)
-    
     with pytest.raises(InvalidTokenError):
         employee_api.get(employee_id)
 
 
-def test_employee_get_403_error(mocker):
+def test_employee_get_403_error(mock_dependencies):
     """
     Test Employee get method with 403 error
     """
@@ -201,13 +172,11 @@ def test_employee_get_403_error(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_requests_get_403_error(mocker)
-    
     with pytest.raises(NoPrivilegeError):
         employee_api.get(employee_id)
 
 
-def test_employee_get_404_error(mocker):
+def test_employee_get_404_error(mock_dependencies):
     """
     Test Employee get method with 404 error
     """
@@ -215,13 +184,11 @@ def test_employee_get_404_error(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_requests_get_404_error(mocker)
-    
     with pytest.raises(NotFoundItemError):
         employee_api.get(employee_id)
 
 
-def test_employee_get_500_error(mocker):
+def test_employee_get_500_error(mock_dependencies):
     """
     Test Employee get method with 500 error
     """
@@ -229,22 +196,17 @@ def test_employee_get_500_error(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    mock_requests_get_500_error(mocker)
-    
     with pytest.raises(BambooHrSDKError):
         employee_api.get(employee_id)
 
 
-def test_employee_payload_modification(mocker):
+def test_employee_payload_modification(mock_dependencies):
     """
     Test Employee payload modification during incremental sync
     """
     employee_api = Employee()
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
-    
-    # Mock the HTTP requests
-    mock_employees_get_all_success(mocker)
     
     original_payload = employee_api.payload.copy()
     
@@ -300,7 +262,7 @@ def test_employee_inheritance():
     assert hasattr(employee_api, 'get')
 
 
-def test_employee_with_none_values(mocker):
+def test_employee_with_none_values(mock_dependencies):
     """
     Test Employee methods with None values
     """
@@ -308,23 +270,18 @@ def test_employee_with_none_values(mocker):
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
     
-    # Mock the HTTP request to avoid actual API call
-    mock_employees_get_success(mocker)
-    
     # Test get method with None ID - should format URL with None
     result = employee_api.get(None)
     assert result == single_employee_response
 
 
-def test_employee_with_empty_string_id(mocker):
+def test_employee_with_empty_string_id(mock_dependencies):
     """
     Test Employee get method with empty string ID
     """
     employee_api = Employee()
     employee_api.set_api_token(api_token)
     employee_api.set_sub_domain(sub_domain)
-    
-    mock_employees_get_success(mocker)
     
     result = employee_api.get('')
     
