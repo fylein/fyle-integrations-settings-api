@@ -234,7 +234,6 @@ def test_employee_url_formatting():
     """
     employee_api = Employee()
     
-    # Test GET_EMPLOYEE URL formatting
     expected_url = f'/v1/employees/{employee_id}/?fields=workEmail&onlyCurrent=false'
     actual_url = employee_api.GET_EMPLOYEE.format(employee_id)
     

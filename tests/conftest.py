@@ -26,6 +26,7 @@ from tests.test_bamboohr.fixtures import fixture as bamboohr_fixture
 from tests.test_travelperk.fixtures import fixture as travelperk_fixture
 from tests.test_integrations.fixture import post_integration_accounting, post_integration_hrms
 from tests.test_orgs.fixtures import fixture as orgs_fixture
+from tests.test_fyle_employee_imports.fixtures import expense_attribute_data
 from apps.orgs.models import (
     Org,
     FyleCredential
@@ -34,7 +35,7 @@ from apps.bamboohr.models import (
     BambooHr,
     BambooHrConfiguration
 )
-from apps.fyle_hrms_mappings.models import DestinationAttribute
+from apps.fyle_hrms_mappings.models import DestinationAttribute, ExpenseAttribute
 from apps.travelperk.models import (
     TravelPerk,
     TravelperkProfileMapping,
@@ -148,9 +149,6 @@ def create_auth_token(user: User):
     )
 
 
-
-
-
 @pytest.fixture()
 def create_org(db):
     """
@@ -165,7 +163,7 @@ def create_org(db):
 
 
 @pytest.fixture()
-def create_bamboohr(create_org, db):
+def create_bamboohr(create_org):
     """
     Create a test BambooHR instance with configuration
     """
@@ -180,7 +178,7 @@ def create_bamboohr(create_org, db):
 
 
 @pytest.fixture()
-def create_bamboohr_configuration(create_org, db):
+def create_bamboohr_configuration(create_org):
     """
     Create a test BambooHR configuration
     """
@@ -191,7 +189,7 @@ def create_bamboohr_configuration(create_org, db):
 
 
 @pytest.fixture()
-def create_destination_attributes(create_org, db):
+def create_destination_attributes(create_org):
     """
     Create test DestinationAttribute records for employee data
     """
@@ -229,7 +227,18 @@ def create_destination_attributes(create_org, db):
 
 
 @pytest.fixture()
-def create_travelperk(create_org, db):
+def create_expense_attribute(create_org):
+    """
+    Create an ExpenseAttribute for testing
+    """
+    return ExpenseAttribute.objects.create(
+        org_id=create_org.id,
+        **expense_attribute_data
+    )
+
+
+@pytest.fixture()
+def create_travelperk(create_org):
     """
     Create a test TravelPerk instance
     """
@@ -240,7 +249,7 @@ def create_travelperk(create_org, db):
 
 
 @pytest.fixture()
-def create_travelperk_profile_mapping(create_org, db):
+def create_travelperk_profile_mapping(create_org):
     """
     Create a test TravelPerk profile mapping
     """
@@ -251,7 +260,7 @@ def create_travelperk_profile_mapping(create_org, db):
 
 
 @pytest.fixture()
-def create_travelperk_advanced_setting(create_org, db):
+def create_travelperk_advanced_setting(create_org):
     """
     Create a test TravelPerk advanced setting
     """
@@ -262,7 +271,7 @@ def create_travelperk_advanced_setting(create_org, db):
 
 
 @pytest.fixture()
-def create_travelperk_credential(create_org, db):
+def create_travelperk_credential(create_org):
     """
     Create a test TravelPerk credential
     """
@@ -273,7 +282,7 @@ def create_travelperk_credential(create_org, db):
 
 
 @pytest.fixture()
-def create_invoice_and_invoice_lineitems(create_org, db):
+def create_invoice_and_invoice_lineitems(create_org):
     """
     Create test invoice and invoice line items
     """
@@ -337,24 +346,50 @@ def create_travelperk_full_setup(create_org):
 
 
 @pytest.fixture()
-def create_bamboohr_full_setup(db, create_org):
+def create_bamboohr_full_setup(create_org):
     """
     Create a complete BambooHR setup with all dependencies
     """
+    # FyleCredential is already created by create_org fixture
+    fyle_credential = FyleCredential.objects.get(org=create_org)
+    
     bamboohr = BambooHr.objects.create(
         org=create_org,
         **static_bamboohr_data
     )
     
     bamboohr_config = BambooHrConfiguration.objects.create(
-        org=create_org
+        org=create_org,
+        **static_bamboohr_configuration_data
     )
     
     return {
         'org': create_org,
         'bamboohr': bamboohr,
-        'config': bamboohr_config
+        'config': bamboohr_config,
+        'fyle_credential': fyle_credential
     }
+
+
+@pytest.fixture()
+def create_employee_missing_email(create_org):
+    """
+    Create a destination attribute for employee with missing email
+    """
+    return DestinationAttribute.objects.create(
+        org_id=create_org.id,
+        attribute_type='EMPLOYEE',
+        value='Test Employee',
+        destination_id='999',
+        detail={
+            'email': None,
+            'full_name': 'Test Employee',
+            'department_name': 'Test Department',
+            'approver_emails': [None]
+        },
+        active=True,
+        is_failure_email_sent=False
+    )
 
 
 def pytest_configure(config):
