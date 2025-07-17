@@ -122,7 +122,7 @@ def test_post_bamboohr_connection_view_case_1(mock_dependencies, api_client, acc
 def test_post_bamboohr_connection_view_case_3(mock_dependencies, api_client, access_token, create_org):
     """
     Test post bamboohr connection view
-    Case: Valid input returns 200 and calls integration creation
+    Case: Valid input returns 200 and creates database records
     """
     url = reverse('bamboohr:connection', kwargs={'org_id': create_org.id})
     api_client.credentials(HTTP_AUTHORIZATION='Bearer {}'.format(access_token))
@@ -130,9 +130,12 @@ def test_post_bamboohr_connection_view_case_3(mock_dependencies, api_client, acc
     response = api_client.post(url, mock_dependencies.bamboo_connection, format='json')
     assert response.status_code == status.HTTP_200_OK
 
-    # Verify that the integration creation function was called
     mock_dependencies.add_to_integrations.assert_called_once()
-    mock_dependencies.bamboohr_update_or_create.assert_called_once()
+    
+    bamboohr = BambooHr.objects.filter(org=create_org).first()
+    assert bamboohr is not None
+    assert bamboohr.api_token == mock_dependencies.bamboo_connection['input']['api_token']
+    assert bamboohr.sub_domain == mock_dependencies.bamboo_connection['input']['subdomain']
 
 
 def test_post_bamboohr_disconnect_view_case_1(mock_dependencies, api_client, access_token):
@@ -164,7 +167,6 @@ def test_post_bamboohr_disconnect_view_case_2(mock_dependencies, api_client, acc
     response = api_client.post(url, format='json')
     assert response.status_code == status.HTTP_200_OK
 
-    # Verify that the cleanup functions were called
     mock_dependencies.delete_sync_schedule.assert_called_once_with(org_id=create_org.id)
     mock_dependencies.deactivate_integration.assert_called_once_with(create_org.id)
 

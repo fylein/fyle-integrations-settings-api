@@ -32,6 +32,5 @@ def test_send_failure_notification_email(mock_dependencies):
     assert isinstance(call_args, Mail)
     assert call_args.subject.subject == 'Error Importing Employees from Bamboo HR to Fyle'
     
-    # Verify that the file was read and SendGrid client was created
     mock_dependencies.open.assert_called_once_with('apps/bamboohr/templates/mail_template.html', 'r')
     mock_dependencies.sendgrid_api.assert_called_once() 

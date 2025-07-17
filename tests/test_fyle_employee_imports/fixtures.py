@@ -4,6 +4,12 @@ dummy_org_id = 1
 dummy_refresh_token = 'dummy_refresh_token'
 cluster_domain = 'https://test.fyle.tech'
 
+# ExpenseAttribute data for testing
+expense_attribute_data = {
+    'attribute_type': 'EMPLOYEE',
+    'value': 'supervisor@example.com'
+}
+
 # Employee data for testing
 employee_data = [
     {
@@ -356,7 +362,6 @@ expected_approver_payload_result = [
     }
 ]
 
-# Mock employees for fyle_employee_import
 mock_employees_for_import_process = [
     {
         'detail': {
@@ -489,3 +494,17 @@ expected_inactive_employee_data = [
         'active': False
     }
 ]
+
+# Expected missing display name employee DestinationAttribute data
+expected_missing_display_name_data = {
+    'attribute_type': 'EMPLOYEE',
+    'value': 'Missing DisplayName',
+    'destination_id': '555',
+    'detail': {
+        'email': 'missing@example.com',
+        'department_name': 'IT',
+        'full_name': 'Missing DisplayName',
+        'approver_emails': [None]
+    },
+    'active': True
+}

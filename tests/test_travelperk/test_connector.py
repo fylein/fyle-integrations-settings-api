@@ -62,13 +62,10 @@ def test_create_webhook_case_1(mock_dependencies, create_travelperk_full_setup):
     assert result['id'] == test_webhook_subscription_id
     assert result['enabled'] is True
     
-    mock_dependencies.travelperk_update.assert_called_once_with(
-        org_id=setup['org'].id,
-        defaults={
-            'webhook_subscription_id': webhook_response_data['id'],
-            'webhook_enabled': webhook_response_data['enabled']
-        }
-    )
+    # Verify TravelPerk model was updated in database
+    setup['travelperk'].refresh_from_db()
+    assert setup['travelperk'].webhook_subscription_id == webhook_response_data['id']
+    assert setup['travelperk'].webhook_enabled == webhook_response_data['enabled']
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_test_connector_create_webhook_case_2(mocker))
@@ -125,27 +122,27 @@ def test_sync_invoice_profile_case_1(mock_dependencies, create_travelperk_full_s
     assert result[1]['currency'] == test_currency_eur
     assert result[1]['billing_information']['country_name'] == test_country_germany
     
-    assert mock_dependencies.profile_mapping_update.call_count == 2
+    # Verify TravelperkProfileMapping records were created in database
+    profile_mappings = TravelperkProfileMapping.objects.filter(org=setup['org'])
+    assert profile_mappings.count() >= 2  # At least 2 new mappings
     
-    mock_dependencies.profile_mapping_update.assert_any_call(
-        org_id=setup['org'].id,
+    profile1 = TravelperkProfileMapping.objects.filter(
+        org=setup['org'], 
         profile_name=test_profile_name_1,
-        source_id=test_profile_id_1,
-        defaults={
-            'country': test_country_us,
-            'currency': test_currency_usd,
-        }
-    )
+        source_id=test_profile_id_1
+    ).first()
+    assert profile1 is not None
+    assert profile1.country == test_country_us
+    assert profile1.currency == test_currency_usd
     
-    mock_dependencies.profile_mapping_update.assert_any_call(
-        org_id=setup['org'].id,
+    profile2 = TravelperkProfileMapping.objects.filter(
+        org=setup['org'], 
         profile_name=test_profile_name_2,
-        source_id=test_profile_id_2,
-        defaults={
-            'country': test_country_germany,
-            'currency': test_currency_eur,
-        }
-    )
+        source_id=test_profile_id_2
+    ).first()
+    assert profile2 is not None
+    assert profile2.country == test_country_germany
+    assert profile2.currency == test_currency_eur
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_test_connector_sync_invoice_profile_case_2(mocker))
@@ -166,15 +163,15 @@ def test_sync_invoice_profile_case_2(mock_dependencies, create_travelperk_full_s
     assert result[0]['currency'] == 'GBP'
     assert 'country_name' not in result[0]['billing_information']
     
-    mock_dependencies.profile_mapping_update.assert_called_once_with(
-        org_id=setup['org'].id,
+    # Verify TravelperkProfileMapping record was created in database
+    profile_mapping = TravelperkProfileMapping.objects.filter(
+        org=setup['org'], 
         profile_name='Test Profile No Country',
-        source_id='profile_789',
-        defaults={
-            'country': None,
-            'currency': 'GBP',
-        }
-    )
+        source_id='profile_789'
+    ).first()
+    assert profile_mapping is not None
+    assert profile_mapping.country is None
+    assert profile_mapping.currency == 'GBP'
 
 
 @pytest.mark.shared_mocks(lambda mocker: mock_test_connector_sync_invoice_profile_case_3(mocker))
@@ -195,12 +192,12 @@ def test_sync_invoice_profile_case_3(mock_dependencies, create_travelperk_full_s
     assert 'currency' not in result[0]
     assert result[0]['billing_information']['country_name'] == 'Canada'
     
-    mock_dependencies.profile_mapping_update.assert_called_once_with(
-        org_id=setup['org'].id,
+    # Verify TravelperkProfileMapping record was created in database
+    profile_mapping = TravelperkProfileMapping.objects.filter(
+        org=setup['org'], 
         profile_name='Test Profile No Currency',
-        source_id='profile_999',
-        defaults={
-            'country': 'Canada',
-            'currency': None,
-        }
-    ) 
+        source_id='profile_999'
+    ).first()
+    assert profile_mapping is not None
+    assert profile_mapping.country == 'Canada'
+    assert profile_mapping.currency is None 
