@@ -29,6 +29,9 @@ jobs:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./test-reports/report.xml
 
+      - name: Copy coverage file from container
+        run: docker compose -f docker-compose-pipeline.yml cp api:/fyle-integrations-settings-api/coverage.xml ./coverage.xml
+
       - name: Perform coverage check
         shell: bash
         run: |
