@@ -87,8 +87,8 @@ employee_report_url = '/v1/reports/custom?format=JSON&onlyCurrent=false'
 employee_by_id_url = '/v1/employees/123/?fields=workEmail&onlyCurrent=false'
 time_off_types_url = '/v1/meta/time_off/types/'
 
-# Base64 encoded credentials
-base64_credentials = 'dGVzdF9hcGlfdG9rZW46YQ=='
+# Test credentials
+base64_credentials = 'test_credentials_string'
 
 # Headers
 expected_headers = {
