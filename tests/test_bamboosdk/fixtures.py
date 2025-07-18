@@ -88,7 +88,7 @@ employee_by_id_url = '/v1/employees/123/?fields=workEmail&onlyCurrent=false'
 time_off_types_url = '/v1/meta/time_off/types/'
 
 # Test credentials
-base64_credentials = 'test_credentials_string'
+base64_credentials = 'testing_credentials_string'
 
 # Headers
 expected_headers = {
