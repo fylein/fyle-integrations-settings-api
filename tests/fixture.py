@@ -166,3 +166,100 @@ fixture = {
         ]
     }
 }
+
+# Static data for model fixtures
+org_data = {
+    'name': 'Test Org',
+    'fyle_org_id': 'orTwovfDpEYc',
+    'cluster_domain': 'https://test.fyle.tech'
+}
+
+fyle_credential_data = {
+    'refresh_token': 'dummy_refresh_token'
+}
+
+bamboohr_data = {
+    'folder_id': 'dummy',
+    'package_id': 'dummy',
+    'api_token': 'dummy_api_token',
+    'sub_domain': 'dummy_subdomain'
+}
+
+bamboohr_configuration_data = {
+    'additional_email_options': [
+        {
+            'name': 'Admin',
+            'email': 'admin@example.com'
+        },
+        {
+            'name': 'Manager',
+            'email': 'manager@example.com'
+        }
+    ],
+    'emails_selected': [
+        {
+            'name': 'Admin',
+            'email': 'admin@example.com'
+        },
+        {
+            'name': 'Manager',
+            'email': 'manager@example.com'
+        }
+    ]
+}
+
+travelperk_data = {
+    'folder_id': 'dummy',
+    'package_id': 'dummy',
+    'is_travelperk_connected': True
+}
+
+travelperk_profile_mapping_data = {
+    'profile_name': 'Dummy Profile',
+    'user_role': 'TRAVELLER',
+    'is_import_enabled': True,
+    'country': 'US',
+    'currency': 'USD',
+    'source_id': 'dummy_source_id'
+}
+
+travelperk_advanced_setting_data = {
+    'default_employee_name': 'ashwin.t@fyle.in',
+    'default_employee_id': 'usqywo0f3nBY',
+    'default_category_name': 'Acc. Dep-Leasehold Improvements',
+    'default_category_id': '228952',
+    'invoice_lineitem_structure': 'MULTIPLE',
+    'description_structure': [
+        'trip_id', 'trip_name', 'traveler_name', 'booker_name', 'merchant_name'
+    ],
+    'category_mappings': {
+        'Cars': {'id': '228952', 'name': 'Acc. Dep-Leasehold Improvements'},
+        'Hotels': {'id': '264337', 'name': 'Elon Baba'},
+        'Trains': {'id': '228955', 'name': 'Sales - Merchandise'},
+        'Flights': {'id': '228953', 'name': 'Customer Deposits'}
+    }
+}
+
+travelperk_credential_data = {
+    'refresh_token': 'dummy_refresh_token'
+}
+
+integration_accounting_data = {
+    'org_id': 'or3P3xJ0603e',
+    'org_name': 'Dummy Org',
+    'tpa_id': 'tpa129sjcjkjx',
+    'tpa_name': 'Fyle QuickBooks Online Integration',
+    'type': 'ACCOUNTING',
+    'is_active': True,
+    'is_beta': True
+}
+
+integration_hrms_data = {
+    'org_id': 'or3P3xJ0603e',
+    'org_name': 'Dummy Org',
+    'tpa_id': 'tpa129sjcjkjx',
+    'tpa_name': 'Fyle HRMS',
+    'type': 'HRMS',
+    'is_active': True,
+    'is_beta': True
+}

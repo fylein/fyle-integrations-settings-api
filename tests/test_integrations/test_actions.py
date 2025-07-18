@@ -1,66 +1,40 @@
 import json
-
 import pytest
-from unittest.mock import MagicMock, patch
 
 from apps.integrations.actions import get_integration, get_org_id_and_name_from_access_token
-
 from .fixture import post_integration_hrms
 
 
-@pytest.mark.django_db(databases=['default'])
-def test_get_integration(mocker, access_token, create_integrations):
-    dummy_org_id = 'or3P3xJ0603e'
-    mocker.patch(
-        'apps.integrations.actions.get_org_id_and_name_from_access_token',
-        return_value={"id":dummy_org_id, "name":"Dummy Org"}
-    )
-    mocker.patch(
-        'apps.integrations.actions.get_cluster_domain',
-        return_value='https://hehe.fyle.tech'
-    )
-
+def test_get_integration(mock_dependencies, mocker, access_token, create_integrations):
+    """
+    Test get_integration action
+    Case: Returns correct integration data
+    """
     integration = get_integration('HRMS', access_token).first()
 
-    assert integration.org_id == dummy_org_id
+    assert integration.org_id == mock_dependencies.org_id
     assert integration.tpa_id == post_integration_hrms['tpa_id']
     assert integration.tpa_name == post_integration_hrms['tpa_name']
     assert integration.type == post_integration_hrms['type']
     assert integration.is_active == post_integration_hrms['is_active']
-    assert integration.is_beta == True
-    assert integration.disconnected_at == None
+    assert integration.is_beta is True
+    assert integration.disconnected_at is None
 
 
-@pytest.mark.django_db(databases=['default'])
-@patch('apps.integrations.actions.requests')
-def get_org_id_and_name_from_access_token(api_client, mocker, access_token, create_integrations):
-    dummy_org_id = 'or3P3xJ0603e'
-    mocker.patch(
-        'apps.users.helpers.get_cluster_domain',
-        return_value='https://hehe.fyle.tech'
-    )
+def test_get_org_id_and_name_from_access_token_case_1(mock_dependencies, api_client, mocker, access_token, create_integrations):
+    """
+    Test get_org_id_and_name_from_access_token action
+    Case: Valid response returns org data
+    """
+    result = get_org_id_and_name_from_access_token(access_token)
+    assert result['id'] == mock_dependencies.org_id
+    assert result['name'] == 'Dummy Org'
 
-    mock_response = MagicMock()
-    mock_response.status_code = 200
 
-    api_mock_response = {
-        'data': {
-            'org': {
-                'id': dummy_org_id,
-                'name': 'Dummy Org'
-            }
-        }
-    }
-
-    mock_response.text = json.dumps(api_mock_response)
-
-    api_client.get.return_value = mock_response
-
-    get_org_id_and_name_from_access_token(access_token)
-
-    mock_response = MagicMock()
-    mock_response.status_code = 400
-    api_client.get.return_value = mock_response
-
+def test_get_org_id_and_name_from_access_token_case_2(mock_dependencies, api_client, mocker, access_token, create_integrations):
+    """
+    Test get_org_id_and_name_from_access_token action
+    Case: Invalid response raises exception
+    """
     with pytest.raises(Exception):
         get_org_id_and_name_from_access_token(access_token)

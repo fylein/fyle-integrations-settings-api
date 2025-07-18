@@ -1,3 +1,17 @@
+# Static test data for mocks
+dummy_org_id = 'or3P3xJ0603e'
+dummy_org_name = 'Dummy Org'
+cluster_domain = 'https://hehe.fyle.tech'
+
+api_mock_response = {
+    'data': {
+        'org': {
+            'id': dummy_org_id,
+            'name': dummy_org_name
+        }
+    }
+}
+
 mock_post_new_integration_response = {
     "id": 15,
     "org_id": "or3P3xJ0603e",
@@ -56,6 +70,13 @@ post_integration_hrms = {
     'type': 'HRMS',
     'is_active': True,
     'connected_at': '2023-08-29T11:21:13.840713Z'
+}
+
+inactive_integration_data = {
+    'is_active': False,
+    'tpa_id': 'tpa129sjcjkjx',
+    'tpa_name': 'Fyle QuickBooks Online Integration',
+    'type': 'ACCOUNTING'
 }
 
 delete_integration = {
