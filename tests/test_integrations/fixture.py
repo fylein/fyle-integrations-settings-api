@@ -45,6 +45,7 @@ post_integration_accounting_2 = {
 patch_integration = {
     'tpa_name': 'Fyle QuickBooks Online Integration',
     'errors_count': 12,
+    'unmapped_card_count': 10,
     'is_token_expired': False
 }
 
@@ -56,11 +57,13 @@ patch_integration_partial = {
 patch_integration_invalid_tpa_name = {
     'tpa_name': 'Very Invalid TPA Name',
     'errors_count': 12,
+    'unmapped_card_count': 10,
     'is_token_expired': False
 }
 
 patch_integration_no_tpa_name = {
     'errors_count': 12,
+    'unmapped_card_count': 10,
     'is_token_expired': False
 }
 
