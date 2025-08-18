@@ -3,7 +3,7 @@ Travelperk Python Class
 """
 import json
 import requests
-from future.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 from connectors.travelperk.exceptions import *
 from connectors.travelperk.apis.invoice_profiles import InvoiceProfiles
