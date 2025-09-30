@@ -74,6 +74,7 @@ fixture = {
       "allow_gusto": True,
       "is_fyle_connected":"true",
       "is_sendgrid_connected":"false",
+      "is_org_rebranded": False,
       "cluster_domain":"https://staging.fyle.tech",
       "created_at":"2022-09-27T09:58:51.483072Z",
       "updated_at":"2022-09-27T09:58:51.483135Z",
