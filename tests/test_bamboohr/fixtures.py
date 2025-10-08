@@ -130,13 +130,69 @@ webhook_payload = {
 # Health check test data
 bamboohr_timeoff_success_response = {
     'timeOffTypes': [
-        {'id': 1, 'name': 'Vacation'},
-        {'id': 2, 'name': 'Sick Leave'}
+        {
+            'id': 1, 'name': 'Vacation'
+        },
+        {
+            'id': 2, 'name': 'Sick Leave'
+        }
+    ],
+    'defaultHours': [
+        {
+            'name': 'Saturday', 'amount': '0'
+        },
+        {
+            'name': 'Sunday', 'amount': '0'
+        },
+        {
+            'name': 'default', 'amount': '8'
+        },
+        {
+            'name': 'Monday', 'amount': '8'
+        },
+        {
+            'name': 'Tuesday', 'amount': '8'
+        },
+        {
+            'name': 'Wednesday', 'amount': '8'
+        },
+        {
+            'name': 'Thursday', 'amount': '8'
+        },
+        {
+            'name': 'Friday', 'amount': '8'
+        }
     ]
 }
 
 bamboohr_timeoff_empty_response = {
-    'timeOffTypes': []
+    'timeOffTypes': [],
+    'defaultHours': [
+        {
+            'name': 'Saturday', 'amount': '0'
+        },
+        {
+            'name': 'Sunday', 'amount': '0'
+        },
+        {
+            'name': 'default', 'amount': '8'
+        },
+        {
+            'name': 'Monday', 'amount': '8'
+        },
+        {
+            'name': 'Tuesday', 'amount': '8'
+        },
+        {
+            'name': 'Wednesday', 'amount': '8'
+        },
+        {
+            'name': 'Thursday', 'amount': '8'
+        },
+        {
+            'name': 'Friday', 'amount': '8'
+        }
+    ]
 }
 
 # Sync employees test data

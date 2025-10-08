@@ -131,7 +131,7 @@ def test_post_bamboohr_connection_view_case_3(mock_dependencies, api_client, acc
     assert response.status_code == status.HTTP_200_OK
 
     mock_dependencies.add_to_integrations.assert_called_once()
-    
+
     bamboohr = BambooHr.objects.filter(org=create_org).first()
     assert bamboohr is not None
     assert bamboohr.api_token == mock_dependencies.bamboo_connection['input']['api_token']

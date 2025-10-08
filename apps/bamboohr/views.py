@@ -35,7 +35,7 @@ class HealthCheck(generics.ListAPIView):
         except Exception:
             return invalidate_token_and_get_response(kwargs['org_id'])
 
-        if response['timeOffTypes']:
+        if response['defaultHours']:
             return Response(
                 data = {
                     'message': 'Ready'
@@ -109,7 +109,7 @@ class BambooHrConnection(generics.CreateAPIView):
             return invalidate_token_and_get_response(kwargs['org_id'])
 
         logger.info('Bamboo HR Connection Timeoff Response | Content: {0}'.format(timeoff))
-        if timeoff.get('timeOffTypes', None):
+        if timeoff.get('defaultHours', None):
             bamboohr, _ = BambooHr.objects.update_or_create(org=org, defaults={
                 'api_token': api_token,
                 'sub_domain': sub_domain
