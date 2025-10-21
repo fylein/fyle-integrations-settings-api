@@ -20,7 +20,7 @@ class IntegrationsView(generics.ListCreateAPIView, generics.UpdateAPIView, gener
     pagination_class = None
     serializer_class = IntegrationSerializer
     pagination_class = None
-    queryset = Integration.objects.filter(is_active=True, is_beta=True).exclude(tpa_name='Sage File Export Integration').order_by('type', '-updated_at')
+    queryset = Integration.objects.filter(is_active=True, is_beta=True).order_by('type', '-updated_at')
     filterset_fields = {'type': {'exact'}, 'org_id': {'exact'}}
 
     def get_object(self):

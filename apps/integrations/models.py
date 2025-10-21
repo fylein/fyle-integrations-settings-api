@@ -14,6 +14,7 @@ class Integration(models.Model):
     is_beta = models.BooleanField(default=True, help_text='Is Beta')
     errors_count = models.IntegerField(default=0, help_text='The number of errors present in the integration')
     unmapped_card_count = models.IntegerField(default=0, help_text='The number of unmapped cards present in the integration')
+    unmapped_employee_count = models.IntegerField(default=0, help_text='The number of unmapped employees present in the integration')
     is_token_expired = models.BooleanField(default=False, help_text='Whether the integration\'s access token has expired')
     connected_at = models.DateTimeField(auto_now_add=True, help_text='Connected at datetime')
     disconnected_at = models.DateTimeField(null=True, help_text='Disconnected at datetime')

@@ -29,6 +29,7 @@ class IntegrationSerializer(serializers.ModelSerializer):
                     'tpa_name': validated_data['tpa_name'],
                     'errors_count': 0,
                     'unmapped_card_count': 0,
+                    'unmapped_employee_count': 0,
                     'is_token_expired': False
                 }
             )
