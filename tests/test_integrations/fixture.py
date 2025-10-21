@@ -46,6 +46,7 @@ patch_integration = {
     'tpa_name': 'Fyle QuickBooks Online Integration',
     'errors_count': 12,
     'unmapped_card_count': 10,
+    'unmapped_employee_count': 5,
     'is_token_expired': False
 }
 
