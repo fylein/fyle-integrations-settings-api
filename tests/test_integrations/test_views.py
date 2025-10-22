@@ -42,6 +42,7 @@ def test_integrations_view_post_accounting_case_1(mock_dependencies, api_client,
         'org_name': response_data['org_name'],
         'errors_count': response_data['errors_count'],
         'unmapped_card_count': response_data['unmapped_card_count'],
+        'unmapped_employee_count': response_data['unmapped_employee_count'],
         'is_token_expired': response_data['is_token_expired'],
         'connected_at': response_data['connected_at'],
         'updated_at': response_data['updated_at']
@@ -83,6 +84,7 @@ def test_integrations_view_post_case_1(mock_dependencies, api_client, mocker, ac
         'org_name': response_data['org_name'],
         'errors_count': response_data['errors_count'],
         'unmapped_card_count': response_data['unmapped_card_count'],
+        'unmapped_employee_count': response_data['unmapped_employee_count'],
         'is_token_expired': response_data['is_token_expired'],
         'connected_at': response_data['connected_at'],
         'updated_at': response_data['updated_at']
@@ -107,6 +109,7 @@ def test_integrations_view_post_case_1(mock_dependencies, api_client, mocker, ac
         'org_name': response_data['org_name'],
         'errors_count': response_data['errors_count'],
         'unmapped_card_count': response_data['unmapped_card_count'],
+        'unmapped_employee_count': response_data['unmapped_employee_count'],
         'is_token_expired': response_data['is_token_expired'],
         'connected_at': response_data['connected_at'],
         'updated_at': response_data['updated_at']
@@ -132,6 +135,7 @@ def test_integrations_view_post_case_1(mock_dependencies, api_client, mocker, ac
         'org_name': response_data['org_name'],
         'errors_count': response_data['errors_count'],
         'unmapped_card_count': response_data['unmapped_card_count'],
+        'unmapped_employee_count': response_data['unmapped_employee_count'],
         'is_token_expired': response_data['is_token_expired'],
         'connected_at': response_data['connected_at'],
         'updated_at': response_data['updated_at']
@@ -170,6 +174,7 @@ def test_integrations_view_get_case_1(mock_dependencies, api_client, mocker, acc
         'org_name': response_data[0]['org_name'],
         'errors_count': response_data[0]['errors_count'],
         'unmapped_card_count': response_data[0]['unmapped_card_count'],
+        'unmapped_employee_count': response_data[0]['unmapped_employee_count'],
         'is_token_expired': response_data[0]['is_token_expired'],
         'connected_at': response_data[0]['connected_at'],
         'updated_at': response_data[0]['updated_at']
@@ -193,6 +198,7 @@ def test_integrations_view_get_case_1(mock_dependencies, api_client, mocker, acc
         'org_name': response_data[0]['org_name'],
         'errors_count': response_data[0]['errors_count'],
         'unmapped_card_count': response_data[0]['unmapped_card_count'],
+        'unmapped_employee_count': response_data[0]['unmapped_employee_count'],
         'is_token_expired': response_data[0]['is_token_expired'],
         'connected_at': response_data[0]['connected_at'],
         'updated_at': response_data[0]['updated_at']
@@ -270,6 +276,7 @@ def test_integrations_view_patch_case_1(mock_dependencies, api_client, mocker, a
         'tpa_name': patch_integration['tpa_name'],
         'errors_count': patch_integration['errors_count'],
         'unmapped_card_count': patch_integration['unmapped_card_count'],
+        'unmapped_employee_count': patch_integration['unmapped_employee_count'],
         'is_token_expired': patch_integration['is_token_expired'],
         'is_beta': True,
         'disconnected_at': None,
