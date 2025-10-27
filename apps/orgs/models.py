@@ -18,7 +18,7 @@ class Org(models.Model):
     cluster_domain = models.CharField(max_length=255, help_text='Fyle cluster domain')
     is_fyle_connected = models.BooleanField(null=True, help_text='Is Fyle API Connected')
     is_sendgrid_connected = models.BooleanField(null=True, help_text='Is Sendgrid Connected')
-    is_org_rebranded = models.BooleanField(default=False, help_text='Is Org Rebranded')
+    is_org_rebranded = models.BooleanField(default=True, help_text='Is Org Rebranded')
     allow_travelperk = models.BooleanField(default=True, help_text='Allow Travelperk')
     allow_gusto = models.BooleanField(default=False, help_text='Allow Gusto')
     allow_dynamics = models.BooleanField(default=True, help_text='Allow Dynamics')
