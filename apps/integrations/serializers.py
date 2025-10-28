@@ -30,7 +30,8 @@ class IntegrationSerializer(serializers.ModelSerializer):
                     'errors_count': 0,
                     'unmapped_card_count': 0,
                     'unmapped_employee_count': 0,
-                    'is_token_expired': False
+                    'is_token_expired': False,
+                    'has_payment_mode_changed': False
                 }
             )
         elif not validated_data['is_active']:

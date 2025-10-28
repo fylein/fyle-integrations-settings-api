@@ -47,6 +47,7 @@ patch_integration = {
     'errors_count': 12,
     'unmapped_card_count': 10,
     'unmapped_employee_count': 5,
+    'has_payment_mode_changed': False,
     'is_token_expired': False
 }
 
