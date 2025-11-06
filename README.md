@@ -17,4 +17,3 @@ Django Rest Framework API for Fyle integrations settings API
 * Right Now We support integrations with
     1. BambooHr
     2. Travelperk
-# Django 4.2.26 security update
