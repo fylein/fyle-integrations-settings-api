@@ -38,7 +38,7 @@ CATEGORY_MAP = {
     'car': 'Taxi',
     'train': 'Train',
     'hotel': 'Lodging',
-    'pro_v2': 'Travelperk Charges'
+    'pro_v2': 'Perk Charges'
 }
 
 logger = logging.getLogger(__name__)
