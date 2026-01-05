@@ -184,7 +184,7 @@ def construct_expense_payload(org_id: str, expense: dict, amount: int, file_ids:
             'source': 'CORPORATE_CARD',
             'spent_at': str(datetime.strptime(expense.expense_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)),
             'purpose': purpose,
-            'merchant': 'Travelperk',
+            'merchant': 'Perk',
             'category_id': category_id,
             'file_ids': file_ids
         }
