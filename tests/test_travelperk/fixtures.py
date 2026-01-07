@@ -71,7 +71,7 @@ fixture = {
             'source':'CORPORATE_CARD',
             'spent_at':'2024-03-10 00:00:00+00:00',
             'purpose':'10205 - Flight to West Lisaville, Apr 12 - Apr 13 - Nilesh Pant - Nilesh Pant - Vueling',
-            'merchant':'Travelperk',
+            'merchant':'Perk',
             'category_id':'1234',
             'admin_amount':'120.63',
             'file_ids': ['123'],
