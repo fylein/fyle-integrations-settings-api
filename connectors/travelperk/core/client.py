@@ -33,7 +33,7 @@ class Travelperk:
             self.__token_url = 'https://app.sandbox-travelperk.com/accounts/oauth2/token/'
         elif environment.lower() == 'production':
             self.__base_url = 'https://api.travelperk.com'
-            self.__token_url = 'https://app.travelperk.com/accounts/oauth2/token/'
+            self.__token_url = 'https://app.perk.com/accounts/oauth2/token/'
         else:
             raise ValueError('environment can only be prodcution / sandbox')
 
