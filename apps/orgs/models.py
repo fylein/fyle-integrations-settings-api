@@ -22,6 +22,7 @@ class Org(models.Model):
     allow_travelperk = models.BooleanField(default=True, help_text='Allow Travelperk')
     allow_gusto = models.BooleanField(default=False, help_text='Allow Gusto')
     allow_dynamics = models.BooleanField(default=False, help_text='Allow Dynamics')
+    allow_bamboohr = models.BooleanField(default=False, help_text='Allow BambooHR')
     allow_qbd_direct_integration = models.BooleanField(default=True, help_text='Allow QBD Direct Integration')
     created_at = models.DateTimeField(auto_now_add=True, help_text='Created at datetime')
     updated_at = models.DateTimeField(auto_now=True, help_text='Updated at datetime')
